@@ -263,7 +263,9 @@ Grundlage sind die Bewertungskonzepte der Nutzerin für Volleyball und Badminton
   - leer → zählt nicht (noch nicht erfasst; deutlich markiert)
   - Knopf „alle Anwesenden auf 2“ (Standardwert, je Reihe einstellbar) zum Vorbelegen; danach nur Abweichungen antippen. Optional Notiz je Person.
 - Zusätzlich je Person und Einheit Häkchen für die **Aufwertungsmerkmale** der Reihe (siehe unten).
-- **Ø Beteiligung** = Summe der Punkte der zählenden Einheiten / Anzahl zählender Einheiten (0 bis 3). Keine zählende Einheit → leer. Hinweis in der Übersicht, wenn weniger als 4 Einheiten zählen (Grenze einstellbar).
+- Optional **Übungsmessungen** je Einheit (nicht notenrelevant): frei benannte Zahlenwerte je Person, z. B. „Pritschen an der Wand (45 s)“ beim Zählritual. Die Personenübersicht zeigt den Verlauf (Ausgangswert und Fortschritt) als kleine Tabelle bzw. Linie. Die Vorlage kann Messungen vorgeben.
+- **Ø Beteiligung** = Summe der Punkte der zählenden Einheiten / Anzahl zählender Einheiten (0 bis 3). Keine zählende Einheit → leer. Auch Prüfungsstunden sind Einheiten und zählen bei der Beteiligung mit.
+- **Mindestzahl zählender Einheiten** je Reihe (Standard 3). Darunter wird die Mitarbeit **nicht gewertet** (die Teilleistung Mitarbeit bleibt für diese Person leer, der Reihenwert ergibt sich aus den übrigen Teilleistungen, bei Volleyball also aus der Prüfung allein). Deutlicher Hinweis in den Übersichten; per Schalter je Reihe abschaltbar (dann nur Hinweis).
 - **Umrechnung Ø Beteiligung → Mitarbeitsnote** über eine **Tabelle je Reihe** (aus der Vorlage; Grenzen „größer oder gleich“, Gleitkommafehler abfangen). Ergebnis ist eine ganze Note bzw. Punktzahl.
 - **Aufwertungsmerkmale** je Reihe: Name und Stufen der Form „ab n Einheiten → Wert“ (Wert in Noten, z. B. 1/3 oder 0,5; bzw. in Punkten). Ein Merkmal zählt nur aus Einheiten, in denen die Person **nicht** „kein Sportzeug“ hatte; Häkchen in solchen Einheiten werden beim Zählen ignoriert (in der Oberfläche grau). Erreichte Stufe = höchste Stufe, deren n erreicht ist.
 - **Mitarbeitsnote** = Note aus der Tabelle **minus** Summe der Aufwertungen (Noten), höchstens 1,0 Note Abzug und nie besser als 1,0; bei Punkten **plus** Aufwertung, höchstens 3 Punkte und nie über 15. Werte wie 1/3 exakt rechnen (nicht 0,33), Anzeige mit zwei Nachkommastellen (z. B. 1,67).
@@ -271,7 +273,8 @@ Grundlage sind die Bewertungskonzepte der Nutzerin für Volleyball und Badminton
 
 ### 9.4 Reihenwert, alternative Leistung
 - **Reihenwert** = gewichteter Mittelwert der vorhandenen Teilleistungen (fehlende zählen weder im Zähler noch im Nenner). Standard: Zwischenwerte nicht runden. Option je Reihe „Reihennote auf ganze Note runden“ (Regel wie 9.5), Standard aus.
-- **Alternative Leistung** je Person und Reihe (langfristig nicht sporttauglich): getrennt für jede Teilleistung möglich (z. B. Prüfung ersetzt durch „schriftlicher Test zu Regeln und Technikmerkmalen“ mit Note; Mitarbeit läuft über „nicht sporttauglich, Aufgabe übernommen“ normal weiter) oder für die ganze Reihe. Beschreibung Pflichtfeld; Kennzeichnung in allen Übersichten und im Druck.
+- **Alternative Leistung** je Person und Reihe (langfristig nicht sporttauglich, meist ein bis zwei Personen je Klasse): getrennt für jede Teilleistung möglich oder für die ganze Reihe. Mitarbeit läuft in der Regel normal über „nicht sporttauglich, Aufgabe übernommen“ weiter. Für die Prüfung kann die Vorlage eine **Ersatzprüfung** mit eigenen Prüfungsteilen (Rohpunkte) vorgeben, die **denselben Punkteschlüssel** nutzt wie die reguläre Prüfung; alternativ direkte Note. Beschreibung Pflichtfeld; Kennzeichnung in allen Übersichten und im Druck.
+- **Prüfung verpasst:** je Person Status „Prüfung offen, Nachprüfung“ mit optionalem Nachtermin. Solche Personen erscheinen in der Nachschreibliste aus 8.6 (dort mit Fach Sport und Reihe). Werden die Rohwerte später eingetragen, wird nach dem Nachprüfungsdatum gefragt.
 
 ### 9.5 Halbjahres-, Jahres- und Zeugnisnote
 - **Halbjahreswert** = gewichteter Mittelwert der Reihenwerte des Halbjahres. Bei „ein Halbjahr“ alle Reihen.
@@ -296,9 +299,12 @@ Grundlage sind die Bewertungskonzepte der Nutzerin für Volleyball und Badminton
 - Neue Reihe: „aus Vorlage“ (Standard) oder leer. Eigene Reihe als Vorlage speichern. Vorlagen umbenennen, duplizieren, löschen.
 - Eine Reihe speichert eine **Kopie** der Vorlage. Spätere Änderungen an der Vorlage ändern bestehende Reihen nicht. Knopf „Änderungen der Vorlage auf Reihen übertragen“ mit Auswahl der Reihen und deutlicher Warnung, wenn in einer Reihe schon Prüfungswerte eingetragen sind (Kriterien sollen nach Ausgabe des Kriterienblatts nicht mehr geändert werden).
 - **Mitgelieferte Vorlage „Volleyball BBS“** (Notensystem Noten):
-  - Prüfung (Rohpunkte), Gewicht 1 (50 %). Teile: „A Pritschen an die Wand (45 s)“ Höchstwert 35, Faktor 1; „B Baggern an die Wand (45 s)“ Höchstwert 25, Faktor 1; „C Aufschlag (10 Versuche, Ansage)“ Höchstwert 20, Faktor 1; „D Technik: Pritschen Kontakt über der Stirn“, „D Technik: Pritschen kurz gespielt“, „D Technik: Baggern Arme gestreckt“, „D Technik: Baggern Impuls aus den Beinen“ je Höchstwert 2, Faktor 2,5. Summe höchstens 100. Punkteschlüssel: ab 85 → 1; ab 65 → 2; ab 40 → 3; ab 25 → 4; ab 10 → 5; darunter 6.
+  - Prüfung (Rohpunkte), Gewicht 1 (50 %). Teile: „A Pritschen an die Wand (45 s)“ Höchstwert 35, Faktor 1; „B Baggern an die Wand (45 s)“ Höchstwert 25, Faktor 1; „C Aufschlag (10 Versuche, Ansage)“ Höchstwert 20, Faktor 1; „D Technik: Pritschen Hände über der Stirn, Körbchenhaltung (kleines und großes Dreieck)“, „D Technik: Pritschen aus gebeugten Knien mit Ganzkörperstreckung“, „D Technik: Baggern Spielbrett gestreckt und geschlossen, Kontakt an den Unterarmen“, „D Technik: Baggern tiefe Ausgangsstellung, Impuls aus den Beinen, Arme nicht über Schulterhöhe“ je Höchstwert 2, Faktor 2,5. Summe höchstens 100. Punkteschlüssel: ab 85 → 1; ab 65 → 2; ab 40 → 3; ab 25 → 4; ab 10 → 5; darunter 6.
   - Mitarbeit (Einheiten), Gewicht 1 (50 %). Standardwert 2. Beschreibungen: 3 „in allen Phasen aktiv, übernimmt Aufgaben zuverlässig“; 2 „aktiv mit Pausen“; 1 „mit Sportzeug da, aber überwiegend passiv oder nur nach Aufforderung aktiv“; 0 „ohne Sportzeug oder unentschuldigt nicht aktiv“. Tabelle: Ø ab 2,5 → 1; ab 2,0 → 2; ab 1,5 → 3; ab 1,0 → 4; ab 0,5 → 5; darunter 6.
   - Aufwertungsmerkmale (je „ab 2 Einheiten → 1/3 Note“): „bewegt sich zum Ball und ruft ihn an“, „spielt gezielt in freie Räume“, „zählt sicher / leitet als Schiedsrichter ohne Eingreifen“.
+  - Mindestzahl zählender Einheiten 3, darunter zählt die Prüfung allein.
+  - Ersatzprüfung (100 Punkte, gleicher Punkteschlüssel): „Regeltest Grundregeln“ Höchstwert 40; „Aufwärmen anleiten (5 Min.)“ Höchstwert 30; „Schiedsrichterleistung (Stichproben)“ Höchstwert 30.
+  - Übungsmessungen: „Pritschen an der Wand (45 s)“, „Baggern an der Wand (45 s)“, „Aufschläge Probelauf (von 10)“.
 - **Mitgelieferte Vorlage „Badminton BBS“** (Notensystem Noten):
   - Technikprüfung (Rohpunkte), Gewicht 0,6 (60 %). Ein Teil „Technikprüfung gesamt“ Höchstwert 35 (die Nutzerin teilt ihn bei Bedarf selbst in Einzelteile auf). Punkteschlüssel: ab 27 → 1; ab 21 → 2; ab 14 → 3; ab 9 → 4; ab 3 → 5; darunter 6.
   - Spiel/Mitarbeit (Einheiten), Gewicht 0,4 (40 %). Tabelle: Ø ab 2,8 → 2; ab 2,3 → 3; ab 1,8 → 4; ab 1,3 → 5; darunter 6 (Note 1 nur über Aufwertung).
@@ -314,7 +320,9 @@ Grundlage sind die Bewertungskonzepte der Nutzerin für Volleyball und Badminton
 - **Rundung:** Halbjahreswert genau 2,5 → zugunsten 2, kaufmännisch 3; 2,51 → 3 in beiden.
 - **Grenzwerte der Tabellen:** Ø genau 2,5 → 1 (Volleyball); Ø 2,4999 → 2. Prüfungspunkte genau 40 → 3; 39,5 → 4.
 - **Unvollständige Prüfung:** Teil C fehlt → Prüfungsnote leer; Reihenwert nur aus Mitarbeit.
-- **Alternative Leistung:** Prüfung ersetzt durch schriftlichen Test 2,7, Mitarbeit normal 2,0 → Reihenwert (Volleyball 50/50) 2,35.
+- **Mindestzahl:** Volleyball, nur 2 zählende Einheiten (Ø 3,0), Prüfung 3 → Mitarbeit nicht gewertet → Reihenwert 3,0. Mit 3 zählenden Einheiten (Ø 3,0 → 1) → (3 + 1) / 2 = 2,0.
+- **Ersatzprüfung Volleyball:** Regeltest 30, Aufwärmen 20, Schiedsrichter 15 → 65 Punkte → 2; Mitarbeit 2,0 → Reihenwert 2,0.
+- **Alternative Leistung direkt:** Prüfung ersetzt durch direkte Note 2,7, Mitarbeit normal 2,0 → Reihenwert (Volleyball 50/50) 2,35.
 - **Punkte (BG), ganzes Schuljahr:** Reihe Hj 1: Prüfung direkt 9 P, Mitarbeit Ø 2,142857 → 10 P, Merkmal erreicht +1 → 11 P; Reihenwert (9 + 11) / 2 = 10,0. Reihe Hj 2: Halbjahreswert 11,0. Jahreswert 10,5 → Zeugnis 11 Punkte (beide Rundungsregeln).
 - **Vorlage ändern:** Änderung des Punkteschlüssels in der Vorlage ändert bestehende Reihen nicht; nach „übertragen“ schon.
 - **Regression:** alle Tests aus Abschnitt 4 und 8 bleiben unverändert grün; Lernfeld-Klassen verändern sich nicht.
