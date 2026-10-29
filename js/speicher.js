@@ -9,11 +9,24 @@ const EINSTELLUNGEN = 'notenverwaltung-einstellungen';
 
 // ---------- Einstellungen (localStorage) ----------
 
+// Geräteeinstellungen (nur dieser Browser). Client-ID und Tenant-ID für OneDrive stehen hier, nicht im Code.
+const STANDARD = {
+  keineDatenBehalten: false,
+  farbschema: 'auto',
+  sperreMinuten: 15,
+  untisLoeschen: false,
+  untisOrdnerName: '',
+  onedriveClientId: '',
+  onedriveTenantId: '',
+  onedriveAutosave: true,
+  onedriveEingang: false,
+};
+
 export function einstellungen() {
   try {
-    return { keineDatenBehalten: false, farbschema: 'auto', ...JSON.parse(localStorage.getItem(EINSTELLUNGEN) || '{}') };
+    return { ...STANDARD, ...JSON.parse(localStorage.getItem(EINSTELLUNGEN) || '{}') };
   } catch {
-    return { keineDatenBehalten: false, farbschema: 'auto' };
+    return { ...STANDARD };
   }
 }
 

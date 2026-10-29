@@ -5,3 +5,4 @@ import './dalton.js';
 import './fehlzeiten.js';
 import './nachschreiben.js';
 import './listen.js';
+import './einstellungen.js';

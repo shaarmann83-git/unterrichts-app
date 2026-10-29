@@ -15,7 +15,8 @@ import {
 import { importiereVorlage } from './excel.js';
 import { h, meldung, bestaetigen, passwortFrage, auswahl, inhaltDialog, toast } from './ui.js';
 
-export function setzeDokument(buch, { passwort = '', handle = null, name = '', geaendert = false, ziel = 'buch', klasseId = null } = {}) {
+export function setzeDokument(buch, { passwort = '', handle = null, name = '', geaendert = false, ziel = 'buch', klasseId = null, pruefen = true } = {}) {
+  K.sync = null;
   K.buch = buch;
   K.klasseId = klasseId || null;
   K.passwort = passwort;
@@ -27,6 +28,7 @@ export function setzeDokument(buch, { passwort = '', handle = null, name = '', g
   K.neuZeichnen();
   // Arbeitskopie sofort anlegen, damit „zuletzt geöffnet“ stimmt.
   arbeitskopieSpeichern(buch, name, geaendert, passwort).catch(() => {});
+  if (pruefen) K.nachOeffnen?.();
 }
 
 export async function neueDateiAnlegen() {
@@ -149,6 +151,8 @@ export async function passwortFuerFotosSicherstellen() {
 export async function speichern({ neuWaehlen = false } = {}) {
   if (!K.buch) return false;
   if (!(await passwortFuerFotosSicherstellen())) return false;
+  // Synchronisation eingeschaltet: Speichern geht nach OneDrive (verschlüsselt, mit Konfliktprüfung)
+  if (K.sync && K.syncSpeichern && !neuWaehlen) return K.syncSpeichern();
   const vorher = K.buch.gespeichertAm;
   K.buch.gespeichertAm = new Date().toISOString();
   try {
@@ -245,6 +249,7 @@ export async function dateiSchliessen() {
   K.handle = null;
   K.dateiname = '';
   K.geaendert = false;
+  K.sync = null;
   schluesselVergessen();
   K.statusAktualisieren?.();
   K.navigiere('start');

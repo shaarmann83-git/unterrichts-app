@@ -1,12 +1,12 @@
 // Offline-Dienst: legt die App-Dateien beim ersten Besuch ab und liefert sie danach ohne Netz.
-const VERSION = 'noten-v1';
+const VERSION = 'noten-v2';
 const DATEIEN = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   'lib/xlsx.full.min.js',
   'js/app.js', 'js/registry.js', 'js/start-app.js', 'js/dalton.js', 'js/foto.js', 'js/fehlzeiten.js', 'js/tabelle.js', 'js/sync.js', 'js/onedrive.js', 'lib/msal-browser.min.js', 'js/listen.js', 'js/untis-eingang.js', 'js/untis.js', 'js/nachschreiben.js', 'js/tabelle-datei.js', 'js/schuelerliste.js', 'js/aktionen.js', 'js/excel.js', 'js/ihk-schema.js', 'js/kontext.js', 'js/krypto.js',
   'js/modell.js', 'js/rechnen.js', 'js/speicher.js', 'js/ui.js',
-  'js/ansichten/index.js', 'js/ansichten/listen.js', 'js/ansichten/fehlzeiten.js', 'js/ansichten/nachschreiben.js', 'js/ansichten/untis-dialog.js', 'js/ansichten/dalton.js', 'js/ansichten/person.js', 'js/ansichten/archiv.js', 'js/ansichten/buch.js', 'js/ansichten/start.js', 'js/ansichten/grunddaten.js', 'js/ansichten/klassenarbeit.js',
+  'js/ansichten/index.js', 'js/ansichten/einstellungen.js', 'js/dienste.js', 'js/sync-ui.js', 'js/ansichten/listen.js', 'js/ansichten/fehlzeiten.js', 'js/ansichten/nachschreiben.js', 'js/ansichten/untis-dialog.js', 'js/ansichten/dalton.js', 'js/ansichten/person.js', 'js/ansichten/archiv.js', 'js/ansichten/buch.js', 'js/ansichten/start.js', 'js/ansichten/grunddaten.js', 'js/ansichten/klassenarbeit.js',
   'js/ansichten/sonstige.js', 'js/ansichten/gesamt.js', 'js/ansichten/drucken.js',
 ];
 
@@ -25,6 +25,23 @@ self.addEventListener('activate', (e) => {
 // Erst Netz (damit Updates ankommen), bei Fehler die gespeicherte Datei.
 self.addEventListener('fetch', (e) => {
   const anfrage = e.request;
+  // Android-Teilen-Menü (Web Share Target): Untis-Dateien in einer Ablage merken, dann die App öffnen.
+  if (anfrage.method === 'POST' && new URL(anfrage.url).pathname.endsWith('/share-target')) {
+    e.respondWith(
+      (async () => {
+        const daten = await anfrage.formData();
+        const ablage = await caches.open('untis-eingang');
+        let n = 0;
+        for (const datei of daten.getAll('untis')) {
+          if (!datei || !datei.name) continue;
+          const kopf = { 'X-Dateiname': encodeURIComponent(datei.name), 'X-Zeit': String(Date.now()), 'Content-Type': 'application/octet-stream' };
+          await ablage.put(new Request(new URL(`eingang/${Date.now()}_${n++}`, self.registration.scope).href), new Response(datei, { headers: kopf }));
+        }
+        return Response.redirect(new URL('index.html#/nachschreiben', self.registration.scope).href, 303);
+      })(),
+    );
+    return;
+  }
   if (anfrage.method !== 'GET' || new URL(anfrage.url).origin !== location.origin) return;
   e.respondWith(
     fetch(anfrage)

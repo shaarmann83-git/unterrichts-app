@@ -41,7 +41,7 @@ function menueZeichnen(aktiv) {
   const sortiert = Object.entries(ANSICHTEN).sort((a, b) => (a[1].reihe ?? 50) - (b[1].reihe ?? 50));
   for (const [id, def] of sortiert) {
     if (def.keinMenue || !sichtbar(def)) continue;
-    const gesperrt = id !== 'start' && (!K.buch || (def.klasse && !K.daten));
+    const gesperrt = id !== 'start' && !def.ohneBuch && (!K.buch || (def.klasse && !K.daten));
     nav.append(
       h(
         'a',
@@ -117,11 +117,11 @@ function zeigeAnsicht() {
     location.hash = '#/start';
     return;
   }
-  if (bereich !== 'start' && !K.buch) {
+  if (bereich !== 'start' && !K.buch && !def.ohneBuch) {
     location.hash = '#/start';
     return;
   }
-  if (def.klasse && !K.daten) {
+  if (def.klasse && !K.daten && K.buch) {
     // Genau eine Klasse: gleich wählen. Sonst Kacheln.
     if (K.buch.klassen.length === 1) K.klasseId = K.buch.klassen[0].id;
     else {
