@@ -358,3 +358,41 @@ test('Gemerkte Klassenzuordnung hat Vorrang vor gleichem Klassennamen', () => {
   assert.equal(v.proKlasse.has(zweite.id), true, 'mit gemerkter Zuordnung geht es an die Klasse mit der Zuordnung');
   assert.equal(v.proKlasse.has(buch.klassen[0].id), false);
 });
+
+// Befund aus echten Untis-Dateien: Format A schreibt „Nachname Rufname“ (Rufname weicht vom vollständigen Vorname in B ab).
+test('A+B gemeinsam: gleiche ID, abweichender Vorname in A – Zuordnung über B, A folgt über die ID', () => {
+  const k = klasse();
+  const a = dateiA([
+    zeileA({ name: 'Muster Eri', id: 'E1001', datum: '2025-10-14', status: 'entsch.' }),
+    zeileA({ name: 'Muster Eri', id: 'E1001', datum: '2025-10-20', status: 'entsch.' }),
+  ]);
+  const b = dateiB([B_ZEILEN[0]]);
+  const plan = importPlanen(k, { a, b });
+  assert.equal(plan.unzugeordnet.length, 0);
+  const erika = person(k, 'Muster');
+  const eintraege = plan.fehlzeiten.filter((f) => f.schuelerId === erika.id);
+  assert.equal(eintraege.length, 3);
+  const aAttest = eintraege.filter((f) => f.quelle === 'untis-a');
+  assert.equal(aAttest.find((f) => f.datum === '2025-10-14').status, 'attest');
+  assert.equal(aAttest.find((f) => f.datum === '2025-10-20').status, 'entschuldigt');
+});
+
+test('Nur A: Nachname mit Rufname wird über eindeutigen Nachnamen zugeordnet', () => {
+  const k = klasse();
+  const a = dateiA([zeileA({ name: 'Beispiel Maxi', id: 'E1002', datum: '2025-10-14', status: 'entsch.' })]);
+  const plan = importPlanen(k, { a, b: [] });
+  assert.equal(plan.unzugeordnet.length, 0);
+  assert.equal(plan.fehlzeiten[0].schuelerId, person(k, 'Beispiel').id);
+});
+
+test('Nur A: „entschuldigt“ ohne Attest-Angabe wird nicht als „ohne Attest“ vorgeschlagen', () => {
+  const k = klasse();
+  const ka = neueKlassenarbeit(1);
+  ka.datum = '2025-10-14';
+  k.klassenarbeiten = [ka];
+  const a = dateiA([zeileA({ name: 'Muster Erika', id: 'E1001', datum: '2025-10-14', status: 'entsch.' })]);
+  importAnwenden(k, importPlanen(k, { a, b: [] }));
+  const v = teilnahmeVorschlaege(k);
+  assert.equal(v.length, 1);
+  assert.equal(v[0].vorschlag, 'entschuldigung-offen');
+});

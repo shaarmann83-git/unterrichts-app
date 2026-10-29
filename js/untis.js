@@ -248,19 +248,42 @@ function personen(klasse) {
 export function personenZuordnen(klasse, zeilen) {
   const ergebnis = new Map();
   const alle = personen(klasse);
+  // Alle Zeilen je Schlüssel sammeln: Bei gleicher Untis-ID können Format A und B die Namen unterschiedlich schreiben
+  // (A: „Nachname Rufname“ in einer Zelle, B: Langname und vollständiger Vorname getrennt). Jede Schreibweise wird probiert.
+  const gruppen = new Map();
   for (const z of zeilen) {
-    const schluessel = personSchluessel(z);
-    if (ergebnis.has(schluessel)) continue;
-    let treffer = z.id ? alle.filter((s) => s.untisId && s.untisId === z.id) : [];
+    const k = personSchluessel(z);
+    if (!gruppen.has(k)) gruppen.set(k, []);
+    gruppen.get(k).push(z);
+  }
+  const eindeutig = (liste) => [...new Map(liste.map((s) => [s.id, s])).values()];
+  for (const [schluessel, gruppe] of gruppen) {
+    const id = gruppe.find((z) => z.id)?.id;
+    let treffer = id ? alle.filter((s) => s.untisId && s.untisId === id) : [];
     if (treffer.length === 1) {
       ergebnis.set(schluessel, { status: 'id', schuelerId: treffer[0].id, kandidaten: [treffer[0].id] });
       continue;
     }
-    if (z.quelle === 'A') {
-      const ziel = normName(z.nameVoll);
-      treffer = alle.filter((s) => normName(`${s.name} ${s.vorname}`) === ziel);
-    } else {
-      treffer = alle.filter((s) => normName(s.name) === normName(z.name) && normName(s.vorname) === normName(z.vorname));
+    // 1. Format B: Langname und Vorname genau
+    treffer = eindeutig(gruppe.filter((z) => z.quelle !== 'A').flatMap((z) =>
+      alle.filter((s) => normName(s.name) === normName(z.name) && normName(s.vorname) === normName(z.vorname))));
+    // 2. Format A: „Name Vorname“ genau
+    if (treffer.length === 0) {
+      treffer = eindeutig(gruppe.filter((z) => z.quelle === 'A').flatMap((z) =>
+        alle.filter((s) => normName(`${s.name} ${s.vorname}`) === normName(z.nameVoll))));
+    }
+    // 3. Format A: Nachname am Anfang (Untis nutzt dort oft den Rufnamen); nur wenn in der Klasse eindeutig
+    if (treffer.length === 0) {
+      const kandidaten = eindeutig(gruppe.filter((z) => z.quelle === 'A').flatMap((z) =>
+        alle.filter((s) => s.name && normName(z.nameVoll).startsWith(`${normName(s.name)} `))));
+      if (kandidaten.length === 1) {
+        ergebnis.set(schluessel, { status: 'name', schuelerId: kandidaten[0].id, kandidaten: [kandidaten[0].id] });
+        continue;
+      }
+      if (kandidaten.length > 1) {
+        ergebnis.set(schluessel, { status: 'mehrdeutig', schuelerId: null, kandidaten: kandidaten.map((s) => s.id) });
+        continue;
+      }
     }
     if (treffer.length === 1) ergebnis.set(schluessel, { status: 'name', schuelerId: treffer[0].id, kandidaten: [treffer[0].id] });
     else if (treffer.length > 1) ergebnis.set(schluessel, { status: 'mehrdeutig', schuelerId: null, kandidaten: treffer.map((s) => s.id) });

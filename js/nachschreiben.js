@@ -34,8 +34,10 @@ export function deckt(ka, f) {
 
 const RANG = { 'attest-offen': 3, 'entschuldigung-offen': 2, 'ohne-attest': 1 };
 
-function vorschlagAusStatus(status) {
+function vorschlagAusStatus(status, quelle) {
   if (status === 'attest') return 'attest-offen';
+  // Format A kennt kein Attest: „entschuldigt“ heißt dort nur „Attest unbekannt“, also noch keine Entscheidung.
+  if (status === 'entschuldigt' && quelle === 'untis-a') return 'entschuldigung-offen';
   if (status === 'offen') return 'entschuldigung-offen';
   return 'ohne-attest'; // entschuldigt ohne Attest, nicht entschuldigt
 }
@@ -64,7 +66,7 @@ export function teilnahmeVorschlaege(klasse) {
       if (treffer.length === 0) continue;
       let beste = null;
       for (const f of treffer) {
-        const v = vorschlagAusStatus(f.status);
+        const v = vorschlagAusStatus(f.status, f.quelle);
         if (!beste || RANG[v] > RANG[beste.v]) beste = { v, f };
       }
       if (beste.v === aktuell) continue;
