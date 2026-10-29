@@ -30,7 +30,7 @@ a { color: var(--akzent); }
 .kopf-titel { display: flex; flex-direction: column; min-width: 8rem; }
 .dokument-titel { font-size: 0.8rem; opacity: 0.85; }
 #navigation { display: flex; flex-wrap: wrap; gap: 0.25rem; flex: 1; }
-.menue-punkt { color: #fff; text-decoration: none; padding: 0.5rem 0.8rem; border-radius: 0.5rem; min-height: 2.75rem; display: inline-flex; align-items: center; }
+.menue-punkt { color: #fff; text-decoration: none; padding: 0.45rem 0.55rem; font-size: 0.93rem; border-radius: 0.5rem; min-height: 2.75rem; display: inline-flex; align-items: center; }
 .menue-punkt.aktiv { background: rgba(255,255,255,0.22); font-weight: 600; }
 .menue-punkt.gesperrt { opacity: 0.45; pointer-events: none; }
 .kopf-aktionen { display: flex; align-items: center; gap: 0.6rem; }

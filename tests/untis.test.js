@@ -346,3 +346,15 @@ test('Nachschreibliste über alle Klassen', () => {
   assert.equal(l.offen[1].termin, '2025-11-05');
   assert.deepEqual(l.entscheidung.map((x) => x.person.name), ['Beispiel']);
 });
+
+test('Gemerkte Klassenzuordnung hat Vorrang vor gleichem Klassennamen', () => {
+  const buch = neuesBuch(klasse());
+  const zweite = neueKlasse({ klasse: 'TEST-A' }); // gleicher Anzeigename
+  buch.klassen.push(zweite);
+  const z = dateiB([zeileB({ name: 'Muster', vorname: 'Erika', id: 'E1001', klasse: 'TEST-A', von: '2025-10-14' })]);
+  assert.equal(aufKlassenVerteilen(buch, z).proKlasse.has(buch.klassen[0].id), true, 'ohne gemerkte Zuordnung zählt der Klassenname (erste Klasse)');
+  zweite.untis.klassenName = 'TEST-A';
+  const v = aufKlassenVerteilen(buch, z);
+  assert.equal(v.proKlasse.has(zweite.id), true, 'mit gemerkter Zuordnung geht es an die Klasse mit der Zuordnung');
+  assert.equal(v.proKlasse.has(buch.klassen[0].id), false);
+});

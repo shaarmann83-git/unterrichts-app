@@ -198,12 +198,23 @@ export function klassePasst(klasse, untisKlasse) {
   return klasseGleich(klasse.kopf.klasse, untisKlasse);
 }
 
+/**
+ * Welche Klasse des Notenbuchs gehört zu einer Untis-Klasse? Eine gemerkte Zuordnung (untis.klassenName) hat Vorrang;
+ * sonst zählt der Klassenname, aber nur bei Klassen ohne eigene Zuordnung (so bleibt bei gleichen Namen die gemerkte Wahl maßgeblich).
+ */
+export function klasseFuerUntis(buch, untisKlasse) {
+  return (
+    buch.klassen.find((k) => k.untis?.klassenName && klasseGleich(k.untis.klassenName, untisKlasse)) ||
+    buch.klassen.find((k) => !k.untis?.klassenName && klasseGleich(k.kopf.klasse, untisKlasse))
+  );
+}
+
 /** Verteilt Zeilen auf die Klassen des Notenbuchs. Gibt {proKlasse: Map(klassenId -> Zeilen), unbekannt: [Untis-Klasse]} zurück. */
 export function aufKlassenVerteilen(buch, zeilen) {
   const proKlasse = new Map();
   const unbekannt = new Set();
   for (const z of zeilen) {
-    const k = buch.klassen.find((kl) => klassePasst(kl, z.klasse));
+    const k = klasseFuerUntis(buch, z.klasse);
     if (!k) {
       unbekannt.add(z.klasse || '(ohne Klasse)');
       continue;

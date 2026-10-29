@@ -5,3 +5,6 @@
 *.noten.json
 .DS_Store
 node_modules/
+# Untis-Berichte enthalten echte Schülerdaten
+AbsenceList*
+AbsencePerStudent*

@@ -75,7 +75,7 @@ export function zeigeEinstellungen() {
       h('p', { class: 'klein' }, 'Android: Als installierte App erscheint „Notenverwaltung“ im Teilen-Menü. Untis-Datei teilen, dann startet der Abgleich. iPad: Knopf „Untis-Liste laden“ in der Klassenarbeits- und Nachschreib-Ansicht.')),
     h('div', { class: 'einstellung-block' },
       h('h2', {}, 'OneDrive-Synchronisation (optional)'),
-      h('p', { class: 'klein' }, 'Ohne Einrichtung arbeitet die App ausschließlich mit Dateien und sendet nichts ins Netz. Die Synchronisation lädt nur verschlüsselte Dateien in den eigenen App-Ordner „Apps/Notenverwaltung“ Ihres dienstlichen OneDrive hoch. Dafür muss die Schul-IT die App in Microsoft Entra ID registrieren (siehe README).'),
+      h('p', { class: 'klein' }, 'Ohne Einrichtung arbeitet die App ausschließlich mit Dateien und sendet nichts ins Netz. Die Synchronisation lädt nur verschlüsselte Dateien in den eigenen App-Ordner Ihres dienstlichen OneDrive hoch (Ordner „Apps/<Name der App-Registrierung>“, kein Zugriff auf andere Dateien). Dafür muss die Schul-IT die App in Microsoft Entra ID registrieren (siehe README).'),
       h('div', { class: 'formular' }, h('label', {}, 'Client-ID', clientId), h('label', {}, 'Tenant-ID', tenantId)),
       h('p', { class: 'klein' }, 'Redirect-URI (so in der App-Registrierung eintragen): ', h('code', {}, location.origin + location.pathname)),
       schalter('od-autosave', 'Nach Änderungen automatisch hochladen', e.onedriveAutosave, (v) => einstellungSetzen('onedriveAutosave', v)),

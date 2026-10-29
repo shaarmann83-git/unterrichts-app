@@ -93,7 +93,8 @@ function statusZeichnen() {
   klassenWahlZeichnen();
   if (K.buch) {
     const sync = K.syncStatus?.();
-    status.textContent = K.geaendert ? 'Ungespeicherte Änderungen' : 'Gespeichert';
+    const od = K.sync ? ` · OneDrive ${K.sync.ausstehend ? 'ausstehend' : K.sync.zuletzt ? K.sync.zuletzt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : ''}` : '';
+    status.textContent = (K.geaendert ? 'Ungespeicherte Änderungen' : 'Gespeichert') + od;
     status.className = `status ${K.geaendert ? 'ungespeichert' : 'gespeichert'}`;
     status.title = sync || '';
     knopf.hidden = false;

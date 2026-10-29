@@ -38,7 +38,8 @@ async function dateienLesen(dateien) {
 
 /** Ordnet (falls nötig) die Untis-Klasse der gewählten Klasse zu und verteilt die Zeilen. */
 async function verteilen(buch, gelesen, klasse) {
-  const alleZeilen = gelesen.flatMap((g) => g.zeilen);
+  // Berichte ohne Klassenspalte gehören zur gewählten Klasse und werden nicht verteilt
+  const alleZeilen = gelesen.flatMap((g) => g.zeilen).filter((z) => z.klasse || !klasse);
   let verteilung = aufKlassenVerteilen(buch, alleZeilen);
   const untisNamen = untisKlassen(alleZeilen);
   if (klasse && !verteilung.proKlasse.has(klasse.id) && untisNamen.length > 0) {
@@ -160,10 +161,14 @@ export async function untisAbgleichStarten(dateien, { klasse = null } = {}) {
   const verteilung = await verteilen(K.buch, gelesen, klasse);
   if (!verteilung) return -1;
   const eintraege = [];
-  for (const [id, _zeilen] of verteilung.proKlasse) {
+  const klassenlos = (g) => g.zeilen.filter((z) => !z.klasse);
+  const ids = new Set(verteilung.proKlasse.keys());
+  if (klasse && gelesen.some((g) => klassenlos(g).length)) ids.add(klasse.id);
+  for (const id of ids) {
     const k = K.buch.klassen.find((x) => x.id === id);
-    const a = gelesen.filter((g) => g.format === 'A').flatMap((g) => aufKlassenVerteilen(K.buch, g.zeilen).proKlasse.get(id) || []);
-    const b = gelesen.filter((g) => g.format === 'B').flatMap((g) => aufKlassenVerteilen(K.buch, g.zeilen).proKlasse.get(id) || []);
+    const fuerKlasse = (g) => [...(aufKlassenVerteilen(K.buch, g.zeilen).proKlasse.get(id) || []), ...(klasse && id === klasse.id ? klassenlos(g) : [])];
+    const a = gelesen.filter((g) => g.format === 'A').flatMap(fuerKlasse);
+    const b = gelesen.filter((g) => g.format === 'B').flatMap(fuerKlasse);
     const faecher = a.length ? await faecherWaehlen(k, a) : k.untis.faecher;
     if (faecher === null) return -1;
     const optionen = { faecher, manuell: new Map() };

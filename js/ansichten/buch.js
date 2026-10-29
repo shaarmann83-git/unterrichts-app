@@ -1,6 +1,6 @@
 // Notenbuch: Kacheln je Klasse und Aktionen für das ganze Notenbuch (SPEC 8.1, 8.7).
 import { K } from '../kontext.js';
-import { h, bestaetigen, inhaltDialog, meldung, toast, fuege } from '../ui.js';
+import { h, bestaetigen, inhaltDialog, meldung, toast, fuege, auswahl } from '../ui.js';
 import { neueKlasse, klasseKopieren, aktiveSchueler, neueId, pruefeKlasse, buchHatFotos } from '../modell.js';
 import {
   passwortSetzen,
@@ -97,8 +97,19 @@ export function zeigeBuch() {
               K.aenderung();
               K.neuZeichnen();
             } }, 'Umbenennen'),
-            h('button', { type: 'button', class: 'knopf klein', onclick: () => {
-              const kopie = klasseKopieren(k);
+            h('button', { type: 'button', class: 'knopf klein', onclick: async () => {
+              // Eigene Listen werden auf Wunsch mitkopiert (nur die Listen, nie die Einträge)
+              let mitListen = true;
+              if (k.listen.length > 0) {
+                const wahl = await auswahl('Klasse kopieren', `Die Klasse hat ${k.listen.length} eigene Liste(n). Sollen die Listen (ohne Einträge) mit in die Kopie übernommen werden?`, [
+                  { text: 'Abbrechen', wert: 'abbruch', abbruch: true },
+                  { text: 'Ohne Listen', wert: 'ohne' },
+                  { text: 'Mit Listen', wert: 'mit', klasse: 'knopf primaer' },
+                ]);
+                if (wahl === 'abbruch') return;
+                mitListen = wahl === 'mit';
+              }
+              const kopie = klasseKopieren(k, { listenMitnehmen: mitListen });
               buch.klassen.push(kopie);
               K.aenderung();
               K.neuZeichnen();
