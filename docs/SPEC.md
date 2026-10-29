@@ -90,3 +90,145 @@ Beim Abschneiden Gleitkommafehler abfangen (z. B. 0,3 × 100 darf nicht zu 29,9 
 - Automatische Tests für alle Rechenregeln (z. B. mit `node --test`), laufen ohne Installation weiterer Pakete.
 - README auf Deutsch: Was die App kann, wie man sie öffnet, wie man Notendateien sicher ablegt, wie man GitHub Pages einschaltet.
 - Vor der Fertigmeldung im Browser testen: neue Klasse anlegen, 3 erfundene Schüler:innen, eine Klassenarbeit, zwei sonstige Leistungen, Gesamtnote prüfen, speichern, neu laden, öffnen, Protokoll drucken (Vorschau).
+
+## 8. Erweiterung Stufe 2 (Nachtrag)
+
+Alles aus Abschnitt 1 bis 7 bleibt gültig, sofern hier nichts anderes steht. Bestehende Rechenregeln nicht ändern. Neue Rechenregeln nur wie hier beschrieben.
+
+### 8.1 Mehrere Klassen in einer Notendatei
+- Eine Notendatei enthält jetzt ein **Notenbuch** mit beliebig vielen Klassen (z. B. ein Schuljahr). Jede Klasse hat alles aus Abschnitt 3 (Kopfdaten, Gewichtung, Schüler:innen, Klassenarbeiten, sonstige Leistungen) plus die Erweiterungen unten.
+- Startseite nach dem Öffnen: Kacheln je Klasse (Klasse, Lernfeld, Schuljahr, Anzahl Schüler:innen). Klasse anlegen, umbenennen, löschen (mit Rückfrage), **kopieren** (übernimmt Kopfdaten, Einstellungen und Schülerliste, aber keine Noten, Fehlzeiten oder Dalton-Einträge).
+- Alte Notendateien mit nur einer Klasse (Format aus Stufe 1) werden beim Öffnen automatisch in ein Notenbuch mit einer Klasse umgewandelt. Dateiversion im JSON mitführen.
+- Excel-Import der Vorlage V4 legt eine neue Klasse im geöffneten Notenbuch an.
+
+### 8.2 Schaltbare Bereiche je Klasse
+In den Grunddaten jeder Klasse drei Schalter. Ist ein Bereich aus, sind seine Felder und Ansichten in dieser Klasse unsichtbar.
+- **Dalton** (aus / nur dokumentieren / fließt in die sonstige Leistung ein mit __ %, Standard 10 %)
+- **Duales System** (Ausbildungsbetrieb je Person)
+- **Fotos**
+
+### 8.3 Dalton
+- Beliebig viele **Dalton-Aufgaben** je Klasse: Titel, Ausgabedatum, Abgabedatum, Gewicht (Standard 1).
+- Je Person und Dalton-Aufgabe:
+  - **Status:** abgegeben / nicht abgegeben / entschuldigt (zählt nicht) / Täuschung (abgeschrieben)
+  - **Qualität** (nur bei „abgegeben“): gut / mittel / schlecht
+  - **Selbstständig erarbeitet:** ja / nein (nur Dokumentation, keine Auswirkung auf die Note)
+  - **Note überschreiben** (optional, Dezimalnote 1,0 bis 6,0): wenn gesetzt, gilt diese statt der Zuordnung unten
+  - **Notiz** (Freitext, z. B. Begründung)
+- **Zuordnung Bewertung → Note**, je Klasse einstellbar, Standard: gut = 2,0; mittel = 3,0; schlecht = 4,0; nicht abgegeben = 6,0; Täuschung = 6,0; entschuldigt = kein Wert. Fehlt der Status, zählt der Eintrag nicht.
+- Die Dalton-Note wird wie eine sL-Note über das IHK-Schema in Prozent umgerechnet und auf 2 Stellen abgeschnitten.
+- **Ø Dalton** = gewichteter Mittelwert der Dalton-Prozente (Regeln wie Ø sL in Abschnitt 4).
+- **Einrechnung in die sonstige Leistung** (nur wenn Schalter „fließt ein“): Ø sL neu = Ø sL(normal) × (1 − d) + Ø Dalton × d, mit d = Dalton-Anteil (z. B. 0,10). Fehlt Ø Dalton, gilt Ø sL(normal) zu 100 %. Fehlt Ø sL(normal), gilt Ø Dalton zu 100 %. Die Gesamtnote nutzt Ø sL neu.
+- **Prüffall:** sL-Noten 2,0 und 3,3 (Ø sL normal 77,0); Dalton „gut“ und „schlecht“ (85,5 % und 57,5 %, Ø Dalton 71,5); d = 10 % → Ø sL = 76,45. Mit Ø KA 82,65 und Gewichtung 50/50: Gesamt 79,55 % → Note 3.
+- **Ansichten:** Schnelleingabe je Dalton-Aufgabe (Klassenliste, Status und Qualität mit je einem Tipp, wie „Heutige Stunde“); Übersicht Aufgaben × Personen mit Symbolen; Dalton-Block in der Personenübersicht.
+- **Druck „Bewertungskriterien Dalton“:** einseitiges Blatt mit Klasse, Anteil an der sonstigen Leistung und der eingestellten Zuordnung (Stufen mit kurzer Beschreibung, die in den Einstellungen editierbar ist; Standardtexte: gut = „vollständig, fachlich überwiegend richtig“, mittel = „vollständig, mehrere fachliche Fehler“, schlecht = „lückenhaft oder überwiegend fehlerhaft“). Zum Aushändigen an die Klasse.
+
+### 8.4 Fotos
+- Nur wenn der Schalter Fotos an ist. Je Person: Foto aufnehmen (Kamera am Tablet/Handy) oder Datei wählen, Bildausschnitt quadratisch, verkleinert auf höchstens 256 × 256 Pixel, JPEG, Ziel unter 30 KB. Gespeichert in der Notendatei (also mitverschlüsselt).
+- Häkchen „Einwilligung liegt vor“ mit Datum. Ohne Häkchen kein Foto speicherbar. Knopf „Foto löschen“; beim Entfernen des Häkchens wird das Foto nach Rückfrage gelöscht.
+- Fotos erscheinen als kleines Rundbild in Listen und groß in der Personenübersicht. Nie im Export, nie im Druck.
+
+### 8.5 Ausbildungsbetrieb (duales System)
+- Je Person: Betrieb, Ansprechperson, Telefon, E-Mail, Notiz. Anzeige in der Personenübersicht, Spalten im Excel-Export.
+
+### 8.6 Fehlzeiten mit Import aus WebUntis
+- Je Person ein optionales Feld **Untis-ID** (die „Externe Id“/„ID“ aus WebUntis, Text). Wird beim Import automatisch gesetzt und danach zur sicheren Zuordnung genutzt.
+- Je Klasse eine Fehlzeitenliste. Ein Eintrag: Person, Datum, Stundennummer (optional), Fehlstunden, Fehlminuten, Fach (Text), Status (**entschuldigt / entschuldigt mit Attest / nicht entschuldigt / offen**), Abwesenheitsgrund (Text), Quelle (Untis / manuell), Notiz.
+- **Manuelle Eingabe** in „Heutige Stunde“ (je Person Fehlstunden und Status) und in einer Fehlzeiten-Ansicht.
+
+**Untis-Format A: „AbsencePerStudent_*.xls“** (eine Zeile je Fehlstunde, Blatt `Sheet0`, Kopfzeile in Zeile 1, danach viele leere Zeilen, die zu überspringen sind). Spalten:
+`Schüler*innen` (Nachname und Vorname in einer Zelle, durch Leerzeichen getrennt), `Externe Id`, `Text`, `Klasse`, `Datum` (echtes Datum), `Wochentag`, `Fehlstd.` (Zahl), `Fehlmin.` (Zahl), `Lehrkraft`, `Fach` (z. B. „AK3-LF10“), `Abwesenheitsgrund` (z. B. „krank“ oder leer), `Text`, `ENr`, `Erledigt` (Datum oder leer), `Abwesenheit zählt` („true“/„false“), `Entschuldigungstext`, `Stundennr.` (Zahl), `Status` („entsch.“, „nicht entsch.“, „offen“), `Fehltage` (Zahl).
+- Achtung: Die Spaltenüberschrift `Text` kommt zweimal vor. Spalten über ihre Position bzw. Reihenfolge auswerten, nicht nur über den Namen.
+- Format A unterscheidet **nicht** zwischen „entschuldigt“ und „entschuldigt mit Attest“.
+- Zeilen mit `Abwesenheit zählt` = „false“ werden übernommen, aber als „zählt nicht“ markiert und nicht summiert.
+
+**Untis-Format B: „AbsenceList_*.xls“** (eine Zeile je Abwesenheitszeitraum, Blatt `Sheet0`). Spalten:
+`Langname` (Nachname), `Vorname`, `ID`, `Klasse`, `Beginndatum` und `Enddatum` (Text „TT.MM.JJJJ“), `Beginnzeit` und `Endzeit` (Text „HH:MM“), `Unterbrechungen`, `Abwesenheitsgrund`, `Text/Grund`, `Entschuldigungsnummer` (Zahl), `Status` („entschuldigt“, „entschuldigt mit Attest“, „nicht entschuldigt“, ggf. „offen“), `Entschuldigungstext`, `gemeldet von Schüler*in` („true“/„false“).
+- Format B enthält den Attest-Status, aber keine Fehlstunden je Fach.
+
+**Import-Ablauf**
+- Die App erkennt das Format an der Kopfzeile. Kann sie es nicht erkennen, öffnet sich der Zuordnungsdialog (Spalten selbst zuordnen), damit auch spätere geänderte Untis-Berichte nutzbar bleiben.
+- Beide Dateien können **gemeinsam** importiert werden (Mehrfachauswahl oder nacheinander). Empfohlener Weg: Format A liefert die Fehlstunden, Format B ergänzt den Attest. Regel: Eine Fehlstunde aus A mit Status „entsch.“ wird zu „entschuldigt mit Attest“, wenn es in B einen Eintrag derselben Person (gleiche ID) mit Status „entschuldigt mit Attest“ gibt, dessen Zeitraum Beginndatum bis Enddatum das Datum der Fehlstunde einschließt.
+- Wird nur Format B importiert: je Abwesenheitszeitraum ein Eintrag mit Datum von/bis und Status, ohne Stundenzahl (Anzeige als Zeitraum). Wird später A importiert, ersetzt A diese Einträge für dieselben Tage.
+- **Fachfilter:** Enthält die Datei mehrere Fächer, wählt die Nutzerin im Vorschaudialog, welche Fächer für diese Klasse übernommen werden (Auswahl wird je Klasse gespeichert). Ebenso Filter auf die Spalte `Klasse`.
+- **Zuordnung der Personen:** zuerst über die Untis-ID; sonst über den Namen (Format A: Zelle „Nachname Vorname“ mit „Name Vorname“ der Person vergleichen, Groß-/Kleinschreibung und doppelte Leerzeichen egal; Format B: Langname und Vorname). Bei Erfolg die Untis-ID an der Person speichern. Nicht zuordenbare oder mehrdeutige Zeilen werden in der Vorschau rot angezeigt; die Nutzerin kann sie per Auswahlliste einer Person zuordnen oder überspringen.
+- Wiederholter Import desselben Zeitraums erzeugt keine Doppelungen: Untis-Einträge im importierten Datumsbereich werden ersetzt, manuelle Einträge bleiben.
+
+**Vorrang von Format B und Nachschreiben (wichtigster Anwendungsfall)**
+- Die Nutzerin wird in der Regel **nur Format B** importieren, weil nur dort „entschuldigt mit Attest“ steht und das Attest das Kriterium für das Nachschreiben einer Klassenarbeit ist. Format B lässt sich in Untis nicht nach Fach filtern; es enthält alle Abwesenheitszeiträume der Klasse. Das ist für den Abgleich mit Klassenarbeiten richtig so. Der Import von Format B muss daher allein voll funktionsfähig sein; Format A ist optional.
+- Klassenarbeiten bekommen ein optionales Feld **Uhrzeit von/bis**. Abgleich: Eine Person gilt am KA-Termin als abwesend, wenn ein Zeitraum aus Format B das KA-Datum einschließt und sich, falls KA-Uhrzeit und Zeitraum-Uhrzeiten vorhanden sind, zeitlich mit der Arbeit überschneidet. Ohne KA-Uhrzeit genügt das Datum.
+- Je Person und Klassenarbeit ein Feld **Teilnahme**: mitgeschrieben (Standard) / gefehlt mit Attest, Nachschreiben offen / nachgeschrieben am (Datum) / gefehlt ohne Attest / gefehlt, Entschuldigung offen.
+- Nach dem Import schlägt die App für jede Klassenarbeit die Teilnahme vor: Zeitraum mit „entschuldigt mit Attest“ → „gefehlt mit Attest, Nachschreiben offen“; „entschuldigt“ ohne Attest oder „nicht entschuldigt“ → „gefehlt ohne Attest“; „offen“ → „gefehlt, Entschuldigung offen“. Vorschläge in einer Liste mit Haken bestätigen, nie still übernehmen. Ein späterer Import aktualisiert offene Fälle (z. B. „offen“ → „mit Attest“) und zeigt, was sich geändert hat.
+- „Gefehlt mit Attest, Nachschreiben offen“ wirkt wie das Excel-Feld „Attest“ (keine Note, zählt nicht im Notenspiegel). Werden später Punkte eingetragen, fragt die App „Nachgeschrieben am …?“ (Standard heute) und wertet die Punkte dann normal.
+- Wie „gefehlt ohne Attest“ benotet wird, legt die App **nicht** fest (Schulregel). Die Person bleibt ohne Note und wird deutlich markiert, bis die Nutzerin Punkte oder eine Entscheidung einträgt.
+- **Nachschreibliste:** eigene Ansicht über alle Klassen: wer welche Arbeit noch nachschreiben muss (Klasse, Arbeit, Datum, Person), mit Feld Nachschreibtermin und Druck als Liste. Zusätzlich je Arbeit „Teilnahme“ als Spalte bzw. Symbol in der Tabelle.
+
+**Automatischer Abgleich mit WebUntis**
+- Eine direkte Schnittstelle ist nicht Teil dieser Version (offizieller Weg nur als bei Untis registrierte Plattform-Applikation mit Freischaltung durch die Schuladministration; inoffizielle Wege bräuchten einen Server mit Zugangsdaten). Stattdessen den Datei-Import so weit wie möglich automatisieren:
+
+**Import-Automatik (je Gerät die bequemste verfügbare Stufe)**
+1. **Überwachter Ordner am PC (Chrome/Edge):** In den Einstellungen einmalig einen Ordner wählen (z. B. „Downloads“ oder einen OneDrive-Ordner „Untis“), per File System Access API (`showDirectoryPicker`). Den Ordner-Zugriff in IndexedDB merken; beim Start Berechtigung prüfen und bei Bedarf mit einem Klick erneuern. Beim Öffnen der App und danach alle 60 Sekunden, solange die App sichtbar ist, nach Dateien `AbsenceList_*.xls`/`.xlsx` (und optional `AbsencePerStudent_*`) suchen. Neue Datei gefunden → Hinweisleiste „Neue Untis-Liste vom TT.MM.JJJJ HH:MM gefunden – jetzt abgleichen?“ (ein Klick). Optional Einstellung „automatisch abgleichen“: dann ohne Rückfrage importieren und direkt die Vorschlagsliste zeigen.
+2. **OneDrive-Ordner (alle Geräte, sobald die OneDrive-Synchronisation aus 8.8 eingerichtet ist):** Fester Ordner im App-Bereich, z. B. `Apps/Notenverwaltung/Untis-Eingang`. Die App prüft ihn beim Start und bei jeder Synchronisation auf neue Untis-Dateien und verfährt wie in Stufe 1. So landet eine am PC gespeicherte Untis-Datei automatisch auch auf iPad und Android. Nach erfolgreichem Import die Datei in einen Unterordner `verarbeitet` verschieben.
+3. **Teilen-Menü auf Android:** Als installierte PWA über die Web Share Target API (`share_target` im Manifest, Dateien `.xls`/`.xlsx`) im Android-Teilen-Menü erscheinen. Untis-Datei → Teilen → Notenverwaltung → Abgleich startet.
+4. **iPad und sonst:** Knopf „Untis-Liste laden“ (Dateiauswahl, „Zuletzt verwendet“ zeigt die frische Datei oben) sowie Ziehen-und-Ablegen am PC. Knopf direkt in Klassenarbeits- und Nachschreib-Ansicht.
+- **Für alle Stufen gleich:** Format und Klassenzuordnung aus Untis-Spalte `Klasse` werden gemerkt (eine Datei kann mehrere Klassen enthalten → automatisch auf die passenden Klassen im Notenbuch verteilen, unbekannte Klassen ignorieren und melden). Bereits importierte Dateien erkennen (Prüfsumme und Zeitstempel im Dateinamen `_JJJJMMTT_HHMM`) und nicht erneut verarbeiten. Von mehreren neuen Dateien nur die neueste verwenden. Nach dem Import nur **Änderungen** gegenüber dem letzten Stand zeigen (neu, Status geändert, weggefallen).
+- **Ersetzen-Logik für Format B:** Der Zeitraum einer Datei ergibt sich aus frühestem Beginndatum und spätestem Enddatum. Untis-Einträge der betroffenen Klasse in diesem Zeitraum werden durch den neuen Stand ersetzt; manuelle Einträge bleiben. README-Hinweis: in Untis am besten immer das ganze Schuljahr bis heute exportieren.
+- **Hinweis zu Downloads-Ordner und Datenschutz:** Die README empfiehlt, Untis-Dateien nicht dauerhaft im Downloads-Ordner liegen zu lassen. Einstellung „nach Import Datei löschen“ (nur Stufe 1 und 2, mit einmaliger Rückfrage zur Berechtigung).
+
+**Auswertung**
+- Summen je Person: Fehlstunden entschuldigt, davon mit Attest, nicht entschuldigt, offen, gesamt; Fehltage; Verspätungen (Einträge mit Fehlminuten unter einer vollen Stunde, falls vorhanden). Anzeige in Personenübersicht, Gesamtübersicht (Spalten ein-/ausblendbar) und Excel-Export.
+- **Attest bei Klassenarbeiten:** Gibt es für eine Person am Datum einer Klassenarbeit eine Fehlzeit „entschuldigt mit Attest“, zeigt die Klassenarbeits-Ansicht einen Hinweis und bietet an, das Feld „Attest“ zu setzen. Nie automatisch ohne Bestätigung. Bei „nicht entschuldigt“ am KA-Datum ebenfalls ein Hinweis.
+- Fehlzeiten fließen **nicht** in Noten ein.
+- Abwesenheitsgründe wie „krank“ sind Gesundheitsangaben: nur in der Personen- und Fehlzeitenansicht zeigen, nicht im Excel-Export der Gesamtübersicht, nicht im Druck (außer in einer ausdrücklich gewählten Fehlzeitenliste).
+
+**Testdaten:** Für Tests eigene Beispieldateien mit genau diesen Kopfzeilen und erfundenen Namen/IDs erzeugen (als `.xls` über SheetJS schreiben). Echte Untis-Dateien niemals ins Repository legen.
+
+### 8.7 Vollständiger Export und Import
+- **Sicherung exportieren:** das komplette Notenbuch als Notendatei (mit oder ohne Passwort, Nutzerin wählt). **Sicherung importieren:** stellt alles wieder her; vorher Hinweis, dass der aktuelle Stand ersetzt wird.
+- **Alles als Excel exportieren:** eine `.xlsx` je Notenbuch mit je Klasse den Blättern Grunddaten, Klassenarbeiten (Punkte je Aufgabe), Sonstige Leistung (alle Einträge), Dalton (falls an), Fehlzeiten, Gesamtübersicht. Fotos nicht.
+- Einzelne Klasse aus einem anderen Notenbuch übernehmen (Datei wählen, Klasse auswählen).
+
+### 8.8 Synchronisation über OneDrive (Microsoft 365 der Schule)
+- **Optional.** Ohne Einrichtung funktioniert die App wie bisher mit Dateien.
+- Anmeldung mit dem dienstlichen Microsoft-Konto über **MSAL.js** (Bibliothek lokal in `lib/`, kein CDN), Ablauf „Authorization Code mit PKCE“ für Single-Page-Apps. Zugriff über Microsoft Graph mit der **kleinsten nötigen Berechtigung `Files.ReadWrite.AppFolder`** (App-Ordner, kein Zugriff auf andere Dateien), alternativ `Files.ReadWrite`, falls der App-Ordner nicht nutzbar ist.
+- **Client-ID und Tenant-ID** werden in den Einstellungen eingetragen (nicht im Code fest verdrahtet). Die README erklärt in einfachen Schritten, was die Schul-IT in Microsoft Entra ID einrichten muss (App-Registrierung „Single-Page Application“, Redirect-URI = Adresse der App, Berechtigung, ggf. Administratorzustimmung).
+- **Nur verschlüsselt hochladen:** Synchronisation ist nur mit gesetztem Passwort möglich. Die Datei wird im Browser verschlüsselt und erst dann hochgeladen. Microsoft sieht nur verschlüsselte Daten.
+- Ablauf: Beim Öffnen die neueste Fassung aus OneDrive laden. Speichern lädt hoch (Autosave nach Änderungen mit kurzer Verzögerung, abschaltbar). Anzeige „zuletzt synchronisiert um …“.
+- **Konflikte:** Vor dem Hochladen den Stand (eTag) prüfen. Hat sich die Datei inzwischen auf einem anderen Gerät geändert, nicht überschreiben, sondern fragen: „Andere Fassung laden“ / „Meine Fassung als Kopie speichern“. Keine stillen Überschreibungen.
+- Offline arbeiten bleibt möglich; beim nächsten Online-Sein wird mit Konfliktprüfung hochgeladen.
+- Testbar machen: OneDrive-Zugriff hinter einer Schnittstelle kapseln, damit Tests ohne echtes Konto laufen (Attrappe für Laden, Speichern, eTag-Konflikt).
+
+### 8.9 Arbeitskopie im Browser verschlüsseln
+- Die Arbeitskopie (IndexedDB) wird mit demselben Passwort verschlüsselt wie die Notendatei. Ist kein Passwort gesetzt, Hinweis, dass die Arbeitskopie ungeschützt ist, und Empfehlung, eins zu setzen. Mit Fotos oder OneDrive ist ein Passwort Pflicht.
+- Nach 15 Minuten ohne Bedienung sperrt sich die App (Passwort erneut eingeben), Zeit einstellbar.
+
+### 8.10 Tests und Prüfung Stufe 2
+- Tests für: Import-Automatik mit Attrappe des Ordners (neue Datei erkennen, bereits importierte ignorieren, neueste von mehreren wählen, mehrere Klassen in einer Datei verteilen, nur Änderungen anzeigen); Nachschreib-Vorschläge aus Format B allein (Attest, ohne Attest, offen; mit und ohne KA-Uhrzeit; Zeitraum über mehrere Tage) und Aktualisierung bei erneutem Import; Umwandlung Stufe-1-Datei → Notenbuch; Dalton-Zuordnung und Prüffall 8.3; Untis-Import Format A, Format B und beide kombiniert (Attest-Zuordnung über ID und Zeitraum), Fachfilter, Zuordnung über ID und über Namen, doppelte Spalte „Text“, inklusive Doppelimport; Sicherung exportieren und wieder importieren ergibt identische Daten; Verschlüsselung der Arbeitskopie; Synchronisations-Konflikt mit der Attrappe.
+- Im Browser prüfen: zwei Klassen anlegen, eine mit Dalton 10 %, Prüffall 8.3 nachvollziehen, Foto hochladen (Testbild), Klasse kopieren, alles als Excel exportieren.
+
+### 8.11 Ganzjahresnote und Zwischenstand
+- Grundsätzlich gibt es eine **Ganzjahresnote** je Klasse; die bisherige Berechnung bleibt unverändert.
+- Zusätzlich (für die wenigen Halbjahreszeugnisse) in der Gesamtübersicht ein optionaler **Zwischenstand zum Stichtag**: Datumsfeld; berechnet wird nach denselben Regeln, aber nur mit Klassenarbeiten, sL-Terminen und Dalton-Aufgaben mit Datum bis einschließlich Stichtag. Einträge ohne Datum zählen mit. Ohne Stichtag: Ganzjahresnote. Druck und Export zeigen deutlich, welcher Stand gemeint ist („Zwischenstand zum TT.MM.JJJJ“).
+
+### 8.12 Schülerliste aus WebUntis importieren
+- In den Grunddaten „Schülerliste importieren“ aus einer Excel- oder CSV-Datei (z. B. Export aus WebUntis). Gleicher Zuordnungsdialog wie in 8.6 (Spalten Name, Vorname bzw. „Name, Vorname“, optional Geburtstag, Geschlecht, Ausbildungsbetrieb).
+- Vorschau: neue Personen grün, bereits vorhandene (gleicher Name und Vorname) grau und nicht doppelt angelegt. Nichts wird ohne Bestätigung übernommen.
+
+### 8.13 Archivieren statt Löschen
+- Personen können **archiviert** werden (z. B. Ausbildungsabbruch, Klassenwechsel) mit Datum und optionalem Grund. Archivierte erscheinen nicht mehr in Eingabelisten, Schnelleingabe, Notenspiegel und Druck, ihre Daten bleiben aber erhalten.
+- Ansicht „Archiv“ je Klasse mit Wiederherstellen. Endgültiges Löschen nur dort, mit deutlicher Rückfrage.
+- Gesamtübersicht und Excel-Export können Archivierte auf Wunsch einblenden (gekennzeichnet).
+
+### 8.14 Eigene Listen (Strich-, Abhak- und Betragslisten)
+- Je Klasse beliebig viele **eigene Listen**, frei benennbar (z. B. „Hausaufgaben vergessen“, „Material vergessen“, „Praktikumsbericht abgegeben“, „Klassenfahrt bezahlt“). Klassen ohne Listen zeigen nichts davon an.
+- Drei Listenarten, beim Anlegen wählbar:
+  - **Strichliste:** je Person und Datum ein Strich (+1), Rücknahme möglich; Summe je Person.
+  - **Abhakliste:** einmalig je Person erledigt ja/nein mit Datum (z. B. Unterlagen abgegeben); Anzeige, wer noch fehlt.
+  - **Betragsliste:** Sollbetrag je Person, gezahlte Beträge mit Datum; offener Rest je Person und Summe.
+- Listen umbenennen, ausblenden, löschen (mit Rückfrage), beim Kopieren einer Klasse optional mit übernehmen (ohne Einträge).
+- In „Heutige Stunde“ erscheinen Strich- und Abhaklisten der Klasse als Tipp-Felder je Person.
+- Eigene Listen fließen **nicht** in Noten ein. Sie erscheinen in der Personenübersicht und als eigenes Blatt im Excel-Export.
+
+### 8.15 Tests zu 8.11 bis 8.14
+- Zwischenstand: Prüffall aus Abschnitt 4, KA 2 nach dem Stichtag → Ø KA = 73,3; Gesamt = 73,3 × 0,5 + 77,0 × 0,5 = 75,15 % → Note 3.
+- Schülerlisten-Import ohne Doppelungen; Archivieren und Wiederherstellen ändert keine Noten; Strichliste zählen und zurücknehmen; Betragsliste Rest richtig.
