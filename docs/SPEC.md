@@ -161,3 +161,30 @@ In den Grunddaten jeder Klasse drei Schalter. Ist ein Bereich aus, sind seine Fe
 ### 8.10 Tests und Prüfung Stufe 2
 - Tests für: Umwandlung Stufe-1-Datei → Notenbuch; Dalton-Zuordnung und Prüffall 8.3; Untis-Import mit einer erfundenen Beispieldatei in zwei Formaten („Name, Vorname“ in einer Spalte und getrennt), inklusive Doppelimport; Sicherung exportieren und wieder importieren ergibt identische Daten; Verschlüsselung der Arbeitskopie; Synchronisations-Konflikt mit der Attrappe.
 - Im Browser prüfen: zwei Klassen anlegen, eine mit Dalton 10 %, Prüffall 8.3 nachvollziehen, Foto hochladen (Testbild), Klasse kopieren, alles als Excel exportieren.
+
+### 8.11 Ganzjahresnote und Zwischenstand
+- Grundsätzlich gibt es eine **Ganzjahresnote** je Klasse; die bisherige Berechnung bleibt unverändert.
+- Zusätzlich (für die wenigen Halbjahreszeugnisse) in der Gesamtübersicht ein optionaler **Zwischenstand zum Stichtag**: Datumsfeld; berechnet wird nach denselben Regeln, aber nur mit Klassenarbeiten, sL-Terminen und Dalton-Aufgaben mit Datum bis einschließlich Stichtag. Einträge ohne Datum zählen mit. Ohne Stichtag: Ganzjahresnote. Druck und Export zeigen deutlich, welcher Stand gemeint ist („Zwischenstand zum TT.MM.JJJJ“).
+
+### 8.12 Schülerliste aus WebUntis importieren
+- In den Grunddaten „Schülerliste importieren“ aus einer Excel- oder CSV-Datei (z. B. Export aus WebUntis). Gleicher Zuordnungsdialog wie in 8.6 (Spalten Name, Vorname bzw. „Name, Vorname“, optional Geburtstag, Geschlecht, Ausbildungsbetrieb).
+- Vorschau: neue Personen grün, bereits vorhandene (gleicher Name und Vorname) grau und nicht doppelt angelegt. Nichts wird ohne Bestätigung übernommen.
+
+### 8.13 Archivieren statt Löschen
+- Personen können **archiviert** werden (z. B. Ausbildungsabbruch, Klassenwechsel) mit Datum und optionalem Grund. Archivierte erscheinen nicht mehr in Eingabelisten, Schnelleingabe, Notenspiegel und Druck, ihre Daten bleiben aber erhalten.
+- Ansicht „Archiv“ je Klasse mit Wiederherstellen. Endgültiges Löschen nur dort, mit deutlicher Rückfrage.
+- Gesamtübersicht und Excel-Export können Archivierte auf Wunsch einblenden (gekennzeichnet).
+
+### 8.14 Eigene Listen (Strich-, Abhak- und Betragslisten)
+- Je Klasse beliebig viele **eigene Listen**, frei benennbar (z. B. „Hausaufgaben vergessen“, „Material vergessen“, „Praktikumsbericht abgegeben“, „Klassenfahrt bezahlt“). Klassen ohne Listen zeigen nichts davon an.
+- Drei Listenarten, beim Anlegen wählbar:
+  - **Strichliste:** je Person und Datum ein Strich (+1), Rücknahme möglich; Summe je Person.
+  - **Abhakliste:** einmalig je Person erledigt ja/nein mit Datum (z. B. Unterlagen abgegeben); Anzeige, wer noch fehlt.
+  - **Betragsliste:** Sollbetrag je Person, gezahlte Beträge mit Datum; offener Rest je Person und Summe.
+- Listen umbenennen, ausblenden, löschen (mit Rückfrage), beim Kopieren einer Klasse optional mit übernehmen (ohne Einträge).
+- In „Heutige Stunde“ erscheinen Strich- und Abhaklisten der Klasse als Tipp-Felder je Person.
+- Eigene Listen fließen **nicht** in Noten ein. Sie erscheinen in der Personenübersicht und als eigenes Blatt im Excel-Export.
+
+### 8.15 Tests zu 8.11 bis 8.14
+- Zwischenstand: Prüffall aus Abschnitt 4, KA 2 nach dem Stichtag → Ø KA = 73,3; Gesamt = 73,3 × 0,5 + 77,0 × 0,5 = 75,15 % → Note 3.
+- Schülerlisten-Import ohne Doppelungen; Archivieren und Wiederherstellen ändert keine Noten; Strichliste zählen und zurücknehmen; Betragsliste Rest richtig.
