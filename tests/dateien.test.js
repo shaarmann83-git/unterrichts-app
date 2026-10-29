@@ -23,9 +23,14 @@ test('Keine Verweise auf Fremdserver in der App', () => {
   for (const ordner of ['js', 'js/ansichten']) {
     for (const f of readdirSync(join(wurzel, ordner))) if (f.endsWith('.js')) pruefen.push(`${ordner}/${f}`);
   }
+  // Nur die optionale OneDrive-Synchronisation (js/onedrive.js) und die CSP in index.html dürfen Microsoft-Adressen nennen.
+  const erlaubt = { 'js/onedrive.js': ['graph.microsoft.com', 'login.microsoftonline.com'], 'index.html': ['graph.microsoft.com', 'login.microsoftonline.com', '*.sharepoint.com', '*.1drv.com', '*.onedrive.com'] };
   for (const f of pruefen) {
     const text = readFileSync(join(wurzel, f), 'utf8');
-    assert.ok(!/https?:\/\/(?!localhost)/.test(text), `${f} enthält eine externe Adresse`);
+    const treffer = [...text.matchAll(/https?:\/\/([^\s'"`/);]+)/g)].map((m) => m[1]).filter((h) => !h.startsWith('localhost'));
+    for (const host of treffer) {
+      assert.ok((erlaubt[f] || []).includes(host), `${f} enthält die externe Adresse ${host}`);
+    }
   }
 });
 
