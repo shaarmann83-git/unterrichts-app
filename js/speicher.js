@@ -207,17 +207,27 @@ export async function dateiSpeichern(text, { handle, name, neuWaehlen = false })
 
 export const kannOrdnerWaehlen = () => typeof globalThis.showDirectoryPicker === 'function';
 
-export function ordnerHandleSpeichern(name, handle) {
-  return transaktion('readwrite', (s) => s.put({ name, handle }), HANDLES);
+// Kann ein Browser den Ordnerzugriff nicht dauerhaft speichern, gilt er bis zum Schließen der App.
+const ordnerImSpeicher = new Map();
+
+export async function ordnerHandleSpeichern(name, handle) {
+  ordnerImSpeicher.delete(name);
+  try {
+    await transaktion('readwrite', (s) => s.put({ name, handle }), HANDLES);
+  } catch {
+    ordnerImSpeicher.set(name, handle);
+  }
 }
 
 export async function ordnerHandleLaden(name) {
+  if (ordnerImSpeicher.has(name)) return ordnerImSpeicher.get(name);
   const e = await transaktion('readonly', (s) => s.get(name), HANDLES);
   return e?.handle || null;
 }
 
-export function ordnerHandleLoeschen(name) {
-  return transaktion('readwrite', (s) => s.delete(name), HANDLES);
+export async function ordnerHandleLoeschen(name) {
+  ordnerImSpeicher.delete(name);
+  await transaktion('readwrite', (s) => s.delete(name), HANDLES);
 }
 
 /** Mehrere Dateien wählen (z. B. beide Untis-Berichte). Gibt [{text: ArrayBuffer, name}] zurück, leer bei Abbruch. */
