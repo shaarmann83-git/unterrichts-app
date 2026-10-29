@@ -237,71 +237,87 @@ In den Grunddaten jeder Klasse drei Schalter. Ist ein Bereich aus, sind seine Fe
 
 Alles aus Abschnitt 1 bis 8 bleibt gültig. Sport ist ein **eigener Fachtyp** einer Klasse; Lernfeld-Klassen bleiben unverändert. Keine Rechenregel aus Abschnitt 4 oder 8 ändern.
 
-### 9.1 Fachtyp und Notensystem
+Grundlage sind die Bewertungskonzepte der Nutzerin für Volleyball und Badminton (BBS, leistungsschwache Gruppen, bewusst milde Prüfungsschlüssel, strengere Umrechnung der Mitarbeit, Rohwerte werden dokumentiert, gleiches Schema in allen Klassen). Diese Konzepte werden als mitgelieferte **Reihen-Vorlagen** abgebildet (9.7).
+
+### 9.1 Fachtyp, Notensystem, Zeitraum
 - Beim Anlegen einer Klasse (und in den Grunddaten) Auswahl **Fachtyp**: „Lernfeld/Fach“ (bisher) oder „Sport“. Bestehende Klassen sind „Lernfeld/Fach“.
-- Sport-Klassen haben ein **Notensystem**: „Noten 1,0–6,0“ (Dezimalnoten mit einer Nachkommastelle in der Eingabe) oder „Punkte 0–15“ (berufliches Gymnasium). **In Sport gibt es keine Prozentwerte**, kein IHK-Schema, keine Klassenarbeiten mit Aufgabenpunkten, keine Dalton-Logik und keine Gewichtung schriftlich/sonstige. Diese Bereiche sind in Sport-Klassen ausgeblendet.
-- Weiter verfügbar in Sport-Klassen: Schülerliste, Fotos, Archiv, Fehlzeiten mit Untis-Import, eigene Listen, Personenübersicht, Notizen, Export, Druck, Sicherung, Synchronisation.
-- **Zeitraum** der Sport-Klasse: „ein Halbjahr“ (Standard; auch für BG-Kurse in 12/13, ein Kurs = eine Klasse) oder „ganzes Schuljahr“ (BG 11). Beim ganzen Schuljahr hat jede Reihe ein Feld Halbjahr (1 oder 2).
+- **Notensystem** der Sport-Klasse: „Noten 1,0–6,0“ oder „Punkte 0–15“ (berufliches Gymnasium). **Keine Prozentwerte in der Oberfläche**, kein IHK-Schema, keine Klassenarbeiten, keine Dalton-Logik, keine Gewichtung schriftlich/sonstige; diese Bereiche sind in Sport-Klassen ausgeblendet.
+- Weiter verfügbar: Schülerliste, Fotos, Archiv, Fehlzeiten mit Untis-Import, eigene Listen, Personenübersicht, Notizen, Export, Druck, Sicherung, Synchronisation.
+- **Zeitraum:** „ein Halbjahr“ (Standard; auch BG-Kurse in 12/13, ein Kurs = eine Klasse) oder „ganzes Schuljahr“ (BG 11). Bei ganzem Schuljahr hat jede Reihe ein Feld Halbjahr (1 oder 2).
 
 ### 9.2 Reihen und Teilleistungen
-- Je Sport-Klasse beliebig viele **Reihen** (Sportarten), z. B. „Volleyball“: Titel, Halbjahr (nur bei ganzem Schuljahr), Gewicht der Reihe (Standard 1).
-- Je Reihe frei definierbare **Teilleistungen** mit Namen und Gewicht (Standard: „Prüfung“ Gewicht 1 und „Mitarbeit“ Gewicht 1). Gewichte sind Dezimalzahlen > 0, je Reihe frei änderbar. Weitere Teilleistungen anlegbar (z. B. „Technik“, „Spielfähigkeit“, „Referat“). Beim Kopieren einer Klasse und beim Anlegen einer neuen Reihe kann die Teilleistungs-Vorlage einer anderen Reihe übernommen werden.
-- Jede Teilleistung ist von einer der Arten:
-  - **direkt:** je Person wird eine Note (1,0–6,0) bzw. Punktzahl (0–15) eingetragen.
-  - **Mitarbeit aus Einheiten:** Wert wird aus den Einheiten der Reihe berechnet (9.3). Höchstens eine solche Teilleistung je Reihe.
+- Je Sport-Klasse beliebig viele **Reihen** (Sportarten): Titel, Halbjahr (nur bei ganzem Schuljahr), Gewicht der Reihe (Standard 1).
+- Je Reihe frei definierbare **Teilleistungen** mit Namen und **frei einstellbarem Gewicht** (Dezimalzahl > 0; Anzeige zusätzlich als Prozentanteil, z. B. „Prüfung 60 %, Mitarbeit 40 %“). Drei Arten:
+  1. **direkt:** je Person eine Note (1,0–6,0) bzw. Punktzahl (0–15).
+  2. **Prüfung mit Rohpunkten:** Die Teilleistung hat **Prüfungsteile** (Name, Höchstwert, Faktor, Standard 1). Je Person wird der **Rohwert** je Teil eingetragen (0 bis Höchstwert, Dezimalzahlen erlaubt; Eingabe über dem Höchstwert wird markiert und nicht übernommen). Punkte des Teils = Rohwert × Faktor; Prüfungspunkte = Summe aller Teile. Daraus über den **Punkteschlüssel** der Teilleistung (Mindestpunkte je Note bzw. je Punktzahl) die Prüfungsnote als **ganze Note** (bzw. ganze Punktzahl). Fehlt bei einer Person mindestens ein Teil, bleibt die Prüfungsnote leer und die Zeile wird als unvollständig markiert. Rohwerte bleiben immer sichtbar (Dokumentation).
+  3. **Mitarbeit aus Einheiten:** wird aus den Einheiten berechnet (9.3). Höchstens eine solche Teilleistung je Reihe.
 
-### 9.3 Einheiten und Mitarbeit
+### 9.3 Einheiten, Mitarbeit, Aufwertungsmerkmale
 - Je Reihe beliebig viele **Einheiten** (Datum, optional Stichwort).
-- **Schnelleingabe je Einheit** (für das Tablet in der Halle, große Tasten): je Person ein Tipp auf **0 / 1 / 2 / 3** Beteiligungspunkte oder auf einen Status:
+- **Schnelleingabe je Einheit** (Tablet in der Halle, große Tasten): je Person **0 / 1 / 2 / 3** Beteiligungspunkte oder ein Status:
   - „kein Sportzeug“ → 0 Punkte (zählt)
   - „unentschuldigt inaktiv“ → 0 Punkte (zählt)
   - „fehlt unentschuldigt“ → 0 Punkte (zählt)
   - „fehlt entschuldigt“ → zählt nicht
-  - „verletzt / Attest, nicht aktiv“ → zählt nicht
+  - „nicht sporttauglich, Aufgabe übernommen“ → wird mit 0–3 Punkten bewertet wie alle anderen (Schiedsrichter, Zähler, Beobachter)
   - leer → zählt nicht (noch nicht erfasst; deutlich markiert)
-  - Optional Notiz je Person. Knopf „alle anwesend mit 2“ o. ä. zum Vorbelegen, danach Abweichungen antippen.
-- **Ø Beteiligung** einer Person = Summe der Punkte der zählenden Einheiten / Anzahl der zählenden Einheiten (0 bis 3). Keine zählende Einheit → leer.
-- **Umrechnung Ø Beteiligung → Mitarbeitsnote** über eine Tabelle, die **für alle Sport-Klassen gemeinsam** in den Einstellungen gepflegt wird (damit alle Klassen gleich bewertet werden). Standard (Vorschlag, editierbar):
-  - Notensystem Noten: Ø ≥ 2,6 → 1,0; ≥ 2,0 → 2,0; ≥ 1,2 → 3,0; ≥ 0,75 → 4,0; ≥ 0,3 → 5,0; sonst 6,0
-  - Notensystem Punkte: Ø ≥ 2,6 → 13; ≥ 2,0 → 10; ≥ 1,2 → 7; ≥ 0,75 → 4; ≥ 0,3 → 2; sonst 0
-  - Grenzwerte gelten mit „größer oder gleich“; Gleitkommafehler abfangen.
-- Die Mitarbeitsnote kann je Person und Reihe **manuell überschrieben** werden (mit Begründung als Pflichtfeld).
+  - Knopf „alle Anwesenden auf 2“ (Standardwert, je Reihe einstellbar) zum Vorbelegen; danach nur Abweichungen antippen. Optional Notiz je Person.
+- Zusätzlich je Person und Einheit Häkchen für die **Aufwertungsmerkmale** der Reihe (siehe unten).
+- **Ø Beteiligung** = Summe der Punkte der zählenden Einheiten / Anzahl zählender Einheiten (0 bis 3). Keine zählende Einheit → leer. Hinweis in der Übersicht, wenn weniger als 4 Einheiten zählen (Grenze einstellbar).
+- **Umrechnung Ø Beteiligung → Mitarbeitsnote** über eine **Tabelle je Reihe** (aus der Vorlage; Grenzen „größer oder gleich“, Gleitkommafehler abfangen). Ergebnis ist eine ganze Note bzw. Punktzahl.
+- **Aufwertungsmerkmale** je Reihe: Name und Stufen der Form „ab n Einheiten → Wert“ (Wert in Noten, z. B. 1/3 oder 0,5; bzw. in Punkten). Ein Merkmal zählt nur aus Einheiten, in denen die Person **nicht** „kein Sportzeug“ hatte; Häkchen in solchen Einheiten werden beim Zählen ignoriert (in der Oberfläche grau). Erreichte Stufe = höchste Stufe, deren n erreicht ist.
+- **Mitarbeitsnote** = Note aus der Tabelle **minus** Summe der Aufwertungen (Noten), höchstens 1,0 Note Abzug und nie besser als 1,0; bei Punkten **plus** Aufwertung, höchstens 3 Punkte und nie über 15. Werte wie 1/3 exakt rechnen (nicht 0,33), Anzeige mit zwei Nachkommastellen (z. B. 1,67).
+- Die Mitarbeitsnote kann je Person und Reihe **manuell überschrieben** werden (Begründung Pflichtfeld).
 
-### 9.4 Reihennote, Aufwertung, alternative Leistung
-- **Reihenwert** = gewichteter Mittelwert der vorhandenen Teilleistungen (Regeln wie Abschnitt 4: fehlende Teilleistungen zählen weder im Zähler noch im Nenner). Zwischenwerte nicht runden; Anzeige mit zwei Nachkommastellen.
-- **Aufwertung** je Person und Reihe (z. B. für Taktik, Zählweise, Schiedsrichter), mit Begründung:
-  - Noten: 0,0 bis 1,0 in Schritten von 0,1; wird **abgezogen**; Ergebnis nie besser als 1,0.
-  - Punkte: 0 bis 3 Punkte; wird **addiert**; Ergebnis höchstens 15.
-- **Alternative Leistung** je Person und Reihe (für langfristig nicht sporttaugliche Schüler:innen): Beschreibung (z. B. Schiedsrichter, Protokoll, Referat) und Note/Punkte. Ist sie gesetzt, **ersetzt** sie den Reihenwert dieser Person vollständig (Teilleistungen und Aufwertung werden ignoriert, bleiben aber gespeichert). Kennzeichnung in allen Übersichten.
+### 9.4 Reihenwert, alternative Leistung
+- **Reihenwert** = gewichteter Mittelwert der vorhandenen Teilleistungen (fehlende zählen weder im Zähler noch im Nenner). Standard: Zwischenwerte nicht runden. Option je Reihe „Reihennote auf ganze Note runden“ (Regel wie 9.5), Standard aus.
+- **Alternative Leistung** je Person und Reihe (langfristig nicht sporttauglich): getrennt für jede Teilleistung möglich (z. B. Prüfung ersetzt durch „schriftlicher Test zu Regeln und Technikmerkmalen“ mit Note; Mitarbeit läuft über „nicht sporttauglich, Aufgabe übernommen“ normal weiter) oder für die ganze Reihe. Beschreibung Pflichtfeld; Kennzeichnung in allen Übersichten und im Druck.
 
-### 9.5 Halbjahres- und Zeugnisnote
-- **Halbjahreswert** = gewichteter Mittelwert der Reihenwerte des Halbjahres (Gewicht der Reihe, Standard 1). Bei Zeitraum „ein Halbjahr“ gehören alle Reihen dazu.
-- **Jahreswert** (nur Zeitraum „ganzes Schuljahr“) = Mittelwert der beiden Halbjahreswerte (je Gewicht 1, einstellbar).
-- **Zeugnisnote**: ganze Note bzw. ganze Punktzahl aus Halbjahres- bzw. Jahreswert. Rundungsregel je Klasse einstellbar:
-  - „kaufmännisch“ (Standard): Noten 2,5 → 3, 2,49 → 2; Punkte 9,5 → 10, 9,49 → 9.
-  - „zugunsten“: genau auf ,5 wird zugunsten der Person gerundet (Noten 2,5 → 2; Punkte 9,5 → 10).
-- Die Zeugnisnote kann **manuell festgesetzt** werden (pädagogische Entscheidung, Begründung Pflichtfeld); Anzeige „berechnet: …, festgesetzt: …“.
+### 9.5 Halbjahres-, Jahres- und Zeugnisnote
+- **Halbjahreswert** = gewichteter Mittelwert der Reihenwerte des Halbjahres. Bei „ein Halbjahr“ alle Reihen.
+- **Jahreswert** (nur „ganzes Schuljahr“) = Mittelwert der beiden Halbjahreswerte (Gewichte einstellbar, Standard je 1).
+- **Zeugnisnote** = ganze Note bzw. ganze Punktzahl. Rundungsregel je Klasse:
+  - „zugunsten bei genau ,5“ (**Standard**, wie im Bewertungskonzept der Nutzerin): Noten 2,5 → 2, 2,51 → 3, 2,49 → 2; Punkte 9,5 → 10.
+  - „kaufmännisch“: Noten 2,5 → 3; Punkte 9,5 → 10.
+- Zeugnisnote **manuell festsetzbar** (pädagogische Entscheidung, Begründung Pflichtfeld); Anzeige „berechnet: …, festgesetzt: …“.
 
 ### 9.6 Ansichten Sport
-- **Reihen-Übersicht:** Tabelle Personen × Teilleistungen mit Reihenwert, Aufwertung, alternativer Leistung.
-- **Einheit erfassen** (Schnelleingabe 9.3), erreichbar mit einem Tipp von der Klassenkachel („heutige Einheit“ legt eine Einheit mit heutigem Datum in der zuletzt benutzten Reihe an).
-- **Mitarbeits-Raster:** Personen × Einheiten mit Symbolen, Ø Beteiligung, Mitarbeitsnote.
-- **Gesamtübersicht Sport:** je Person Reihenwerte, Halbjahreswerte, ggf. Jahreswert, Zeugnisnote (berechnet/festgesetzt), Anzahl Einheiten mit „kein Sportzeug“, Fehlzeiten-Summen.
-- **Personenübersicht:** Sport-Block mit allen Reihen, Einheiten, Notizen, Aufwertungen, alternativer Leistung.
-- **Druck:** Notenliste Sport (Gesamtübersicht) und Bewertungsblatt je Reihe (Teilleistungen mit Gewichten, Mitarbeits-Tabelle, Aufwertungsregel) zum Aushändigen an die Klasse.
-- **Excel-Export:** Blätter je Reihe (Teilleistungen, Einheiten) und Gesamtübersicht Sport.
+- **Einheit erfassen** (Schnelleingabe 9.3), mit einem Tipp von der Klassenkachel („heutige Einheit“ in der zuletzt benutzten Reihe).
+- **Prüfung erfassen:** je Person die Rohwerte der Prüfungsteile, große Zahlenfelder, Weiter-Taste springt zur nächsten Person; Summe und Prüfungsnote sofort sichtbar.
+- **Mitarbeits-Raster:** Personen × Einheiten mit Symbolen und Merkmal-Häkchen, Ø Beteiligung, Grundnote, Aufwertung, Mitarbeitsnote.
+- **Reihen-Übersicht:** Personen × Teilleistungen, Reihenwert, alternative Leistung.
+- **Gesamtübersicht Sport:** Reihenwerte, Halbjahreswerte, ggf. Jahreswert, Zeugnisnote (berechnet/festgesetzt), Anzahl „kein Sportzeug“, Fehlzeiten-Summen.
+- **Personenübersicht:** Sport-Block mit Reihen, Rohwerten, Einheiten, Merkmalen, Notizen, alternativer Leistung.
+- **Druck:** Notenliste Sport; **Kriterienblatt je Reihe** zum Austeilen in Einheit 1 (Teilleistungen mit Anteilen, Prüfungsteile mit Höchstwerten, Punkteschlüssel, Beteiligungsstufen mit Beschreibung, Umrechnungstabelle, Aufwertungsmerkmale, Rundungsregel); **Prüfungs-/Zählkarte** je Person (Prüfungsteile mit Feldern für Rohwert und Unterschrift); **Beteiligungsbogen** (Personen × Einheiten, leer) als Papier-Ausweichlösung.
+- **Excel-Export:** Blätter je Reihe (Rohwerte, Einheiten, Merkmale) und Gesamtübersicht Sport.
 
-### 9.7 Prüffälle Sport (als automatische Tests)
-- **Noten, ein Halbjahr, Rundung kaufmännisch.** Reihe „Volleyball“ (Gewicht 1): Prüfung (direkt, Gewicht 1) = 2,7; Mitarbeit (Einheiten, Gewicht 1) aus 8 Einheiten: 3, 2, 2, 3, fehlt entschuldigt, kein Sportzeug, 2, 3 → zählende Einheiten 7, Summe 15, Ø 2,142857 → Mitarbeitsnote 2,0. Reihenwert (2,7 + 2,0) / 2 = 2,35; Aufwertung 0,3 → 2,05.
-  Reihe „Badminton“ (Gewicht 1): Prüfung 3,3 (Gewicht 2), Mitarbeit direkt überschrieben 3,0 (Gewicht 1) → (6,6 + 3,0) / 3 = 3,2.
-  Halbjahreswert (2,05 + 3,2) / 2 = 2,625 → Zeugnisnote 3.
-- **Rundung:** Halbjahreswert genau 2,5 → kaufmännisch 3, zugunsten 2. 2,49 → 2 in beiden Regeln.
-- **Aufwertung begrenzt:** Reihenwert 1,4, Aufwertung 1,0 → 1,0 (nicht 0,4).
-- **Alternative Leistung:** Person mit alternativer Leistung 2,3 in „Volleyball“ und normalem Reihenwert 3,2 in „Badminton“ → Halbjahreswert 2,75 → Zeugnisnote 3.
-- **Punkte, ein Halbjahr:** Reihe mit Prüfung 9 P (Gewicht 1) und Mitarbeit Ø 2,142857 → 10 P (Gewicht 1) → 9,5; Aufwertung +2 → 11,5 → Zeugnis 12 Punkte. Aufwertung +3 bei Reihenwert 14 → 15 (nicht 17).
-- **Ganzes Schuljahr (BG 11), Punkte:** Halbjahr 1 Halbjahreswert 8,0; Halbjahr 2 Halbjahreswert 11,0 → Jahreswert 9,5 → Zeugnis 10 Punkte.
-- **Nur entschuldigte Einheiten:** Ø Beteiligung leer → Mitarbeit fehlt → Reihenwert nur aus Prüfung.
-- **Regression:** Alle Tests aus Abschnitt 4 und 8 müssen unverändert grün bleiben; Lernfeld-Klassen dürfen sich durch Stufe 3 nicht verändern.
+### 9.7 Reihen-Vorlagen (gleiches Schema in allen Klassen)
+- Vorlagen gelten **für das ganze Notenbuch** (alle Sport-Klassen). Eine Vorlage enthält: Teilleistungen mit Arten und Gewichten, Prüfungsteile, Punkteschlüssel, Beteiligungs-Standardwert und -beschreibungen, Umrechnungstabelle, Aufwertungsmerkmale, Rundungsoption der Reihe.
+- Neue Reihe: „aus Vorlage“ (Standard) oder leer. Eigene Reihe als Vorlage speichern. Vorlagen umbenennen, duplizieren, löschen.
+- Eine Reihe speichert eine **Kopie** der Vorlage. Spätere Änderungen an der Vorlage ändern bestehende Reihen nicht. Knopf „Änderungen der Vorlage auf Reihen übertragen“ mit Auswahl der Reihen und deutlicher Warnung, wenn in einer Reihe schon Prüfungswerte eingetragen sind (Kriterien sollen nach Ausgabe des Kriterienblatts nicht mehr geändert werden).
+- **Mitgelieferte Vorlage „Volleyball BBS“** (Notensystem Noten):
+  - Prüfung (Rohpunkte), Gewicht 1 (50 %). Teile: „A Pritschen an die Wand (45 s)“ Höchstwert 35, Faktor 1; „B Baggern an die Wand (45 s)“ Höchstwert 25, Faktor 1; „C Aufschlag (10 Versuche, Ansage)“ Höchstwert 20, Faktor 1; „D Technik: Pritschen Kontakt über der Stirn“, „D Technik: Pritschen kurz gespielt“, „D Technik: Baggern Arme gestreckt“, „D Technik: Baggern Impuls aus den Beinen“ je Höchstwert 2, Faktor 2,5. Summe höchstens 100. Punkteschlüssel: ab 85 → 1; ab 65 → 2; ab 40 → 3; ab 25 → 4; ab 10 → 5; darunter 6.
+  - Mitarbeit (Einheiten), Gewicht 1 (50 %). Standardwert 2. Beschreibungen: 3 „in allen Phasen aktiv, übernimmt Aufgaben zuverlässig“; 2 „aktiv mit Pausen“; 1 „mit Sportzeug da, aber überwiegend passiv oder nur nach Aufforderung aktiv“; 0 „ohne Sportzeug oder unentschuldigt nicht aktiv“. Tabelle: Ø ab 2,5 → 1; ab 2,0 → 2; ab 1,5 → 3; ab 1,0 → 4; ab 0,5 → 5; darunter 6.
+  - Aufwertungsmerkmale (je „ab 2 Einheiten → 1/3 Note“): „bewegt sich zum Ball und ruft ihn an“, „spielt gezielt in freie Räume“, „zählt sicher / leitet als Schiedsrichter ohne Eingreifen“.
+- **Mitgelieferte Vorlage „Badminton BBS“** (Notensystem Noten):
+  - Technikprüfung (Rohpunkte), Gewicht 0,6 (60 %). Ein Teil „Technikprüfung gesamt“ Höchstwert 35 (die Nutzerin teilt ihn bei Bedarf selbst in Einzelteile auf). Punkteschlüssel: ab 27 → 1; ab 21 → 2; ab 14 → 3; ab 9 → 4; ab 3 → 5; darunter 6.
+  - Spiel/Mitarbeit (Einheiten), Gewicht 0,4 (40 %). Tabelle: Ø ab 2,8 → 2; ab 2,3 → 3; ab 1,8 → 4; ab 1,3 → 5; darunter 6 (Note 1 nur über Aufwertung).
+  - Aufwertungsmerkmal „taktisches Spielverhalten sichtbar“: ab 1 Einheit → 0,5; ab 2 Einheiten → 1,0.
+- Für das Notensystem Punkte gibt es eine leere Vorlage „Punkte (BG)“ mit Prüfung direkt und Mitarbeit (Einheiten) mit Tabelle Ø ab 2,6 → 13; ab 2,0 → 10; ab 1,2 → 7; ab 0,75 → 4; ab 0,3 → 2; darunter 0 und Aufwertung „ab 2 Einheiten → 1 Punkt“ für ein Merkmal „Mitgestaltung“. Alle Werte sind Vorschläge und editierbar.
 
-### 9.8 Browserprüfung Stufe 3
-- Sport-Klasse (Noten, ein Halbjahr) anlegen, Prüffall 9.7 „Noten“ in der Oberfläche nachvollziehen (Einheiten über die Schnelleingabe), Zeugnisnote 3 prüfen; Rundungsregel umschalten; eine Punkte-Klasse (BG) anlegen und einen Punkte-Prüffall prüfen; schmale Ansicht (Tablet hochkant) für die Einheiten-Schnelleingabe prüfen.
+### 9.8 Prüffälle Sport (als automatische Tests)
+- **Volleyball-Vorlage:** Prüfungsteile A 20, B 14, C 10, D-Merkmale 1, 1, 1, 0 → Punkte 20 + 14 + 10 + 3 × 2,5 = 51,5 → Note 3. Einheiten 3, 2, 2, fehlt entschuldigt, 2, 2, 2, 2 → Ø 15/7 = 2,142857 → 2. Merkmal „spielt gezielt in freie Räume“ in 2 Einheiten mit Sportzeug → −1/3 → Mitarbeit 1,6667. Reihenwert (3 + 1,6667) / 2 = 2,3333 → als einzige Reihe Zeugnisnote 2.
+- **Merkmal nur mit Sportzeug:** Merkmal in 2 Einheiten angehakt, davon eine mit „kein Sportzeug“ → zählt 1 Einheit → keine Aufwertung (Volleyball). Gleicher Fall Badminton → 0,5.
+- **Aufwertung begrenzt:** Volleyball, alle 3 Merkmale erreicht, Grundnote 2 → 1,0; Grundnote 1 mit 3 Merkmalen → 1,0 (nicht 0,0).
+- **Badminton-Vorlage:** Technik 22 Punkte → 2. Ø Beteiligung 2,4 → 3; Merkmal in 1 Einheit → 2,5. Reihenwert 0,6 × 2 + 0,4 × 2,5 = 2,2.
+- **Halbjahr mit beiden Reihen** (Gewicht je 1): (2,3333 + 2,2) / 2 = 2,2667 → Zeugnisnote 2.
+- **Rundung:** Halbjahreswert genau 2,5 → zugunsten 2, kaufmännisch 3; 2,51 → 3 in beiden.
+- **Grenzwerte der Tabellen:** Ø genau 2,5 → 1 (Volleyball); Ø 2,4999 → 2. Prüfungspunkte genau 40 → 3; 39,5 → 4.
+- **Unvollständige Prüfung:** Teil C fehlt → Prüfungsnote leer; Reihenwert nur aus Mitarbeit.
+- **Alternative Leistung:** Prüfung ersetzt durch schriftlichen Test 2,7, Mitarbeit normal 2,0 → Reihenwert (Volleyball 50/50) 2,35.
+- **Punkte (BG), ganzes Schuljahr:** Reihe Hj 1: Prüfung direkt 9 P, Mitarbeit Ø 2,142857 → 10 P, Merkmal erreicht +1 → 11 P; Reihenwert (9 + 11) / 2 = 10,0. Reihe Hj 2: Halbjahreswert 11,0. Jahreswert 10,5 → Zeugnis 11 Punkte (beide Rundungsregeln).
+- **Vorlage ändern:** Änderung des Punkteschlüssels in der Vorlage ändert bestehende Reihen nicht; nach „übertragen“ schon.
+- **Regression:** alle Tests aus Abschnitt 4 und 8 bleiben unverändert grün; Lernfeld-Klassen verändern sich nicht.
+
+### 9.9 Browserprüfung Stufe 3
+- Sport-Klasse (Noten, ein Halbjahr) anlegen, Reihe „Volleyball“ aus Vorlage, Volleyball-Prüffall über Schnelleingabe und Prüfungseingabe nachvollziehen; zweite Reihe „Badminton“ aus Vorlage; Zeugnisnote 2 prüfen; Rundungsregel umschalten; Kriterienblatt-Druckvorschau; BG-Klasse mit Punkten und ganzem Schuljahr anlegen und den Punkte-Prüffall prüfen; schmale Ansicht (Tablet hochkant) für Schnelleingabe und Prüfungseingabe prüfen.
