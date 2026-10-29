@@ -1,0 +1,7 @@
+# Niemals echte Notendaten ins Repository
+*.xlsx
+*.xls
+*.noten
+*.noten.json
+.DS_Store
+node_modules/
