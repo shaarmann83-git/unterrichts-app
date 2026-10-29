@@ -23,6 +23,7 @@ export function zeigeDruck() {
         ['blanko', 'Korrekturliste blanko'],
         ['gesamt', 'Gesamtübersicht'],
         ['spiegel', 'Notenspiegel'],
+        ...(d.dalton.modus !== 'aus' ? [['dalton', 'Bewertungskriterien Dalton']] : []),
       ].map(([w, t]) => h('option', { value: w, selected: art === w }, t)),
     );
     steuerung.append(h('label', {}, 'Ausdruck', artWahl));
@@ -113,7 +114,7 @@ export function zeigeDruck() {
   }
 
   function spiegelDruck(ka, nr) {
-    const sp = notenspiegel(ka, d.schueler);
+    const sp = notenspiegel(ka, aktiveSchueler(d));
     return h(
       'article',
       { class: 'druckseite' },
@@ -130,9 +131,27 @@ export function zeigeDruck() {
     );
   }
 
+  function daltonDruck() {
+    const z = d.dalton.zuordnung;
+    const t = d.dalton.texte;
+    const zeilen = [['gut', 'abgegeben, gut'], ['mittel', 'abgegeben, mittel'], ['schlecht', 'abgegeben, schlecht'], ['nicht', 'nicht abgegeben'], ['taeuschung', 'Täuschung (abgeschrieben)']];
+    return h(
+      'article',
+      { class: 'druckseite' },
+      h('h2', {}, 'Bewertungskriterien Dalton'),
+      h('p', {}, `Klasse ${d.kopf.klasse || ''} · Lernfeld ${d.kopf.lernfeldNr || ''} ${d.kopf.lernfeldBez || ''} · Schuljahr ${d.kopf.schuljahr || ''}`),
+      h('p', {}, d.dalton.modus === 'einrechnen' ? `Die Dalton-Aufgaben haben einen Anteil von ${String(d.dalton.anteil).replace('.', ',')} % an der sonstigen Leistung.` : 'Die Dalton-Aufgaben werden dokumentiert und fließen nicht in die Note ein.'),
+      h('table', { class: 'tabelle druck-tabelle' },
+        h('thead', {}, h('tr', {}, ['Stufe', 'Beschreibung', 'Note'].map((x) => h('th', {}, x)))),
+        h('tbody', {}, zeilen.map(([k, text]) => h('tr', {}, h('td', { class: 'links' }, text), h('td', { class: 'links' }, t[k] || ''), h('td', { class: 'mitte' }, formatZahl(z[k], 1)))))),
+      h('p', { class: 'klein' }, 'Entschuldigte Aufgaben zählen nicht.'),
+    );
+  }
+
   function vorschauZeichnen() {
     leeren(vorschau);
-    if (art === 'blanko') vorschau.append(blanko());
+    if (art === 'dalton') vorschau.append(daltonDruck());
+    else if (art === 'blanko') vorschau.append(blanko());
     else if (art === 'gesamt') vorschau.append(gesamtDruck());
     else {
       const ka = d.klassenarbeiten[kaNr - 1] || d.klassenarbeiten[0];

@@ -305,7 +305,7 @@ export function zeigeKlassenarbeit(params) {
 
   function spiegelZeichnen() {
     leeren(spiegel);
-    const sp = notenspiegel(ka, d.schueler);
+    const sp = notenspiegel(ka, aktiveSchueler(d));
     spiegel.append(
       h(
         'table',

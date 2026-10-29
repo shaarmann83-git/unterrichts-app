@@ -101,7 +101,7 @@ export function neuesBuch(ersteKlasse = null) {
     version: FORMAT_VERSION,
     dokumentId: neueId(),
     gespeichertAm: '',
-    einstellungen: { untisOrdnerAutomatisch: false },
+    einstellungen: { untisOrdnerAutomatisch: false, untisDateien: [] },
     klassen: ersteKlasse ? [ersteKlasse] : [],
   };
 }
@@ -194,6 +194,7 @@ export function pruefeBuch(roh) {
   buch.gespeichertAm ||= '';
   buch.einstellungen ||= {};
   buch.einstellungen.untisOrdnerAutomatisch ??= false;
+  buch.einstellungen.untisDateien ||= [];
   for (const k of buch.klassen) pruefeKlasse(k);
   return buch;
 }
