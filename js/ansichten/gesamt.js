@@ -81,7 +81,7 @@ export function zeigeGesamt() {
     tbody.append(
       h(
         'tr',
-        { class: 'klickbar', tabindex: 0, onclick: () => K.navigiere(`sl/person/${s.id}`), onkeydown: (e) => e.key === 'Enter' && K.navigiere(`sl/person/${s.id}`) },
+        { class: 'klickbar', tabindex: 0, onclick: () => K.navigiere(`person/${s.id}`), onkeydown: (e) => e.key === 'Enter' && K.navigiere(`person/${s.id}`) },
         h('td', { class: 'zahl' }, String(i + 1)),
         h('td', { class: 'links name' }, s.name),
         h('td', { class: 'links name' }, s.vorname),
@@ -96,7 +96,7 @@ export function zeigeGesamt() {
   });
   wurzel.append(
     h('div', { class: 'tabelle-rahmen' }, h('table', { class: 'tabelle gesamt' }, h('thead', {}, kopfZeile, gewichtZeile), tbody)),
-    h('p', { class: 'klein' }, 'Antippen einer Zeile öffnet die Übersicht der sonstigen Leistungen dieser Person. Gewichte der sonstigen Leistungen pflegen Sie je Termin unter „Sonstige Leistung“. Angezeigt wird gerundet, gerechnet wird ohne Rundung.'),
+    h('p', { class: 'klein' }, 'Antippen einer Zeile öffnet die Personenübersicht. Gewichte der sonstigen Leistungen pflegen Sie je Termin unter „Sonstige Leistung“. Angezeigt wird gerundet, gerechnet wird ohne Rundung.'),
   );
   const update = () => updater.forEach((f) => f());
   update();

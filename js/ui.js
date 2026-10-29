@@ -168,3 +168,49 @@ export function enterNachUnten(tabelle) {
     naechstes.select?.();
   });
 }
+
+// ---------- Personenbild und Spaltenzuordnung ----------
+
+/** Kleines Rundbild einer Person (nur wenn Fotos in der Klasse eingeschaltet sind und ein Foto da ist). */
+export function avatar(klasse, person, art = 'klein') {
+  if (!klasse?.bereiche?.fotos || !person?.foto?.daten) return null;
+  return h('img', { class: `avatar ${art}`, src: person.foto.daten, alt: '', width: art === 'gross' ? 160 : 32, height: art === 'gross' ? 160 : 32 });
+}
+
+/**
+ * Dialog „Spalten zuordnen“. `felder`: [{id, text}], `kopf`: Spaltenüberschriften, `zuordnung`: {feld: index}.
+ * Gibt die Zuordnung ({feld: index}) oder null zurück.
+ */
+export async function spaltenDialog({ titel, kopf, felder, zuordnung, beispielZeilen = [] }) {
+  const selects = felder.map((f) =>
+    h(
+      'label',
+      {},
+      f.text,
+      h(
+        'select',
+        { 'data-feld': f.id },
+        h('option', { value: '' }, '– nicht verwenden –'),
+        kopf.map((k, i) => h('option', { value: i, selected: zuordnung[f.id] === i }, `${i + 1}: ${k || '(ohne Überschrift)'}`)),
+      ),
+    ),
+  );
+  const vorschau = beispielZeilen.length
+    ? h(
+        'div',
+        { class: 'tabelle-rahmen' },
+        h('table', { class: 'tabelle klein-tabelle' }, h('thead', {}, h('tr', {}, kopf.map((k) => h('th', {}, k)))), h('tbody', {}, beispielZeilen.map((z) => h('tr', {}, kopf.map((_, i) => h('td', { class: 'links' }, String(z[i] ?? ''))))))),
+      )
+    : null;
+  const ok = await dialogZeigen(titel, [h('p', {}, 'Die Spalten konnten nicht eindeutig erkannt werden oder Sie möchten sie selbst festlegen.'), vorschau, ...selects], [
+    { text: 'Abbrechen', wert: false, abbruch: true },
+    { text: 'Weiter', wert: true, klasse: 'knopf primaer' },
+  ]);
+  if (!ok) return null;
+  const ergebnis = {};
+  for (const sel of selects) {
+    const el = sel.querySelector('select');
+    if (el.value !== '') ergebnis[el.dataset.feld] = Number(el.value);
+  }
+  return ergebnis;
+}

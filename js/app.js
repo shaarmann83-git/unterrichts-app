@@ -1,23 +1,30 @@
-// Start der App: Navigation, Ansichtswechsel, Statusanzeige, Autosave, Offline-Dienst.
+// Start der App: Navigation, Ansichtswechsel, Statusanzeige, Autosave, Sperre, Offline-Dienst.
 import { K } from './kontext.js';
 import { h, leeren } from './ui.js';
 import { speichern } from './aktionen.js';
 import { arbeitskopieSpeichern, einstellungen, einstellungSetzen } from './speicher.js';
+import { buchTitel, buchHatFotos } from './modell.js';
 import { zeigeStart } from './ansichten/start.js';
+import { zeigeBuch } from './ansichten/buch.js';
 import { zeigeGrunddaten } from './ansichten/grunddaten.js';
 import { zeigeKlassenarbeit } from './ansichten/klassenarbeit.js';
 import { zeigeSonstige } from './ansichten/sonstige.js';
 import { zeigeGesamt } from './ansichten/gesamt.js';
 import { zeigeDruck } from './ansichten/drucken.js';
 
-const MENUE = [
-  ['start', 'Start'],
-  ['grunddaten', 'Grunddaten'],
-  ['ka', 'Klassenarbeiten'],
-  ['sl', 'Sonstige Leistung'],
-  ['gesamt', 'Gesamtübersicht'],
-  ['druck', 'Drucken'],
-];
+// Jede Ansicht: [Menütext, Funktion, braucht eine gewählte Klasse, nur sichtbar wenn …]
+const ANSICHTEN = {
+  start: { text: 'Start', bauen: zeigeStart, klasse: false, reihe: 0 },
+  buch: { text: 'Notenbuch', bauen: zeigeBuch, klasse: false, reihe: 1 },
+  grunddaten: { text: 'Grunddaten', bauen: zeigeGrunddaten, klasse: true, reihe: 2 },
+  ka: { text: 'Klassenarbeiten', bauen: zeigeKlassenarbeit, klasse: true, reihe: 3 },
+  sl: { text: 'Sonstige Leistung', bauen: zeigeSonstige, klasse: true, reihe: 4 },
+  gesamt: { text: 'Gesamtübersicht', bauen: zeigeGesamt, klasse: true, reihe: 8 },
+  druck: { text: 'Drucken', bauen: zeigeDruck, klasse: true, reihe: 10 },
+};
+export function ansichtRegistrieren(id, def) {
+  ANSICHTEN[id] = def;
+}
 
 let aktuell = null; // {el, update}
 let autosaveTimer = null;
@@ -27,11 +34,18 @@ function pfad() {
   return teile.length ? teile : ['start'];
 }
 
+function sichtbar(def) {
+  if (def.nurWenn && !def.nurWenn()) return false;
+  return true;
+}
+
 function menueZeichnen(aktiv) {
   const nav = document.getElementById('navigation');
   leeren(nav);
-  for (const [id, text] of MENUE) {
-    const gesperrt = id !== 'start' && !K.daten;
+  const sortiert = Object.entries(ANSICHTEN).sort((a, b) => (a[1].reihe ?? 50) - (b[1].reihe ?? 50));
+  for (const [id, def] of sortiert) {
+    if (def.keinMenue || !sichtbar(def)) continue;
+    const gesperrt = id !== 'start' && (!K.buch || (def.klasse && !K.daten));
     nav.append(
       h(
         'a',
@@ -40,50 +54,91 @@ function menueZeichnen(aktiv) {
           class: `menue-punkt${aktiv === id ? ' aktiv' : ''}${gesperrt ? ' gesperrt' : ''}`,
           'aria-current': aktiv === id ? 'page' : null,
         },
-        text,
+        def.text,
       ),
     );
   }
 }
 
+function klassenWahlZeichnen() {
+  const ziel = document.getElementById('dokument-titel');
+  leeren(ziel);
+  if (!K.buch) return;
+  if (K.buch.klassen.length === 0) {
+    ziel.textContent = buchTitel(K.buch);
+    return;
+  }
+  const auswahl = h(
+    'select',
+    {
+      class: 'klassenwahl',
+      'aria-label': 'Klasse wählen',
+      onchange: (e) => {
+        K.klasseId = e.target.value || null;
+        const [bereich] = pfad();
+        if (!K.klasseId) K.navigiere('buch');
+        else if (ANSICHTEN[bereich]?.klasse) K.neuZeichnen();
+        else K.navigiere('grunddaten');
+        statusZeichnen();
+      },
+    },
+    h('option', { value: '' }, `Notenbuch (${K.buch.klassen.length} ${K.buch.klassen.length === 1 ? 'Klasse' : 'Klassen'})`),
+    K.buch.klassen.map((k) =>
+      h('option', { value: k.id, selected: k.id === K.klasseId }, [k.kopf.klasse || 'Ohne Namen', k.kopf.lernfeldNr && `LF ${k.kopf.lernfeldNr}`, k.kopf.schuljahr].filter(Boolean).join(' · ')),
+    ),
+  );
+  ziel.append(auswahl);
+}
+
 function statusZeichnen() {
-  const titel = document.getElementById('dokument-titel');
   const status = document.getElementById('status');
   const knopf = document.getElementById('knopf-speichern');
-  if (K.daten) {
-    const k = K.daten.kopf;
-    titel.textContent = [k.klasse, k.lernfeldNr && `LF ${k.lernfeldNr}`, k.schuljahr].filter(Boolean).join(' · ');
+  klassenWahlZeichnen();
+  if (K.buch) {
+    const sync = K.syncStatus?.();
     status.textContent = K.geaendert ? 'Ungespeicherte Änderungen' : 'Gespeichert';
     status.className = `status ${K.geaendert ? 'ungespeichert' : 'gespeichert'}`;
+    status.title = sync || '';
     knopf.hidden = false;
   } else {
-    titel.textContent = '';
     status.textContent = '';
     knopf.hidden = true;
+  }
+  const warn = document.getElementById('schutz-hinweis');
+  if (warn) {
+    const zeigen = K.buch && !K.passwort;
+    warn.hidden = !zeigen;
+    warn.textContent = zeigen
+      ? 'Ohne Passwort ist die lokale Arbeitskopie in diesem Browser ungeschützt. Empfehlung: unter „Notenbuch“ ein Passwort setzen.'
+      : '';
   }
 }
 
 function zeigeAnsicht() {
   const [bereich, ...rest] = pfad();
-  if (bereich !== 'start' && !K.daten) {
+  const def = ANSICHTEN[bereich];
+  if (!def) {
     location.hash = '#/start';
     return;
+  }
+  if (bereich !== 'start' && !K.buch) {
+    location.hash = '#/start';
+    return;
+  }
+  if (def.klasse && !K.daten) {
+    // Genau eine Klasse: gleich wählen. Sonst Kacheln.
+    if (K.buch.klassen.length === 1) K.klasseId = K.buch.klassen[0].id;
+    else {
+      location.hash = '#/buch';
+      return;
+    }
   }
   const ziel = document.getElementById('ansicht');
   leeren(ziel);
   document.body.dataset.ansicht = bereich;
-  const ansichten = {
-    start: zeigeStart,
-    grunddaten: zeigeGrunddaten,
-    ka: zeigeKlassenarbeit,
-    sl: zeigeSonstige,
-    gesamt: zeigeGesamt,
-    druck: zeigeDruck,
-  };
-  const bauen = ansichten[bereich] || zeigeStart;
-  aktuell = bauen(rest);
+  aktuell = def.bauen(rest);
   ziel.append(aktuell.el);
-  menueZeichnen(ansichten[bereich] ? bereich : 'start');
+  menueZeichnen(bereich);
   statusZeichnen();
   window.scrollTo(0, 0);
 }
@@ -97,7 +152,10 @@ K.aenderung = () => {
   K.aktualisieren();
   clearTimeout(autosaveTimer);
   autosaveTimer = setTimeout(() => {
-    if (K.daten) arbeitskopieSpeichern(K.daten, K.dateiname, K.geaendert).catch(() => {});
+    if (K.buch) {
+      arbeitskopieSpeichern(K.buch, K.dateiname, K.geaendert, K.passwort).catch(() => {});
+      K.nachAenderung?.();
+    }
   }, 600);
 };
 
@@ -119,14 +177,14 @@ document.getElementById('knopf-farbe').addEventListener('click', () => {
 document.getElementById('knopf-speichern').addEventListener('click', () => speichern());
 
 document.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && K.daten) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && K.buch) {
     e.preventDefault();
     speichern();
   }
 });
 
 window.addEventListener('beforeunload', (e) => {
-  if (K.daten && K.geaendert) {
+  if (K.buch && K.geaendert) {
     e.preventDefault();
     e.returnValue = '';
   }
@@ -134,9 +192,10 @@ window.addEventListener('beforeunload', (e) => {
 
 window.addEventListener('hashchange', zeigeAnsicht);
 
-farbschemaAnwenden();
-zeigeAnsicht();
-
-if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+export function appStarten() {
+  farbschemaAnwenden();
+  zeigeAnsicht();
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 }

@@ -36,7 +36,7 @@ export function zeigeStart() {
         h(
           'div',
           { class: 'karte' },
-          h('div', {}, h('strong', {}, k.titel), h('div', { class: 'klein' }, `${k.dateiname || 'ohne Dateiname'} · Stand ${new Date(k.zeit).toLocaleString('de-DE')}${k.geaendert ? ' · nicht in Datei gespeichert' : ''}`)),
+          h('div', {}, h('strong', {}, k.titel), h('div', { class: 'klein' }, `${k.dateiname || 'ohne Dateiname'}${k.huelle ? ' · verschlüsselt' : ' · ungeschützt'} · Stand ${new Date(k.zeit).toLocaleString('de-DE')}${k.geaendert ? ' · nicht in Datei gespeichert' : ''}`)),
           h(
             'div',
             { class: 'karte-knoepfe' },
@@ -83,7 +83,7 @@ export function zeigeStart() {
       h('button', { type: 'button', class: 'knopf primaer gross', onclick: neueDateiAnlegen }, 'Neue Notendatei'),
       h('button', { type: 'button', class: 'knopf gross', onclick: dateiOeffnenAktion }, 'Notendatei öffnen'),
       h('button', { type: 'button', class: 'knopf gross', onclick: excelImportieren }, 'Excel-Vorlage importieren'),
-      K.daten && h('button', { type: 'button', class: 'knopf gross', onclick: dateiSchliessen }, 'Aktuelle Datei schließen'),
+      K.buch && h('button', { type: 'button', class: 'knopf gross', onclick: dateiSchliessen }, 'Aktuelle Datei schließen'),
     ),
     h('h2', {}, 'Zuletzt geöffnet (lokale Arbeitskopien)'),
     liste,
@@ -97,7 +97,7 @@ export function zeigeStart() {
     h(
       'p',
       { class: 'klein' },
-      'Hinweis: Die lokale Arbeitskopie im Browser ist nicht durch das Passwort der Notendatei geschützt. Auf fremden oder gemeinsam genutzten Geräten sollte der Schalter eingeschaltet sein.',
+      'Hinweis: Mit Passwort wird auch die lokale Arbeitskopie im Browser verschlüsselt. Ohne Passwort ist sie ungeschützt. Auf fremden oder gemeinsam genutzten Geräten sollte der Schalter eingeschaltet sein.',
     ),
     h(
       'button',

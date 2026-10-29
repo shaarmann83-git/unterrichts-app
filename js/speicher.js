@@ -1,4 +1,7 @@
 // Dateien öffnen/speichern, lokale Arbeitskopie (IndexedDB) und Einstellungen.
+import { buchHatFotos, buchTitel } from './modell.js';
+import { objektVerschluesseln } from './krypto.js';
+
 const DB_NAME = 'notenverwaltung';
 const STORE = 'arbeitskopien';
 const EINSTELLUNGEN = 'notenverwaltung-einstellungen';
@@ -50,21 +53,26 @@ async function transaktion(modus, aktion) {
   }
 }
 
-/** Speichert die Arbeitskopie – nicht, wenn „Keine Daten auf diesem Gerät behalten“ aktiv ist. */
-export async function arbeitskopieSpeichern(daten, dateiname, geaendert) {
-  if (einstellungen().keineDatenBehalten) return false;
+/**
+ * Speichert die Arbeitskopie. Mit Passwort verschlüsselt (SPEC 8.9). Nicht gespeichert wird,
+ * wenn „Keine Daten auf diesem Gerät behalten“ aktiv ist oder wenn Fotos ohne Passwort vorliegen.
+ * Gibt 'gespeichert', 'verschluesselt', 'aus' oder 'fotos-ohne-passwort' zurück.
+ */
+export async function arbeitskopieSpeichern(buch, dateiname, geaendert, passwort = '') {
+  if (einstellungen().keineDatenBehalten) return 'aus';
+  if (!passwort && buchHatFotos(buch)) return 'fotos-ohne-passwort';
   const eintrag = {
-    id: daten.dokumentId,
-    titel: [daten.kopf.klasse, daten.kopf.lernfeldNr && `LF ${daten.kopf.lernfeldNr}`, daten.kopf.schuljahr]
-      .filter(Boolean)
-      .join(' · ') || 'Ohne Titel',
+    id: buch.dokumentId,
+    titel: buchTitel(buch),
     dateiname,
     zeit: new Date().toISOString(),
     geaendert,
-    daten,
+    gespeichertAm: buch.gespeichertAm || '',
   };
+  if (passwort) eintrag.huelle = await objektVerschluesseln(buch, passwort);
+  else eintrag.daten = buch;
   await transaktion('readwrite', (s) => s.put(eintrag));
-  return true;
+  return passwort ? 'verschluesselt' : 'gespeichert';
 }
 
 export async function arbeitskopien() {

@@ -7,7 +7,9 @@ import {
   aktiveSchueler,
   datumDeutsch,
 } from './modell.js';
-import { gesamtPerson, prozentSL } from './rechnen.js';
+import { gesamtPerson, prozentSL, ergebnisKA, gesamtpunkte } from './rechnen.js';
+import { daltonNote, daltonProzent } from './dalton.js';
+import { FZ_STATUS, FZ_QUELLE } from './fehlzeiten.js';
 
 const XL = () => {
   if (!globalThis.XLSX) throw new Error('Die Excel-Bibliothek ist nicht geladen.');
@@ -249,5 +251,96 @@ export function gesamtXlsx(daten) {
   const mappe = X.utils.book_new();
   X.utils.book_append_sheet(mappe, blatt1, 'Gesamtübersicht');
   X.utils.book_append_sheet(mappe, blatt2, 'Sonstige Leistung');
+  return X.write(mappe, { type: 'array', bookType: 'xlsx' });
+}
+
+// ---------- Alles als Excel (SPEC 8.7) ----------
+
+function blattNamen() {
+  const benutzt = new Set();
+  return (klasse, titel) => {
+    const rein = (t) => String(t).replace(/[\\/?*[\]:]/g, ' ').trim();
+    let basis = `${rein(klasse || 'Klasse').slice(0, 14)} ${titel}`.slice(0, 31);
+    let name = basis;
+    for (let i = 2; benutzt.has(name.toLowerCase()); i++) name = `${basis.slice(0, 28)} ${i}`;
+    benutzt.add(name.toLowerCase());
+    return name;
+  };
+}
+
+/**
+ * Ein Excel-Arbeitsbuch für das ganze Notenbuch. Je Klasse die Blätter Grunddaten, Klassenarbeiten,
+ * Sonstige Leistung, Dalton (falls an), Fehlzeiten, Eigene Listen (falls vorhanden), Gesamtübersicht.
+ * Fotos sind nie enthalten. Fehlzeiten enthalten den Abwesenheitsgrund (Gesundheitsangabe): sicher ablegen.
+ */
+export function alleAlsExcel(buch) {
+  const X = XL();
+  const mappe = X.utils.book_new();
+  const name = blattNamen();
+  const hinzu = (n, zeilen) => X.utils.book_append_sheet(mappe, X.utils.aoa_to_sheet(zeilen), n);
+  for (const k of buch.klassen) {
+    const kn = k.kopf.klasse;
+    const personen = k.schueler.filter((s) => s.name || s.vorname);
+    const duales = k.bereiche?.duales;
+    const kopfInfo = [
+      ['Klasse', k.kopf.klasse, 'Lernfeld', [k.kopf.lernfeldNr, k.kopf.lernfeldBez].filter(Boolean).join(' '), 'Schuljahr', k.kopf.schuljahr],
+      ['Gewichtung schriftlich %', k.gewichtSchriftlich, 'sonstige %', 100 - k.gewichtSchriftlich],
+      [],
+    ];
+    hinzu(name(kn, 'Grunddaten'), [
+      ...kopfInfo,
+      ['Nr.', 'Name', 'Vorname', 'm/w/d', 'Geburtstag', 'Untis-ID', 'Archiviert', ...(duales ? ['Betrieb', 'Ansprechperson', 'Telefon', 'E-Mail', 'Notiz Betrieb'] : [])],
+      ...personen.map((s, i) => [
+        i + 1, s.name, s.vorname, s.geschlecht, datumDeutsch(s.geburtstag), s.untisId,
+        s.archiviert ? `ja (${datumDeutsch(s.archiviert.datum)}${s.archiviert.grund ? `, ${s.archiviert.grund}` : ''})` : '',
+        ...(duales ? [s.betrieb?.name, s.betrieb?.ansprechperson, s.betrieb?.telefon, s.betrieb?.email, s.betrieb?.notiz] : []),
+      ]),
+    ]);
+    const kaZeilen = [...kopfInfo];
+    k.klassenarbeiten.forEach((ka, i) => {
+      kaZeilen.push([`Klassenarbeit ${i + 1}`, 'Datum', datumDeutsch(ka.datum), 'Gewicht', ka.gewicht, 'Schwerpunkte', ka.schwerpunkte]);
+      kaZeilen.push(['Nr.', 'Name', 'Vorname', ...ka.aufgaben.map((_, j) => `Aufg. ${j + 1}`), '∑', '%', 'Note', 'Attest', 'Teilnahme', 'Sonstiges']);
+      kaZeilen.push(['', 'Höchstpunkte', '', ...ka.aufgaben, gesamtpunkte(ka)]);
+      personen.forEach((s, n) => {
+        const e = ergebnisKA(ka, s.id);
+        const roh = ka.ergebnisse[s.id];
+        kaZeilen.push([n + 1, s.name, s.vorname, ...ka.aufgaben.map((_, j) => roh?.punkte?.[j] ?? null), e.summe, e.prozent, e.note, e.attest ? 'ja' : '', ka.teilnahme?.[s.id]?.status || '', roh?.sonstiges || '']);
+      });
+      kaZeilen.push([]);
+    });
+    hinzu(name(kn, 'Klassenarbeiten'), kaZeilen);
+    const sl = slTabelle(k);
+    hinzu(name(kn, 'Sonstige Leistung'), [...kopfInfo, sl.kopf, ...sl.zeilen]);
+    if (k.dalton && k.dalton.modus !== 'aus') {
+      const dz = [['Dalton', k.dalton.modus === 'einrechnen' ? `fließt ein mit ${k.dalton.anteil} %` : 'nur dokumentiert'], [], ['Aufgabe', 'Ausgabe', 'Abgabe', 'Gewicht', 'Name', 'Vorname', 'Status', 'Qualität', 'Selbstständig', 'Note überschrieben', 'Note', 'Prozent', 'Notiz']];
+      for (const a of k.dalton.aufgaben) {
+        for (const s of personen) {
+          const e = a.eintraege[s.id];
+          if (!e) continue;
+          dz.push([a.titel, datumDeutsch(a.ausgabe), datumDeutsch(a.abgabe), a.gewicht, s.name, s.vorname, e.status || '', e.qualitaet || '', e.selbststaendig || '', e.note ?? null, daltonNote(e, k.dalton.zuordnung), daltonProzent(e, k.dalton.zuordnung), e.notiz || '']);
+        }
+      }
+      hinzu(name(kn, 'Dalton'), dz);
+    }
+    const fz = [['Name', 'Vorname', 'Datum', 'bis', 'Von', 'Bis', 'Stunde', 'Fehlstd.', 'Fehlmin.', 'Fach', 'Status', 'Grund', 'Quelle', 'zählt', 'Notiz']];
+    for (const f of k.fehlzeiten) {
+      const s = k.schueler.find((x) => x.id === f.schuelerId);
+      fz.push([s?.name || '', s?.vorname || '', datumDeutsch(f.datum), datumDeutsch(f.datumBis), f.zeitVon || '', f.zeitBis || '', f.stunde ?? null, f.std ?? null, f.min ?? null, f.fach || '', FZ_STATUS[f.status] || '', f.grund || '', FZ_QUELLE[f.quelle] || '', f.zaehltNicht ? 'nein' : 'ja', f.notiz || '']);
+    }
+    hinzu(name(kn, 'Fehlzeiten'), fz);
+    if (k.listen.length) {
+      const lz = [['Liste', 'Art', 'Name', 'Vorname', 'Datum', 'Wert', 'Notiz']];
+      for (const l of k.listen) {
+        for (const s of personen) {
+          for (const e of l.eintraege[s.id] || []) lz.push([l.name, l.art, s.name, s.vorname, datumDeutsch(e.datum), e.betrag ?? e.wert ?? (e.erledigt ? 'erledigt' : 1), e.notiz || '']);
+        }
+        if (l.art === 'betrag') for (const s of personen) lz.push([l.name, 'Sollbetrag', s.name, s.vorname, '', l.sollJe?.[s.id] ?? l.soll, '']);
+      }
+      hinzu(name(kn, 'Eigene Listen'), lz);
+    }
+    const gt = gesamtTabelle(k);
+    hinzu(name(kn, 'Gesamtübersicht'), [...kopfInfo, gt.kopf, ...gt.zeilen]);
+  }
+  if (buch.klassen.length === 0) hinzu('Leer', [['Das Notenbuch enthält keine Klassen.']]);
   return X.write(mappe, { type: 'array', bookType: 'xlsx' });
 }
