@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f4e79">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'">
+  <title>Notenverwaltung</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="kopf" class="kopfleiste">
+    <div class="kopf-titel">
+      <strong>Notenverwaltung</strong>
+      <span id="dokument-titel" class="dokument-titel"></span>
+    </div>
+    <nav id="navigation" aria-label="Hauptmenü"></nav>
+    <div class="kopf-aktionen">
+      <span id="status" class="status" role="status"></span>
+      <button id="knopf-speichern" type="button" class="knopf primaer" hidden>Speichern</button>
+      <button id="knopf-farbe" type="button" class="knopf" aria-label="Hell- oder Dunkelmodus wechseln" title="Hell/Dunkel">Hell/Dunkel</button>
+    </div>
+  </header>
+  <main id="ansicht" tabindex="-1"></main>
+  <noscript><p>Diese App braucht JavaScript.</p></noscript>
+  <script src="lib/xlsx.full.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

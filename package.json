@@ -1,0 +1,10 @@
+{
+  "name": "unterrichts-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Notenverwaltung als Offline-Web-App (ersetzt Notenliste_Teilzeit_V4.xlsx)",
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\""
+  }
+}
