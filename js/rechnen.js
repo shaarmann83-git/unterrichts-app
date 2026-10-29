@@ -1,5 +1,6 @@
 // Rechenkern: nur Mathematik, keine Oberfläche. Regeln laut docs/SPEC.md Abschnitt 4.
 import { IHK_EINTRAEGE } from './ihk-schema.js';
+import { daltonProzent } from './dalton.js';
 
 const EPS = 1e-9;
 
@@ -108,10 +109,11 @@ export function gesamtpunkte(ka) {
 export function ergebnisKA(ka, schuelerId) {
   const erg = ka.ergebnisse[schuelerId];
   const leer = { summe: null, prozent: null, note: null, attest: false };
-  if (!erg) return leer;
-  if (erg.attest) return { ...leer, attest: true };
-  const eingetragen = (erg.punkte || []).filter((p) => p !== null && p !== undefined && p !== '');
-  if (eingetragen.length === 0) return leer;
+  const eingetragen = (erg?.punkte || []).filter((p) => p !== null && p !== undefined && p !== '');
+  // „gefehlt mit Attest, Nachschreiben offen“ wirkt wie das Feld Attest, solange keine Punkte da sind.
+  const attestOffen = ka.teilnahme?.[schuelerId]?.status === 'attest-offen';
+  if (erg?.attest || (attestOffen && eingetragen.length === 0)) return { ...leer, attest: true };
+  if (!erg || eingetragen.length === 0) return leer;
   const summe = eingetragen.reduce((s, p) => s + Number(p), 0);
   const prozent = prozentKA(summe, gesamtpunkte(ka));
   return { summe, prozent, note: noteAusProzent(prozent), attest: false };
@@ -129,29 +131,60 @@ export function notenspiegel(ka, schueler) {
   return { anzahl, gesamt: n, durchschnitt };
 }
 
-/** Alles zu einer Person für die Gesamtübersicht. */
-export function gesamtPerson(daten, schuelerId) {
+/** Gilt ein Datum beim Zwischenstand? Ohne Stichtag oder ohne Datum: ja (SPEC 8.11). */
+export function imStichtag(datum, stichtag) {
+  return !stichtag || !datum || datum <= stichtag;
+}
+
+/** Alles zu einer Person für die Gesamtübersicht (Ganzjahr, oder Zwischenstand mit `stichtag`). */
+export function gesamtPerson(daten, schuelerId, { stichtag = daten.stichtag || '' } = {}) {
   const kaProzente = daten.klassenarbeiten.map((ka) => ergebnisKA(ka, schuelerId).prozent);
+  const kaGewertet = daten.klassenarbeiten.map((ka, i) => (imStichtag(ka.datum, stichtag) ? kaProzente[i] : null));
   const kaGewichte = daten.klassenarbeiten.map((ka) => ka.gewicht ?? 1);
   const slNoten = daten.sonstige.map((t) => {
     const n = t.eintraege[schuelerId]?.note;
     return n === undefined || n === '' ? null : n;
   });
   const slProzente = slNoten.map((n) => (n === null ? null : prozentSL(n)));
+  const slGewertet = slProzente.map((p, i) => (imStichtag(daten.sonstige[i].datum, stichtag) ? p : null));
   const slGewichte = daten.sonstige.map((t) => t.gewicht ?? 1);
-  const ka = gewichteterMittelwert(kaProzente, kaGewichte);
-  const sl = gewichteterMittelwert(slProzente, slGewichte);
-  const gesamt = gesamtErgebnis(ka.mittel, sl.mittel, daten.gewichtSchriftlich);
+  const ka = gewichteterMittelwert(kaGewertet, kaGewichte);
+  const slNormal = gewichteterMittelwert(slGewertet, slGewichte);
+
+  // Dalton (nur Einrechnung, wenn eingeschaltet): SPEC 8.3
+  const dal = daten.dalton;
+  const daltonAktiv = !!dal && dal.modus !== 'aus';
+  const daltonAufgaben = daltonAktiv ? dal.aufgaben : [];
+  const daltonProzente = daltonAufgaben.map((a) => daltonProzent(a.eintraege[schuelerId], dal.zuordnung));
+  const daltonGewertet = daltonProzente.map((p, i) =>
+    imStichtag(daltonAufgaben[i].abgabe || daltonAufgaben[i].ausgabe, stichtag) ? p : null,
+  );
+  const daltonMittel = gewichteterMittelwert(daltonGewertet, daltonAufgaben.map((a) => a.gewicht ?? 1));
+  let oSL = slNormal.mittel;
+  if (daltonAktiv && dal.modus === 'einrechnen') {
+    const d = (dal.anteil ?? 10) / 100;
+    if (slNormal.mittel !== null && daltonMittel.mittel !== null) {
+      oSL = slNormal.mittel * (1 - d) + daltonMittel.mittel * d;
+    } else if (slNormal.mittel === null) {
+      oSL = daltonMittel.mittel;
+    }
+  }
+  const gesamt = gesamtErgebnis(ka.mittel, oSL, daten.gewichtSchriftlich);
   return {
     kaProzente,
     oKA: ka.mittel,
     anzahlKA: ka.anzahl,
     slNoten,
     slProzente,
-    anzahlSL: sl.anzahl,
-    oSL: sl.mittel,
+    anzahlSL: slNormal.anzahl,
+    oSLNormal: slNormal.mittel,
+    daltonProzente,
+    oDalton: daltonMittel.mittel,
+    anzahlDalton: daltonMittel.anzahl,
+    oSL,
     gesamtProzent: gesamt.prozent,
     gesamtNote: gesamt.note,
+    stichtag,
   };
 }
 

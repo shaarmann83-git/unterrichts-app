@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { inDateitext, ausDateitext, istVerschluesselt, PBKDF2_ITERATIONEN } from '../js/krypto.js';
-import { neueDaten } from '../js/modell.js';
+import { neuesBuch, neueKlasse, pruefeBuch } from '../js/modell.js';
 
 function beispiel() {
-  const d = neueDaten({ klasse: 'TEST-A', schuljahr: '2025/26' });
-  d.schueler[0].name = 'Muster';
-  d.schueler[0].vorname = 'Erika';
-  return d;
+  const k = neueKlasse({ klasse: 'TEST-A', schuljahr: '2025/26' });
+  k.schueler[0].name = 'Muster';
+  k.schueler[0].vorname = 'Erika';
+  return neuesBuch(k);
 }
 
 test('Ohne Passwort: Klartext-JSON, Hin und Zurück', async () => {

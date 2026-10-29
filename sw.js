@@ -4,7 +4,7 @@ const DATEIEN = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   'lib/xlsx.full.min.js',
-  'js/app.js', 'js/aktionen.js', 'js/excel.js', 'js/ihk-schema.js', 'js/kontext.js', 'js/krypto.js',
+  'js/app.js', 'js/dalton.js', 'js/aktionen.js', 'js/excel.js', 'js/ihk-schema.js', 'js/kontext.js', 'js/krypto.js',
   'js/modell.js', 'js/rechnen.js', 'js/speicher.js', 'js/ui.js',
   'js/ansichten/start.js', 'js/ansichten/grunddaten.js', 'js/ansichten/klassenarbeit.js',
   'js/ansichten/sonstige.js', 'js/ansichten/gesamt.js', 'js/ansichten/drucken.js',

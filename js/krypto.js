@@ -1,5 +1,5 @@
 // Passwortschutz der Notendatei: AES-GCM, Schlüssel per PBKDF2 (SHA-256, zufälliges Salt).
-import { pruefeDaten } from './modell.js';
+import { pruefeBuch } from './modell.js';
 
 export const PBKDF2_ITERATIONEN = 310000;
 const FORMAT_VERSCHLUESSELT = 'noten-verschluesselt';
@@ -90,7 +90,66 @@ export async function ausDateitext(text, passwort) {
     } catch {
       throw new Error('Falsches Passwort oder beschädigte Datei.');
     }
-    return pruefeDaten(JSON.parse(new TextDecoder().decode(klartext)));
+    return pruefeBuch(JSON.parse(new TextDecoder().decode(klartext)));
   }
-  return pruefeDaten(roh);
+  return pruefeBuch(roh);
+}
+
+// ---------- Arbeitskopie im Browser (SPEC 8.9) ----------
+// Derselbe Schlüsselweg wie bei der Notendatei. Der abgeleitete Schlüssel wird im Arbeitsspeicher
+// gehalten, damit Autosave nicht bei jeder Änderung neu rechnen muss.
+
+let schluesselCache = null; // { passwort, saltText, schluessel }
+
+export function schluesselVergessen() {
+  schluesselCache = null;
+}
+
+async function cacheHolen(passwort, saltText, iterationen) {
+  if (
+    schluesselCache &&
+    schluesselCache.passwort === passwort &&
+    (!saltText || schluesselCache.saltText === saltText)
+  ) {
+    return schluesselCache;
+  }
+  const saltBytes = saltText ? ausBase64(saltText) : globalThis.crypto.getRandomValues(new Uint8Array(16));
+  const schluessel = await schluesselAbleiten(passwort, saltBytes, iterationen);
+  schluesselCache = { passwort, saltText: inBase64(saltBytes), schluessel };
+  return schluesselCache;
+}
+
+/** Beliebiges JSON-Objekt verschlüsseln (für die Arbeitskopie). */
+export async function objektVerschluesseln(objekt, passwort) {
+  const c = await cacheHolen(passwort, null, PBKDF2_ITERATIONEN);
+  const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
+  const chiffre = await globalThis.crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    c.schluessel,
+    new TextEncoder().encode(JSON.stringify(objekt)),
+  );
+  return {
+    kdf: { name: 'PBKDF2', hash: 'SHA-256', iterationen: PBKDF2_ITERATIONEN, salt: c.saltText },
+    iv: inBase64(iv),
+    daten: inBase64(new Uint8Array(chiffre)),
+  };
+}
+
+export async function objektEntschluesseln(huelle, passwort) {
+  const kdf = huelle?.kdf;
+  if (!kdf || kdf.iterationen < PBKDF2_ITERATIONEN) {
+    throw new Error('Die Arbeitskopie hat eine zu schwache Verschlüsselung und wird nicht geöffnet.');
+  }
+  const c = await cacheHolen(passwort, kdf.salt, kdf.iterationen);
+  try {
+    const klar = await globalThis.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: ausBase64(huelle.iv) },
+      c.schluessel,
+      ausBase64(huelle.daten),
+    );
+    return JSON.parse(new TextDecoder().decode(klar));
+  } catch {
+    schluesselCache = null;
+    throw new Error('Falsches Passwort oder beschädigte Arbeitskopie.');
+  }
 }
