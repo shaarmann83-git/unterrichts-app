@@ -87,6 +87,7 @@ function klassenWahlZeichnen() {
 }
 
 function statusZeichnen() {
+  menueZeichnen(pfad()[0]);
   const status = document.getElementById('status');
   const knopf = document.getElementById('knopf-speichern');
   klassenWahlZeichnen();
