@@ -1,6 +1,9 @@
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen, enterNachUnten } from '../ui.js';
-import { neueKlassenarbeit, aktiveSchueler, anzeigename } from '../modell.js';
+import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog } from '../ui.js';
+import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso } from '../modell.js';
+import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege } from '../nachschreiben.js';
+import { untisListeLaden } from './fehlzeiten.js';
+import { vorschlaegeDialog } from './untis-dialog.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, formatZahl, formatKurz, zahlLesen, NOTEN_WORTE } from '../rechnen.js';
 
 let modus = null; // 'tabelle' | 'einzel'
@@ -58,7 +61,9 @@ export function zeigeKlassenarbeit(params) {
   const kopfFormular = h(
     'div',
     { class: 'formular' },
-    h('label', {}, 'Datum', h('input', { type: 'date', value: ka.datum || '', onchange: (e) => { ka.datum = e.target.value; K.aenderung(); } })),
+    h('label', {}, 'Datum', h('input', { type: 'date', value: ka.datum || '', onchange: (e) => { ka.datum = e.target.value; K.aenderung(); K.neuZeichnen(); } })),
+    h('label', {}, 'Uhrzeit von', h('input', { type: 'time', value: ka.uhrzeitVon || '', 'aria-label': 'Uhrzeit von', onchange: (e) => { ka.uhrzeitVon = e.target.value; K.aenderung(); } })),
+    h('label', {}, 'Uhrzeit bis', h('input', { type: 'time', value: ka.uhrzeitBis || '', 'aria-label': 'Uhrzeit bis', onchange: (e) => { ka.uhrzeitBis = e.target.value; K.aenderung(); } })),
     h(
       'label',
       {},
@@ -124,6 +129,8 @@ export function zeigeKlassenarbeit(params) {
       },
       'Klassenarbeit löschen',
     ),
+    h('button', { type: 'button', class: 'knopf', id: 'untis-laden', onclick: async () => { await untisListeLaden(d); K.neuZeichnen(); } }, 'Untis-Liste laden'),
+    teilnahmeVorschlaege(d).some((v) => v.kaIndex === nr - 1) && h('button', { type: 'button', class: 'knopf', onclick: async () => { await vorschlaegeDialog([d]); K.neuZeichnen(); } }, 'Teilnahme-Vorschläge prüfen'),
     h(
       'button',
       { type: 'button', class: 'knopf', onclick: () => { modus = modus === 'tabelle' ? 'einzel' : 'tabelle'; render(); } },
@@ -134,6 +141,21 @@ export function zeigeKlassenarbeit(params) {
   const arbeitsflaeche = h('div', { class: 'arbeitsflaeche' });
   const spiegel = h('div', { class: 'notenspiegel' });
   wurzel.append(kopfFormular, aufgabenKnoepfe, arbeitsflaeche, h('h2', {}, 'Notenspiegel'), spiegel);
+
+  async function nachgeschriebenFragen(s, e) {
+    const t = ka.teilnahme[s.id];
+    if (t?.status !== 'attest-offen') return;
+    if (!e.punkte.some((p) => p !== null && p !== undefined && p !== '')) return;
+    const datum = h('input', { type: 'date', value: heuteIso() });
+    const ok = await inhaltDialog(`Nachgeschrieben am …? (${anzeigename(s)})`, [h('p', {}, 'Für diese Person war das Nachschreiben offen. Es sind jetzt Punkte eingetragen. Wann wurde nachgeschrieben?'), h('label', {}, 'Nachgeschrieben am', datum)], [
+      { text: 'Nicht ändern', wert: false, abbruch: true },
+      { text: 'Als nachgeschrieben markieren', wert: true, klasse: 'knopf primaer' },
+    ]);
+    if (!ok) return;
+    ka.teilnahme[s.id] = { ...t, status: 'nachgeschrieben', nachgeschriebenAm: datum.value || heuteIso() };
+    K.aenderung();
+    K.neuZeichnen();
+  }
 
   // ----- Zeilen-Steuerelemente (für Tabelle und Einzelansicht gleich) -----
   function steuerelemente(s) {
@@ -159,6 +181,7 @@ export function zeigeKlassenarbeit(params) {
           e.punkte[i] = z;
           K.aenderung();
         },
+        onchange: () => nachgeschriebenFragen(s, e),
       });
       return feld;
     });
@@ -181,6 +204,27 @@ export function zeigeKlassenarbeit(params) {
         K.aenderung();
       },
     });
+    const teilnahme = h('select', {
+      class: 'teilnahme',
+      'aria-label': `${anzeigename(s)} Teilnahme`,
+      onchange: (ev) => {
+        ka.teilnahme[s.id] = { ...(ka.teilnahme[s.id] || {}), status: ev.target.value };
+        if (ev.target.value === 'nachgeschrieben' && !ka.teilnahme[s.id].nachgeschriebenAm) ka.teilnahme[s.id].nachgeschriebenAm = heuteIso();
+        K.aenderung();
+        K.neuZeichnen();
+      },
+    }, Object.entries(TEILNAHME).map(([w, t]) => h('option', { value: w, selected: (ka.teilnahme[s.id]?.status || 'mitgeschrieben') === w }, t)));
+    const nachDatum = ka.teilnahme[s.id]?.status === 'nachgeschrieben'
+      ? h('input', { type: 'date', class: 'nachgeschrieben', 'aria-label': `${anzeigename(s)} nachgeschrieben am`, value: ka.teilnahme[s.id].nachgeschriebenAm || '', onchange: (ev) => { ka.teilnahme[s.id].nachgeschriebenAm = ev.target.value; K.aenderung(); } })
+      : null;
+    // Hinweis laut Untis (nie automatisch gesetzt): Attest anbieten, nicht entschuldigt melden
+    const hinweis = h('span', { class: 'untis-hinweis' });
+    const treffer = fehlzeitenAmTermin(d, ka, s.id);
+    if (treffer.some((f) => f.status === 'attest') && !e.attest && ka.teilnahme[s.id]?.status !== 'attest-offen' && ka.teilnahme[s.id]?.status !== 'nachgeschrieben') {
+      hinweis.append(h('button', { type: 'button', class: 'knopf klein', title: 'Laut Untis entschuldigt mit Attest. Feld „Attest“ setzen?', onclick: () => { e.attest = true; K.aenderung(); K.neuZeichnen(); } }, 'Attest laut Untis: setzen'));
+    } else if (treffer.some((f) => f.status === 'nicht')) {
+      hinweis.append(h('span', { class: 'klein fehlertext', title: 'Laut Untis am Termin nicht entschuldigt' }, 'nicht entschuldigt (Untis)'));
+    }
     updater.push(() => {
       const erg = ergebnisKA(ka, s.id);
       summe.textContent = erg.summe === null ? '' : formatKurz(erg.summe);
@@ -195,7 +239,7 @@ export function zeigeKlassenarbeit(params) {
         feld.title = zuHoch ? `Erlaubt: 0 bis ${String(max).replace('.', ',')}` : '';
       });
     });
-    return { summe, prozent, note, punkteFelder, attest, sonstiges };
+    return { summe, prozent, note, punkteFelder, attest, sonstiges, teilnahme, nachDatum, hinweis };
   }
 
   function tabelleBauen(personen) {
@@ -205,7 +249,7 @@ export function zeigeKlassenarbeit(params) {
       h('th', {}, 'Nr.'),
       h('th', { class: 'links' }, 'Name'),
       ka.aufgaben.map((_, i) => h('th', {}, `Aufg. ${i + 1}`)),
-      ['∑', '%', 'Note', 'Attest', 'Sonstiges'].map((t) => h('th', {}, t)),
+      ['∑', '%', 'Note', 'Attest', 'Teilnahme', 'Sonstiges'].map((t) => h('th', {}, t)),
     );
     const hoechst = ka.aufgaben.map((max, i) =>
       h('input', {
@@ -233,7 +277,7 @@ export function zeigeKlassenarbeit(params) {
       h('td', { class: 'links' }, 'Höchstpunkte'),
       hoechst.map((f) => h('td', {}, f)),
       h('td', {}, gesamtAnzeige2()),
-      h('td', { colspan: 4 }),
+      h('td', { colspan: 5 }),
     );
     function gesamtAnzeige2() {
       const el = h('strong', {});
@@ -245,20 +289,26 @@ export function zeigeKlassenarbeit(params) {
     const tbody = h('tbody');
     personen.forEach((s, i) => {
       const c = steuerelemente(s);
-      tbody.append(
-        h(
+      const zeile = h(
           'tr',
           {},
           h('td', { class: 'zahl' }, String(i + 1)),
-          h('td', { class: 'links name' }, [s.name, s.vorname].filter(Boolean).join(', ')),
+          h('td', { class: 'links name' }, avatar(d, s), ' ', [s.name, s.vorname].filter(Boolean).join(', '), c.hinweis),
           c.punkteFelder.map((f) => h('td', {}, f)),
           h('td', { class: 'zahl' }, c.summe),
           h('td', { class: 'zahl' }, c.prozent),
           h('td', { class: 'mitte' }, c.note),
           h('td', { class: 'mitte' }, c.attest),
+          h('td', {}, c.teilnahme, c.nachDatum),
           h('td', {}, c.sonstiges),
-        ),
-      );
+        );
+      // ohne Attest / Entschuldigung offen und noch keine Punkte: deutlich markieren
+      updater.push(() => {
+        const t = ka.teilnahme[s.id]?.status;
+        const punkte = (ka.ergebnisse[s.id]?.punkte || []).some((p) => p !== null && p !== undefined && p !== '');
+        zeile.classList.toggle('markiert', (t === 'ohne-attest' || t === 'entschuldigung-offen') && !punkte);
+      });
+      tbody.append(zeile);
     });
     const tabelle = h('table', { class: 'tabelle eingabe' }, h('thead', {}, kopf1, kopf2), tbody);
     enterNachUnten(tabelle);
@@ -299,6 +349,8 @@ export function zeigeKlassenarbeit(params) {
         h('span', {}, 'Note: ', c.note),
       ),
       h('label', { class: 'schalter' }, c.attest, ' Attest'),
+      h('label', {}, 'Teilnahme', c.teilnahme, c.nachDatum),
+      c.hinweis,
       h('label', {}, 'Sonstiges (für das Protokoll)', c.sonstiges),
     );
   }

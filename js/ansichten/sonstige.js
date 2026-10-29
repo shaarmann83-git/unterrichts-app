@@ -1,7 +1,10 @@
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen, meldung, fuege } from '../ui.js';
+import { h, leeren, bestaetigen, meldung, fuege, avatar } from '../ui.js';
 import { neuerTermin, heuteIso, datumDeutsch, aktiveSchueler, anzeigename } from '../modell.js';
 import { prozentSL, gesamtPerson, formatZahl, zahlLesen } from '../rechnen.js';
+import { FZ_STATUS } from '../fehlzeiten.js';
+import { sichtbareListen, strichHinzu, strichZurueck, strichSumme, abhakSetzen, abhakErledigt } from '../listen.js';
+import { neueId } from '../modell.js';
 
 let aktuellerTermin = null; // ID des Termins in der Schnelleingabe
 const SCHNELLNOTEN = [1, 2, 3, 4, 5];
@@ -12,6 +15,41 @@ function eintragHolen(t, s) {
 
 function noteText(n) {
   return n === null || n === undefined ? '' : formatZahl(n, 1);
+}
+
+/** Fehlzeit der Stunde (manuell) und Tipp-Felder der Strich- und Abhaklisten. */
+function extras(d, termin, s) {
+  const datum = termin.datum || heuteIso();
+  const fz = d.fehlzeiten.find((f) => f.schuelerId === s.id && f.quelle === 'manuell' && f.datum === datum && f.stundeEintrag);
+  const std = h('input', { type: 'text', inputmode: 'decimal', class: 'gewicht', 'aria-label': `${anzeigename(s)}: Fehlstunden`, placeholder: '0', value: fz?.std ? String(fz.std).replace('.', ',') : '',
+    oninput: (e) => {
+      const z = zahlLesen(e.target.value);
+      const ok = z === null || (!Number.isNaN(z) && z >= 0);
+      e.target.classList.toggle('fehler', !ok);
+      if (!ok) return;
+      let f = d.fehlzeiten.find((x) => x.schuelerId === s.id && x.quelle === 'manuell' && x.datum === datum && x.stundeEintrag);
+      if (!z) {
+        if (f) d.fehlzeiten.splice(d.fehlzeiten.indexOf(f), 1);
+      } else if (f) f.std = z;
+      else d.fehlzeiten.push({ id: neueId(), schuelerId: s.id, datum, datumBis: '', zeitVon: '', zeitBis: '', stunde: null, std: z, min: 0, fach: '', status: statusWahl.value, grund: '', quelle: 'manuell', notiz: '', zaehltNicht: false, stundeEintrag: true });
+      K.aenderung();
+    } });
+  const statusWahl = h('select', { 'aria-label': `${anzeigename(s)}: Status der Fehlzeit`, onchange: (e) => {
+    const f = d.fehlzeiten.find((x) => x.schuelerId === s.id && x.quelle === 'manuell' && x.datum === datum && x.stundeEintrag);
+    if (f) { f.status = e.target.value; K.aenderung(); }
+  } }, Object.entries(FZ_STATUS).map(([w, t]) => h('option', { value: w, selected: (fz?.status || 'offen') === w }, t)));
+  const teile = [h('label', { class: 'inline klein' }, 'Fehlstd.: ', std, ' ', statusWahl)];
+  for (const l of sichtbareListen(d)) {
+    if (l.art === 'strich') {
+      const zahl = h('span', { class: 'summe-klein' }, String(strichSumme(l, s.id)));
+      teile.push(h('span', { class: 'inline klein' }, `${l.name}: `, zahl,
+        h('button', { type: 'button', class: 'knopf taste', 'aria-label': `${l.name}: ${anzeigename(s)} +1`, onclick: () => { strichHinzu(l, s.id, datum); zahl.textContent = String(strichSumme(l, s.id)); K.aenderung(); } }, '+1'),
+        h('button', { type: 'button', class: 'knopf taste', 'aria-label': `${l.name}: ${anzeigename(s)} −1`, onclick: () => { if (strichZurueck(l, s.id)) { zahl.textContent = String(strichSumme(l, s.id)); K.aenderung(); } } }, '−1')));
+    } else if (l.art === 'abhak') {
+      teile.push(h('label', { class: 'inline klein' }, h('input', { type: 'checkbox', 'aria-label': `${l.name}: ${anzeigename(s)}`, checked: abhakErledigt(l, s.id), onchange: (e) => { abhakSetzen(l, s.id, e.target.checked, datum); K.aenderung(); } }), ` ${l.name}`));
+    }
+  }
+  return h('div', { class: 'schnell-extra' }, teile);
 }
 
 export function zeigeSonstige(params) {
@@ -206,10 +244,11 @@ function heute(d) {
         h(
           'div',
           { class: 'schnell-zeile' },
-          h('div', { class: 'schnell-name' }, anzeigename(s)),
+          h('div', { class: 'schnell-name' }, avatar(d, s), ' ', anzeigename(s)),
           h('div', { class: 'schnell-note' }, noteFeld, prozent),
           h('div', { class: 'tasten' }, tasten),
           notiz,
+          extras(d, t, s),
         ),
       );
     }

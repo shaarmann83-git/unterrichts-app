@@ -4,7 +4,7 @@ import { h, leeren, bestaetigen, inhaltDialog, avatar, fuege } from '../ui.js';
 import { neueDaltonAufgabe, aktiveSchueler, anzeigename, datumDeutsch, heuteIso } from '../modell.js';
 import { daltonNote, daltonProzent, DALTON_STATUS, DALTON_QUALITAET } from '../dalton.js';
 import { formatZahl, zahlLesen } from '../rechnen.js';
-import { ansichtRegistrieren } from '../app.js';
+import { ansichtRegistrieren } from '../registry.js';
 import { personAbschnittRegistrieren } from './person.js';
 
 let aktuelleAufgabe = null;

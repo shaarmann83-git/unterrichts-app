@@ -130,6 +130,41 @@ input.notizfeld { width: 100%; }
 .freitext { min-height: 4rem; white-space: pre-wrap; margin: 0.2rem 0 0.8rem; border-bottom: 1px dotted #888; }
 .unterschriften { margin-top: 3rem; display: grid; gap: 3rem; }
 .linie { border-top: 1px solid #000; padding-top: 0.2rem; font-size: 0.85rem; }
+/* ---------- Stufe 2 ---------- */
+.klassenwahl { max-width: 20rem; min-height: 2.2rem; }
+.schutz-hinweis { background: var(--warn-bg); padding: 0.4rem 1rem; font-size: 0.85rem; border-bottom: 1px solid var(--rand); }
+.kacheln { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.8rem; margin: 0.8rem 0; }
+.kachel { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 0.7rem; padding: 0.8rem; display: grid; gap: 0.6rem; }
+.kachel-link { color: var(--text); text-decoration: none; display: grid; gap: 0.2rem; }
+.kachel-link strong { font-size: 1.2rem; color: var(--akzent); }
+.kachel-knoepfe { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.avatar { border-radius: 50%; object-fit: cover; vertical-align: middle; background: var(--hoechst); }
+.avatar.klein { width: 2rem; height: 2rem; }
+.avatar.gross { width: 10rem; height: 10rem; }
+.person-kopf { display: flex; align-items: center; gap: 1rem; margin: 0.6rem 0; }
+.foto-vorschau { width: 256px; height: 256px; max-width: 100%; border-radius: 0.5rem; border: 1px solid var(--rand); }
+.zeile-grau td { color: var(--text-leise); }
+.zeile-gruen td { background: #e3f4e5; color: #14401a; }
+.zeile-rot td { background: var(--fehler-bg); }
+tr.markiert td { background: var(--warn-bg) !important; box-shadow: inset 3px 0 0 var(--fehler); }
+.untis-klasse { margin-bottom: 1rem; }
+.untis-vorschau { max-height: 55vh; overflow: auto; }
+.liste-kurz { margin: 0.3rem 0 0.6rem 1rem; padding: 0; font-size: 0.85rem; }
+.dialog:has(.untis-vorschau), .dialog:has(.tabelle-rahmen) { max-width: min(60rem, 96vw); }
+.schnell-extra { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; align-items: center; border-top: 1px dashed var(--rand); padding-top: 0.3rem; }
+.dalton-zeile { grid-template-columns: minmax(9rem, 14rem) auto auto auto 1fr; }
+.knopf.taste[aria-pressed="true"] { background: var(--akzent); color: var(--akzent-text); border-color: var(--akzent); }
+.breit-feld { width: 100%; min-width: 14rem; }
+.stand { font-weight: 600; }
+.stand.zwischenstand { background: var(--warn-bg); padding: 0.4rem 0.7rem; border-radius: 0.4rem; display: inline-block; }
+.chip-klein { display: inline-block; border: 1px solid var(--rand); border-radius: 1rem; padding: 0 0.5rem; margin: 0 0.2rem 0.2rem 0; font-size: 0.8rem; }
+.summe-klein { min-width: 1.5rem; display: inline-block; text-align: center; font-weight: 600; }
+.nur-druck { display: none; }
+.untis-hinweis { margin-left: 0.4rem; }
+.hinweisleiste { background: var(--warn-bg); border-bottom: 1px solid var(--rand); padding: 0.5rem 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.sperre { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: grid; place-items: center; padding: 1rem; }
+.sperre-box { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 0.8rem; padding: 1.2rem; max-width: 22rem; width: 100%; display: grid; gap: 0.7rem; }
+.einstellung-block { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 0.6rem; padding: 0.8rem 1rem; margin: 0.8rem 0; }
 @media (max-width: 760px) {
   html { font-size: 16px; }
   main { padding: 0.6rem; }
@@ -141,7 +176,10 @@ input.notizfeld { width: 100%; }
 @media print {
   body { background: #fff; color: #000; }
   .kopfleiste, .druck-steuerung, .toast, h1, .druck-seite > p, #navigation { display: none !important; }
-  body:not([data-ansicht="druck"]) main { display: none; }
+  body:not([data-ansicht="druck"]):not([data-ansicht="nachschreiben"]) main { display: none; }
+  .nicht-drucken, .schutz-hinweis, .hinweisleiste { display: none !important; }
+  .nur-druck { display: inline !important; }
+  .nachschreibtermin { display: none; }
   main { padding: 0; }
   .druck-vorschau { display: block; }
   .druckseite { border: 0; padding: 0; max-width: none; break-after: page; }

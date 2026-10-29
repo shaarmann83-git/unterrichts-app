@@ -9,7 +9,7 @@ import {
 } from './modell.js';
 import { gesamtPerson, prozentSL, ergebnisKA, gesamtpunkte } from './rechnen.js';
 import { daltonNote, daltonProzent } from './dalton.js';
-import { FZ_STATUS, FZ_QUELLE } from './fehlzeiten.js';
+import { FZ_STATUS, FZ_QUELLE, fehlzeitenSummen } from './fehlzeiten.js';
 
 const XL = () => {
   if (!globalThis.XLSX) throw new Error('Die Excel-Bibliothek ist nicht geladen.');
@@ -173,9 +173,18 @@ export function importiereVorlage(arrayBuffer) {
 
 // ---------- Export ----------
 
-/** Gesamtübersicht als Tabelle (Zeilen aus Zahlen/Text; Zahlen unformatiert). */
-export function gesamtTabelle(daten) {
-  const personen = aktiveSchueler(daten);
+/** Beschriftung des Stands: Ganzjahresnote oder Zwischenstand zum Stichtag (SPEC 8.11). */
+export function standText(daten, stichtag = daten.stichtag || '') {
+  return stichtag ? `Zwischenstand zum ${datumDeutsch(stichtag)}` : 'Ganzjahresnote';
+}
+
+/**
+ * Gesamtübersicht als Tabelle (Zeilen aus Zahlen/Text; Zahlen unformatiert).
+ * Optionen: fehlzeiten (Summen, nie der Abwesenheitsgrund), archiv (Archivierte mit Kennzeichnung), stichtag.
+ */
+export function gesamtTabelle(daten, { fehlzeiten = true, archiv = false, stichtag = daten.stichtag || '' } = {}) {
+  const personen = daten.schueler.filter((s) => (s.name || s.vorname) && (archiv || !s.archiviert));
+  const duales = !!daten.bereiche?.duales;
   const kopf = [
     'Nr.',
     'Name',
@@ -186,9 +195,14 @@ export function gesamtTabelle(daten) {
     'Ø KA',
     'Anzahl sL-Noten',
     'Ø sL',
+    ...(daten.dalton?.modus && daten.dalton.modus !== 'aus' ? ['Ø Dalton'] : []),
+    ...(fehlzeiten ? ['Fehlstd. gesamt', 'entschuldigt', 'davon mit Attest', 'nicht entschuldigt', 'offen', 'Fehltage', 'Verspätungen'] : []),
+    ...(duales ? ['Betrieb', 'Ansprechperson', 'Telefon', 'E-Mail', 'Notiz Betrieb'] : []),
+    ...(archiv ? ['Archiviert'] : []),
   ];
   const zeilen = personen.map((s, i) => {
-    const g = gesamtPerson(daten, s.id);
+    const g = gesamtPerson(daten, s.id, { stichtag });
+    const z = fehlzeiten ? fehlzeitenSummen(daten, s.id) : null;
     return [
       i + 1,
       s.name,
@@ -199,17 +213,21 @@ export function gesamtTabelle(daten) {
       g.oKA,
       g.anzahlSL,
       g.oSL,
+      ...(daten.dalton?.modus && daten.dalton.modus !== 'aus' ? [g.oDalton] : []),
+      ...(z ? [z.gesamt, z.entschuldigt, z.attest, z.nicht, z.offen, z.tage, z.verspaetungen] : []),
+      ...(duales ? [s.betrieb?.name || '', s.betrieb?.ansprechperson || '', s.betrieb?.telefon || '', s.betrieb?.email || '', s.betrieb?.notiz || ''] : []),
+      ...(archiv ? [s.archiviert ? `ja (${datumDeutsch(s.archiviert.datum)})` : ''] : []),
     ];
   });
   return { kopf, zeilen };
 }
 
 /** Alle sL-Einträge: Datum, Stichwort, Name, Note, Prozent, Notiz. */
-export function slTabelle(daten) {
+export function slTabelle(daten, { archiv = false } = {}) {
   const kopf = ['Datum', 'Stichwort', 'Name', 'Vorname', 'Note', 'Prozent', 'Notiz'];
   const zeilen = [];
   for (const t of daten.sonstige) {
-    for (const s of aktiveSchueler(daten)) {
+    for (const s of daten.schueler.filter((x) => (x.name || x.vorname) && (archiv || !x.archiviert))) {
       const e = t.eintraege[s.id];
       if (!e || (e.note === null && !e.notiz) || (e.note === undefined && !e.notiz)) continue;
       const note = e.note ?? null;
@@ -230,19 +248,23 @@ export function csvText(kopf, zeilen) {
   return [kopf, ...zeilen].map((z) => z.map(feld).join(';')).join('\r\n') + '\r\n';
 }
 
-export function gesamtCsv(daten) {
-  const { kopf, zeilen } = gesamtTabelle(daten);
-  return csvText(kopf, zeilen);
+export function gesamtCsv(daten, optionen = {}) {
+  const { kopf, zeilen } = gesamtTabelle(daten, optionen);
+  const stichtag = optionen.stichtag ?? daten.stichtag ?? '';
+  // Bei einem Zwischenstand steht der Stand in der ersten Zeile, damit er nie mit der Ganzjahresnote verwechselt wird.
+  return (stichtag ? `${standText(daten, stichtag)}\r\n` : '') + csvText(kopf, zeilen);
 }
 
 /** xlsx als Bytes: Blatt „Gesamtübersicht“ und Blatt „Sonstige Leistung“. */
-export function gesamtXlsx(daten) {
+export function gesamtXlsx(daten, optionen = {}) {
   const X = XL();
   const k = daten.kopf;
-  const tab = gesamtTabelle(daten);
+  const stichtag = optionen.stichtag ?? daten.stichtag ?? '';
+  const tab = gesamtTabelle(daten, optionen);
   const kopfzeilen = [
     ['Klasse', k.klasse, 'Lernfeld', [k.lernfeldNr, k.lernfeldBez].filter(Boolean).join(' '), 'Schuljahr', k.schuljahr],
     ['Gewichtung schriftlich %', daten.gewichtSchriftlich, 'sonstige %', 100 - daten.gewichtSchriftlich],
+    ['Stand', standText(daten, stichtag)],
     [],
   ];
   const blatt1 = X.utils.aoa_to_sheet([...kopfzeilen, tab.kopf, ...tab.zeilen]);
@@ -285,6 +307,7 @@ export function alleAlsExcel(buch) {
     const kopfInfo = [
       ['Klasse', k.kopf.klasse, 'Lernfeld', [k.kopf.lernfeldNr, k.kopf.lernfeldBez].filter(Boolean).join(' '), 'Schuljahr', k.kopf.schuljahr],
       ['Gewichtung schriftlich %', k.gewichtSchriftlich, 'sonstige %', 100 - k.gewichtSchriftlich],
+      ['Stand', standText(k)],
       [],
     ];
     hinzu(name(kn, 'Grunddaten'), [
@@ -309,7 +332,7 @@ export function alleAlsExcel(buch) {
       kaZeilen.push([]);
     });
     hinzu(name(kn, 'Klassenarbeiten'), kaZeilen);
-    const sl = slTabelle(k);
+    const sl = slTabelle(k, { archiv: true });
     hinzu(name(kn, 'Sonstige Leistung'), [...kopfInfo, sl.kopf, ...sl.zeilen]);
     if (k.dalton && k.dalton.modus !== 'aus') {
       const dz = [['Dalton', k.dalton.modus === 'einrechnen' ? `fließt ein mit ${k.dalton.anteil} %` : 'nur dokumentiert'], [], ['Aufgabe', 'Ausgabe', 'Abgabe', 'Gewicht', 'Name', 'Vorname', 'Status', 'Qualität', 'Selbstständig', 'Note überschrieben', 'Note', 'Prozent', 'Notiz']];
@@ -338,7 +361,7 @@ export function alleAlsExcel(buch) {
       }
       hinzu(name(kn, 'Eigene Listen'), lz);
     }
-    const gt = gesamtTabelle(k);
+    const gt = gesamtTabelle(k, { archiv: true });
     hinzu(name(kn, 'Gesamtübersicht'), [...kopfInfo, gt.kopf, ...gt.zeilen]);
   }
   if (buch.klassen.length === 0) hinzu('Leer', [['Das Notenbuch enthält keine Klassen.']]);

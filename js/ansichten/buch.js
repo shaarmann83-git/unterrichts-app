@@ -1,6 +1,6 @@
 // Notenbuch: Kacheln je Klasse und Aktionen für das ganze Notenbuch (SPEC 8.1, 8.7).
 import { K } from '../kontext.js';
-import { h, bestaetigen, inhaltDialog, meldung, toast } from '../ui.js';
+import { h, bestaetigen, inhaltDialog, meldung, toast, fuege } from '../ui.js';
 import { neueKlasse, klasseKopieren, aktiveSchueler, neueId, pruefeKlasse, buchHatFotos } from '../modell.js';
 import {
   passwortSetzen,
@@ -122,7 +122,8 @@ export function zeigeBuch() {
 
   const passwortZeile = h('p', {}, K.passwort ? 'Passwortschutz: an' : 'Passwortschutz: aus (Arbeitskopie im Browser ungeschützt)');
 
-  wurzel.append(
+  fuege(
+    wurzel,
     h('h1', {}, 'Notenbuch'),
     h('p', { class: 'klein' }, K.dateiname || 'noch nicht gespeichert'),
     h('div', { class: 'knopfreihe' },

@@ -5,6 +5,7 @@ import { istVolljaehrig, zahlLesen } from '../rechnen.js';
 import { passwortSetzen, passwortEntfernen, speichern, passwortFuerFotosSicherstellen } from '../aktionen.js';
 import { kannDirektSpeichern, dateiAlsBytes } from '../speicher.js';
 import { tabelleAusDatei } from '../tabelle-datei.js';
+import { listeAnlegenDialog } from './listen.js';
 import { schuelerSpaltenRaten, schuelerAusZeilen, schuelerVergleichen, schuelerUebernehmen, SCHUELER_FELDER } from '../schuelerliste.js';
 
 /** Schülerliste aus Excel/CSV importieren (SPEC 8.12): Zuordnung, Vorschau, Bestätigung. */
@@ -328,6 +329,9 @@ export function zeigeGrunddaten() {
     h('h2', {}, 'Bereiche dieser Klasse'),
     h('p', { class: 'klein' }, 'Ausgeschaltete Bereiche sind in dieser Klasse unsichtbar.'),
     bereiche,
+    h('div', { class: 'knopfreihe' },
+      h('button', { type: 'button', class: 'knopf', id: 'liste-anlegen', onclick: async () => { const l = await listeAnlegenDialog(d); if (l) K.navigiere('listen'); } }, '+ Eigene Liste anlegen (Strich-, Abhak-, Betragsliste)'),
+      d.listen.length > 0 && h('a', { class: 'knopf', href: '#/listen' }, `Eigene Listen (${d.listen.length})`)),
     h('h2', {}, 'Notendatei'),
     h(
       'p',

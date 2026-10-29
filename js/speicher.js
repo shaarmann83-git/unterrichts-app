@@ -4,6 +4,7 @@ import { objektVerschluesseln } from './krypto.js';
 
 const DB_NAME = 'notenverwaltung';
 const STORE = 'arbeitskopien';
+const HANDLES = 'ordner';
 const EINSTELLUNGEN = 'notenverwaltung-einstellungen';
 
 // ---------- Einstellungen (localStorage) ----------
@@ -31,19 +32,23 @@ export function einstellungSetzen(schluessel, wert) {
 function dbOeffnen() {
   return new Promise((resolve, reject) => {
     if (!globalThis.indexedDB) return reject(new Error('IndexedDB nicht verfügbar'));
-    const anfrage = indexedDB.open(DB_NAME, 1);
-    anfrage.onupgradeneeded = () => anfrage.result.createObjectStore(STORE, { keyPath: 'id' });
+    const anfrage = indexedDB.open(DB_NAME, 2);
+    anfrage.onupgradeneeded = () => {
+      const db = anfrage.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
+      if (!db.objectStoreNames.contains(HANDLES)) db.createObjectStore(HANDLES, { keyPath: 'name' });
+    };
     anfrage.onsuccess = () => resolve(anfrage.result);
     anfrage.onerror = () => reject(anfrage.error);
   });
 }
 
-async function transaktion(modus, aktion) {
+async function transaktion(modus, aktion, speicher = STORE) {
   const db = await dbOeffnen();
   try {
     return await new Promise((resolve, reject) => {
-      const t = db.transaction(STORE, modus);
-      const ergebnis = aktion(t.objectStore(STORE));
+      const t = db.transaction(speicher, modus);
+      const ergebnis = aktion(t.objectStore(speicher));
       t.oncomplete = () => resolve(ergebnis.result);
       t.onerror = () => reject(t.error);
       t.onabort = () => reject(t.error);
@@ -90,6 +95,12 @@ export function arbeitskopieLoeschen(id) {
 
 export async function alleLokalenDatenLoeschen() {
   await transaktion('readwrite', (s) => s.clear());
+  await transaktion('readwrite', (s) => s.clear(), HANDLES).catch(() => {});
+  try {
+    await caches.delete('untis-eingang');
+  } catch {
+    /* kein Cache vorhanden */
+  }
   try {
     localStorage.removeItem(EINSTELLUNGEN);
   } catch {
@@ -177,4 +188,40 @@ export async function dateiSpeichern(text, { handle, name, neuWaehlen = false })
   }
   herunterladen(text, name, 'application/json');
   return { handle: null, name, direkt: false };
+}
+
+// ---------- Ordnerzugriff merken (überwachter Untis-Ordner) ----------
+
+export const kannOrdnerWaehlen = () => typeof globalThis.showDirectoryPicker === 'function';
+
+export function ordnerHandleSpeichern(name, handle) {
+  return transaktion('readwrite', (s) => s.put({ name, handle }), HANDLES);
+}
+
+export async function ordnerHandleLaden(name) {
+  const e = await transaktion('readonly', (s) => s.get(name), HANDLES);
+  return e?.handle || null;
+}
+
+export function ordnerHandleLoeschen(name) {
+  return transaktion('readwrite', (s) => s.delete(name), HANDLES);
+}
+
+/** Mehrere Dateien wählen (z. B. beide Untis-Berichte). Gibt [{text: ArrayBuffer, name}] zurück, leer bei Abbruch. */
+export function dateienAlsBytes(accept) {
+  return new Promise((resolve, reject) => {
+    const eingabe = document.createElement('input');
+    eingabe.type = 'file';
+    eingabe.accept = accept;
+    eingabe.multiple = true;
+    eingabe.addEventListener('change', async () => {
+      try {
+        resolve(await Promise.all([...eingabe.files].map(async (d) => ({ text: await d.arrayBuffer(), name: d.name }))));
+      } catch (e) {
+        reject(e);
+      }
+    });
+    eingabe.addEventListener('cancel', () => resolve([]));
+    eingabe.click();
+  });
 }

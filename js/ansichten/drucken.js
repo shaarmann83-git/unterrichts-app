@@ -1,5 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren } from '../ui.js';
+import { standText } from '../excel.js';
 import { aktiveSchueler, anzeigename, kurzname, datumDeutsch } from '../modell.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE } from '../rechnen.js';
 
@@ -100,6 +101,7 @@ export function zeigeDruck() {
       'article',
       { class: 'druckseite quer' },
       h('h2', {}, 'Gesamtübersicht'),
+      h('p', { class: 'stand' }, h('strong', {}, standText(d))),
       h('p', {}, `Klasse ${d.kopf.klasse || ''} · Lernfeld ${d.kopf.lernfeldNr || ''} ${d.kopf.lernfeldBez || ''} · Schuljahr ${d.kopf.schuljahr || ''} · Gewichtung schriftlich ${String(d.gewichtSchriftlich).replace('.', ',')} % / sonstige ${String(100 - d.gewichtSchriftlich).replace('.', ',')} %`),
       h(
         'table',

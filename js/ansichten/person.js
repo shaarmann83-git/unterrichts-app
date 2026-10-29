@@ -5,7 +5,7 @@ import { aktiveSchueler, anzeigename, datumDeutsch, heuteIso } from '../modell.j
 import { ergebnisKA, gesamtpunkte, gesamtPerson, formatZahl, formatKurz, NOTEN_WORTE, prozentSL } from '../rechnen.js';
 import { fotoErstellen } from '../foto.js';
 import { passwortSetzen } from '../aktionen.js';
-import { ansichtRegistrieren } from '../app.js';
+import { ansichtRegistrieren } from '../registry.js';
 
 // Weitere Bereiche (Dalton, Fehlzeiten, Listen) hängen ihren Abschnitt hier ein: fn(klasse, person) -> Node | null
 const abschnitte = [];

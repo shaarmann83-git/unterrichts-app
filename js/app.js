@@ -4,6 +4,7 @@ import { h, leeren } from './ui.js';
 import { speichern } from './aktionen.js';
 import { arbeitskopieSpeichern, einstellungen, einstellungSetzen } from './speicher.js';
 import { buchTitel, buchHatFotos } from './modell.js';
+import { ANSICHTEN, ansichtRegistrieren } from './registry.js';
 import { zeigeStart } from './ansichten/start.js';
 import { zeigeBuch } from './ansichten/buch.js';
 import { zeigeGrunddaten } from './ansichten/grunddaten.js';
@@ -12,19 +13,14 @@ import { zeigeSonstige } from './ansichten/sonstige.js';
 import { zeigeGesamt } from './ansichten/gesamt.js';
 import { zeigeDruck } from './ansichten/drucken.js';
 
-// Jede Ansicht: [Menütext, Funktion, braucht eine gewählte Klasse, nur sichtbar wenn …]
-const ANSICHTEN = {
-  start: { text: 'Start', bauen: zeigeStart, klasse: false, reihe: 0 },
-  buch: { text: 'Notenbuch', bauen: zeigeBuch, klasse: false, reihe: 1 },
-  grunddaten: { text: 'Grunddaten', bauen: zeigeGrunddaten, klasse: true, reihe: 2 },
-  ka: { text: 'Klassenarbeiten', bauen: zeigeKlassenarbeit, klasse: true, reihe: 3 },
-  sl: { text: 'Sonstige Leistung', bauen: zeigeSonstige, klasse: true, reihe: 4 },
-  gesamt: { text: 'Gesamtübersicht', bauen: zeigeGesamt, klasse: true, reihe: 8 },
-  druck: { text: 'Drucken', bauen: zeigeDruck, klasse: true, reihe: 10 },
-};
-export function ansichtRegistrieren(id, def) {
-  ANSICHTEN[id] = def;
-}
+// Kernansichten (weitere melden sich in ansichten/index.js an)
+ansichtRegistrieren('start', { text: 'Start', bauen: zeigeStart, klasse: false, reihe: 0 });
+ansichtRegistrieren('buch', { text: 'Notenbuch', bauen: zeigeBuch, klasse: false, reihe: 1 });
+ansichtRegistrieren('grunddaten', { text: 'Grunddaten', bauen: zeigeGrunddaten, klasse: true, reihe: 2 });
+ansichtRegistrieren('ka', { text: 'Klassenarbeiten', bauen: zeigeKlassenarbeit, klasse: true, reihe: 3 });
+ansichtRegistrieren('sl', { text: 'Sonstige Leistung', bauen: zeigeSonstige, klasse: true, reihe: 4 });
+ansichtRegistrieren('gesamt', { text: 'Gesamtübersicht', bauen: zeigeGesamt, klasse: true, reihe: 8 });
+ansichtRegistrieren('druck', { text: 'Drucken', bauen: zeigeDruck, klasse: true, reihe: 10 });
 
 let aktuell = null; // {el, update}
 let autosaveTimer = null;

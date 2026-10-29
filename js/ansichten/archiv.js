@@ -2,7 +2,7 @@
 import { K } from '../kontext.js';
 import { h, bestaetigen } from '../ui.js';
 import { archivierteSchueler, anzeigename, datumDeutsch } from '../modell.js';
-import { ansichtRegistrieren } from '../app.js';
+import { ansichtRegistrieren } from '../registry.js';
 
 export function zeigeArchiv() {
   const d = K.daten;
