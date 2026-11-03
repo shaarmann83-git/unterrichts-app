@@ -60,6 +60,15 @@ test('Mitarbeitstabelle 2,8/2,4/1,7/1,0/0,4', () => {
   for (const [m, n] of f) assert.equal(grundnoteAusMittel(m, EIN), n, `Ø ${m}`);
 });
 
+test('Abschneiden statt Runden: 2,6666 → 2,66; 2,869 → 2,86; 2,67 bleibt 2,67', async () => {
+  const { abschneidenNote } = await import('../js/sport.js');
+  assert.equal(abschneidenNote(8 / 3, 2), 2.66);
+  assert.equal(abschneidenNote(2.869, 2), 2.86);
+  assert.equal(abschneidenNote(2.67, 2), 2.67);
+  assert.equal(abschneidenNote(0.4 * 2.66 + 0.6 * 3, 2), 2.86);
+  assert.equal(abschneidenNote(null, 2), null);
+});
+
 test('Rundung: halbe Werte zur besseren Note (2,5 → 2; 2,51 → 3)', () => {
   assert.equal(rundeNote(2.5), 2);
   assert.equal(rundeNote(2.51), 3);
@@ -162,7 +171,7 @@ test('Ohne jeden Wert bleibt die Prüfung leer', () => {
 
 // ---------- Mitarbeit ----------
 
-test('Volleyball: Mitarbeit 3,2,2,2,2,2,2 (ein Termin E) → Ø 2,142857 → Grundnote 3; ein Merkmal → 2,6667; Reihenwert 2,3333 → Note 2', () => {
+test('Volleyball: Mitarbeit 3,2,2,2,2,2,2 (ein Termin E) → Ø 2,142857 → Grundnote 3; ein Merkmal → 2,66 (abgeschnitten); Reihenwert 2,33 → Note 2', () => {
   const k = sportKlasse();
   const r = reihe(k, 'Volleyball');
   teile(r, 3);
@@ -179,9 +188,9 @@ test('Volleyball: Mitarbeit 3,2,2,2,2,2,2 (ein Termin E) → Ø 2,142857 → Gru
   haken(k, ts[1], 0); haken(k, ts[2], 0);
   m = mitarbeitReihe(k, r, k.schueler[0].id, EIN);
   assert.deepEqual(m.gezeigt, [true, false, false]);
-  nah(m.note, 2.6667);
+  nah(m.note, 2.66);
   const e = erg(k, r);
-  nah(e.wert, 2.3333);
+  nah(e.wert, 2.33);
   assert.equal(e.note, 2);
 });
 
@@ -324,7 +333,7 @@ test('Mitarbeitsnote manuell überschreibbar', () => {
 
 // ---------- Prüfungstag ----------
 
-test('Prüfungstag unentschuldigt: Person U, keine Werte → Prüfungsnote 6; Reihenwert 4,3333', () => {
+test('Prüfungstag unentschuldigt: Person U, keine Werte → Prüfungsnote 6; Reihenwert 4,33', () => {
   const k = sportKlasse();
   const r = reihe(k, 'Volleyball');
   teile(r, 3);
@@ -335,8 +344,8 @@ test('Prüfungstag unentschuldigt: Person U, keine Werte → Prüfungsnote 6; Re
   const e = erg(k, r);
   assert.equal(e.pruefung.note, 6);
   assert.equal(e.pruefung.status, 'auto6');
-  nah(e.mitarbeit.note, 2.6667);
-  nah(e.wert, 4.3333);
+  nah(e.mitarbeit.note, 2.66);
+  nah(e.wert, 4.33);
 });
 
 test('Prüfungstag mit E → Prüfung offen, Status „Nachprüfung offen“; mit Wert gilt die normale Rechnung', () => {
@@ -411,7 +420,7 @@ test('Ersatzprüfung: eigene Teile mit gleichem Schlüssel oder direkte Note; Be
 
 // ---------- Reihenwert, Verhalten, Ultimate ----------
 
-test('Verhalten: Gewichte 0,6/0,4/0,2, Prüfung 3, Mitarbeit 1,6667, Verhalten 2 → 2,3889', () => {
+test('Verhalten: Gewichte 0,6/0,4/0,2, Prüfung 3, Mitarbeit 1,6667, Verhalten 2 → 2,38', () => {
   const k = sportKlasse();
   const r = reihe(k, 'X', { pruefung: 0.6, mit: 0.4, verhalten: 0.2 });
   teile(r, 1);
@@ -423,8 +432,8 @@ test('Verhalten: Gewichte 0,6/0,4/0,2, Prüfung 3, Mitarbeit 1,6667, Verhalten 2
   r.werte[k.schueler[0].id].verhalten = 2;
   const e = erg(k, r);
   assert.equal(e.pruefung.note, 3);
-  nah(e.wert, (0.6 * 3 + 0.4 * 1.6667 + 0.2 * 2) / 1.2, 1e-9);
-  nah(e.wert, 2.3889);
+  nah(e.wert, Math.floor(((0.6 * 3 + 0.4 * 1.6667 + 0.2 * 2) / 1.2) * 100) / 100, 1e-9); // Reihenwert auf 2 Stellen abgeschnitten
+  nah(e.wert, 2.38);
 });
 
 test('Verhalten mit Gewicht 0 wirkt nicht; leere Teilleistung verteilt ihr Gewicht', () => {
@@ -473,20 +482,20 @@ function beispielHalbjahr() {
   return { k, v, b };
 }
 
-test('Badminton: Prüfung 3, Ø 2,4 → 2; ein Merkmal → 1,6667; Reihenwert 0,6 × 3 + 0,4 × 1,6667 = 2,4667 → 2', () => {
+test('Badminton: Prüfung 3, Ø 2,4 → 2; ein Merkmal → 1,66; Reihenwert 0,6 × 3 + 0,4 × 1,66 = 2,46 → 2', () => {
   const { k, b } = beispielHalbjahr();
   const e = erg(k, b);
   nah(e.mitarbeit.mittel, 2.4);
   assert.equal(e.mitarbeit.grundnote, 2);
-  nah(e.mitarbeit.note, 1.6667);
-  nah(e.wert, 2.4667);
+  nah(e.mitarbeit.note, 1.66);
+  nah(e.wert, 2.46);
   assert.equal(e.note, 2);
 });
 
-test('Halbjahr Volleyball + Badminton: Ø Wert (2,3333 + 2,4667)/2 = 2,4 → 2; Ø Note (2 + 2)/2 = 2', () => {
+test('Halbjahr Volleyball + Badminton: Ø Wert (2,33 + 2,46)/2 = 2,395 → 2; Ø Note (2 + 2)/2 = 2', () => {
   const { k } = beispielHalbjahr();
   const g = gesamtSport(k, k.schueler[0].id, EIN);
-  nah(g.oWert, 2.4);
+  nah(g.oWert, 2.395);
   assert.equal(g.oNote, 2);
   const { ergebnis } = endnotenKlasse(k, k.schueler, EIN);
   assert.equal(ergebnis.get(k.schueler[0].id).endnote, 2);
@@ -496,10 +505,10 @@ test('Reihen-Gewichte der Gesamtnote (Standard 1) und Reihe ohne Wert zählt nic
   const { k, v } = beispielHalbjahr();
   v.gewichtReihe = 3;
   const g = gesamtSport(k, k.schueler[0].id, EIN);
-  nah(g.oWert, (3 * 2.3333 + 2.4667) / 4);
+  nah(g.oWert, (3 * 2.33 + 2.46) / 4);
   const leer = reihe(k, 'Leer');
   assert.equal(erg(k, leer).wert, null);
-  nah(gesamtSport(k, k.schueler[0].id, EIN).oWert, (3 * 2.3333 + 2.4667) / 4);
+  nah(gesamtSport(k, k.schueler[0].id, EIN).oWert, (3 * 2.33 + 2.46) / 4);
 });
 
 test('Endnote-Variante: Klasse mit zwei Personen, die Variante mit kleinerem Klassendurchschnitt wird gewählt', () => {
@@ -566,7 +575,7 @@ test('Punkte (BG): Mitarbeitsnote darf unter 1,0 sinken (bis 15 Punkte)', () => 
   const m = mitarbeitReihe(k, r, k.schueler[0].id, EIN);
   assert.equal(m.grundnote, 1);
   nah(m.aufwertung, 1);
-  nah(m.note, 2 / 3);
+  nah(m.note, 0.66); // 2/3 auf 2 Stellen abgeschnitten
   assert.equal(punkte(m.note, EIN), 15);
 });
 
@@ -607,7 +616,7 @@ test('Sport-Klasse übersteht Speichern und Öffnen (mit und ohne Passwort) unve
     const zurueck = await ausDateitext(await inDateitext(buch, pw), pw);
     assert.deepEqual(zurueck, buch);
     const g = gesamtSport(zurueck.klassen[0], zurueck.klassen[0].schueler[0].id, einstellungenAus(zurueck));
-    nah(g.oWert, 2.4);
+    nah(g.oWert, 2.395);
   }
 });
 

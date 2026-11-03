@@ -29,6 +29,7 @@ Die Rechenregeln stehen in `docs/SPEC.md` (Abschnitt 4 und 8). Kurz: Prozent wir
 - **Reihen-Vorlagen** (Badminton, Volleyball, Ultimate Frisbee; leer: Basketball, Steppen, Tai-Bo), **Sport-Einstellungen** für alle Sport-Klassen mit Warnung und Protokoll, **Druck** (Kriterienblatt, Erfassungsbogen, leere Listen, Notenliste), **Excel-Export**, **Besprechungsmodus** (nur eine Person sichtbar, auch für Lernfeld-Klassen).
 - Untis-Fehlzeiten schreiben `A`, `E`, `U` oder `|` in die Anwesenheit; von Hand gesetzte Zeichen werden nie überschrieben.
 - Die Texte in den Vorlagen sind Vorschläge und in jeder Reihe änderbar. Merkmale, die in der Anleitung nicht genannt sind, stehen als „(Merkmal bitte eintragen)“ da.
+- **Rechnen im Sport:** Mitarbeitsnote und Reihenwert werden auf zwei Stellen abgeschnitten (nicht gerundet), wie in der Lernfeld-Notenliste. Der Ø über die Reihen bleibt ungekürzt. Die ganze Note entsteht mit „halbe Werte zur besseren Note“ (2,50 → 2, 2,51 → 3).
 - **Hinweis:** Notendateien mit Sport-Klassen sollten nur mit dieser oder einer neueren Version der App geöffnet werden; eine ältere Version zeigt Sport-Klassen nicht richtig an.
 
 **Stufe 4: Stundenplan aus WebUntis (iCal)**

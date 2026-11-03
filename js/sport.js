@@ -3,6 +3,13 @@ import { sportStandard } from './modell.js';
 
 const EPS = 1e-9;
 
+/** Auf `stellen` Nachkommastellen abschneiden (nicht runden), wie in der Lernfeld-Notenliste; tolerant gegen Gleitkommafehler. */
+export function abschneidenNote(x, stellen = 2) {
+  if (x === null || x === undefined || Number.isNaN(x)) return null;
+  const f = 10 ** stellen;
+  return Math.floor(x * f + 1e-7) / f;
+}
+
 // ---------- Anwesenheitszeichen (9.2) ----------
 
 /** Wirkung eines Zeichens auf die Mitarbeit: zaehlt (Wert aus Mitarbeit), null (fest 0), offen, ohne (zählt nicht). */
@@ -165,7 +172,8 @@ export function mitarbeitReihe(klasse, reihe, schuelerId, ein) {
   const aufwertung = Math.min(1, anzahlGezeigt * ein.schritt);
   // Mit „Punkte“ darf die Note unter 1,0 sinken (bis 15 Punkte), sonst nie besser als 1,0
   const bestNote = klasse.sport.notensystem === 'punkte' ? (ein.punkte.basis - ein.punkte.max) / ein.punkte.faktor : 1;
-  const berechnet = grund === null ? null : Math.max(bestNote, grund - aufwertung);
+  // Mitarbeitsnote auf 2 Stellen abschneiden (Regel der Nutzerin, wie im Lernfeld)
+  const berechnet = grund === null ? null : abschneidenNote(Math.max(bestNote, grund - aufwertung), 2);
   const uebers = reihe.werte[schuelerId]?.mitarbeitNote;
   const ueberschrieben = uebers && typeof uebers.wert === 'number' ? uebers : null;
   return {
@@ -269,7 +277,8 @@ export function reihenErgebnis(klasse, reihe, schuelerId, ein) {
     [verhalten, g.verhalten ?? 0],
     ...direkte.map((d) => [d.note, d.gewicht]),
   ];
-  const wert = gewichtetesMittel(paare);
+  // Reihenwert auf 2 Stellen abschneiden; Ø über die Reihen bleibt ungekürzt
+  const wert = abschneidenNote(gewichtetesMittel(paare), 2);
   return { pruefung: pr, mitarbeit: mi, verhalten, direkte, wert, note: rundeNote(wert), bemerkung: werte.bemerkung || '' };
 }
 
