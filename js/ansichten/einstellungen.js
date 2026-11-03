@@ -68,7 +68,7 @@ export function zeigeEinstellungen() {
       h('label', {}, 'App nach Untätigkeit sperren (Passwort erneut eingeben). Nur wirksam, wenn die Notendatei ein Passwort hat.', sperre)),
     h('div', { class: 'einstellung-block' },
       h('h2', {}, 'Untis-Fehlzeiten automatisch abgleichen'),
-      h('p', { class: 'klein' }, 'Wählen Sie einmalig den Ordner, in dem Ihr Browser Untis-Listen speichert (z. B. Downloads oder ein OneDrive-Ordner „Untis“). Die App prüft ihn beim Öffnen und danach jede Minute, solange sie sichtbar ist. Dateien nicht dauerhaft im Downloads-Ordner liegen lassen.'),
+      h('p', { class: 'klein' }, 'Wählen Sie einmalig den Ordner, in dem Ihr Browser Untis-Listen speichert (z. B. Downloads oder ein OneDrive-Ordner „Untis“). Die App prüft ihn beim Öffnen und danach jede Minute, solange sie sichtbar ist (Untis-Berichte und Stundenplan-Dateien `.ics`). Dateien nicht dauerhaft im Downloads-Ordner liegen lassen.'),
       ordnerStatus, ordnerKnoepfe,
       schalter('untis-loeschen', 'Datei nach dem Import löschen (braucht Schreibrecht für den Ordner)', e.untisLoeschen, (v) => { einstellungSetzen('untisLoeschen', v); ordnerZeichnen(); }),
       K.buch && schalter('untis-auto', 'Ohne Rückfrage abgleichen und direkt die Vorschlagsliste zeigen (für dieses Notenbuch)', !!K.buch.einstellungen.untisOrdnerAutomatisch, (v) => { K.buch.einstellungen.untisOrdnerAutomatisch = v; K.aenderung(); }),

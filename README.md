@@ -31,6 +31,16 @@ Die Rechenregeln stehen in `docs/SPEC.md` (Abschnitt 4 und 8). Kurz: Prozent wir
 - Die Texte in den Vorlagen sind Vorschläge und in jeder Reihe änderbar. Merkmale, die in der Anleitung nicht genannt sind, stehen als „(Merkmal bitte eintragen)“ da.
 - **Hinweis:** Notendateien mit Sport-Klassen sollten nur mit dieser oder einer neueren Version der App geöffnet werden; eine ältere Version zeigt Sport-Klassen nicht richtig an.
 
+**Stufe 4: Stundenplan aus WebUntis (iCal)**
+- Der WebUntis-Kalender (`.ics`) enthält nur Ihren Stundenplan, keine Schülerdaten. Unter „Stundenplan“ laden Sie die Datei; ein Zuordnungsdialog fragt, welche Kombination „Klasse + Fach“ zu welcher Klasse im Notenbuch gehört (wird gemerkt, Aufsichten lassen sich ignorieren). Doppelstunden werden zu einem Termin zusammengefasst.
+- **Sport-Klassen** bekommen Termine mit Datum und Uhrzeit, die Reihe wird vom vorherigen Termin übernommen. **Lernfeld-Klassen** bekommen Vorschläge für „Heutige Stunde“ und für Datum und Uhrzeit einer Klassenarbeit (die Uhrzeit hilft beim Attest-Abgleich).
+- Läuft gerade oder in den nächsten 30 Minuten ein Termin, schlägt die App auf dem Start- und Notenbuch-Bildschirm vor: „Jetzt: WAK 1 Sport – Einheit erfassen“.
+- Ausgefallene Stunden (`STATUS:CANCELLED`) werden vermerkt und zählen nirgends.
+- **Erneuter Import:** Über die UID erkennt die App bekannte Termine. Nur importierte, noch leere Termine in der Zukunft werden geändert oder entfernt. Termine mit Einträgen und von Hand angelegte Termine bleiben unverändert; Abweichungen stehen in der Änderungsliste.
+- Wege: Datei laden, in die App ziehen (PC), Teilen-Menü (Android), überwachter Ordner und OneDrive-Eingang (`*.ics`, wie bei den Untis-Berichten). Verarbeitete Dateien werden erkannt und nicht erneut angeboten.
+- **Eine Abfrage der Abo-Adresse gibt es bewusst nicht.** Sie würde die Netzwerk-Sicherheitsregel der App lockern, und WebUntis erlaubt solche Abrufe aus dem Browser vermutlich ohnehin nicht. Das Stundenplan-Abo bleibt also eine Datei, die Sie laden.
+- Der Stundenplan wird in der Notendatei gespeichert (mit Passwort verschlüsselt). Echte Stundenpläne gehören nicht ins Repository (`*.ics` steht in der `.gitignore`).
+
 ## Öffnen
 
 **Online über GitHub Pages:** Im Repository unter *Settings → Pages* bei „Build and deployment“ die Quelle „Deploy from a branch“ wählen, Branch `main`, Ordner `/ (root)`, speichern. Nach kurzer Zeit zeigt GitHub die Adresse an. Beim ersten Öffnen lädt der Browser alle Dateien. Danach läuft die App auch ohne Internet, und sie kann über das Browsermenü „installiert“ werden.
@@ -86,7 +96,7 @@ Keine Installation nötig, nur Node.js ab Version 20:
 npm test
 ```
 
-Die Tests prüfen alle Rechenregeln (Prüffälle aus `docs/SPEC.md`, darunter alle Sport-Prüffälle aus 9.8, Grenzwerte, Abschneiden statt Runden, Dalton, Zwischenstand), Verschlüsselung der Notendatei und der Arbeitskopie, Umwandlung alter Dateien, Sicherung, Excel-Import und -Export, den Untis-Import (Format A, B, kombiniert, Zuordnung, Doppelimport), die Import-Automatik mit einer Ordner-Attrappe, Nachschreib-Vorschläge, eigene Listen, Schülerlisten-Import, Archiv sowie die Synchronisation gegen eine Attrappe und eine nachgebaute Graph-Schnittstelle.
+Die Tests prüfen auch den iCal-Leser (Zeitzone Europe/Berlin über die Sommerzeit-Umstellung, Doppelstunden, Ausfälle, gefaltete Zeilen) und den Stundenplan-Import (Zuordnung, erneuter Import). Die Tests prüfen alle Rechenregeln (Prüffälle aus `docs/SPEC.md`, darunter alle Sport-Prüffälle aus 9.8, Grenzwerte, Abschneiden statt Runden, Dalton, Zwischenstand), Verschlüsselung der Notendatei und der Arbeitskopie, Umwandlung alter Dateien, Sicherung, Excel-Import und -Export, den Untis-Import (Format A, B, kombiniert, Zuordnung, Doppelimport), die Import-Automatik mit einer Ordner-Attrappe, Nachschreib-Vorschläge, eigene Listen, Schülerlisten-Import, Archiv sowie die Synchronisation gegen eine Attrappe und eine nachgebaute Graph-Schnittstelle.
 
 Bibliotheken liegen im Repository und werden nicht von einem CDN geladen: SheetJS 0.18.5 (`lib/xlsx.full.min.js`, Apache-2.0, Lizenz in `lib/xlsx.LICENSE`) und MSAL Browser 2.38.3 (`lib/msal-browser.min.js`, MIT, Lizenz in `lib/msal.LICENSE`).
 

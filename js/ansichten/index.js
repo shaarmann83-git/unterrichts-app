@@ -12,3 +12,4 @@ import './sport-pruefung.js';
 import './sport-reihen.js';
 import './sport-gesamt.js';
 import './besprechung.js';
+import './stundenplan.js';

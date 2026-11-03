@@ -15,6 +15,7 @@ import { dateiOeffnen, herunterladen } from '../speicher.js';
 import { ausDateitext, istVerschluesselt } from '../krypto.js';
 import { passwortFrage } from '../ui.js';
 import { alleAlsExcel } from '../excel.js';
+import { jetztLeiste } from './stundenplan.js';
 
 function klassenFormular(k = { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: '', schuljahr: '' }, fachtyp: null }) {
   const feld = (beschriftung, wert, platzhalter = '') =>
@@ -140,6 +141,7 @@ export function zeigeBuch() {
 
   fuege(
     wurzel,
+    jetztLeiste(),
     h('h1', {}, 'Notenbuch'),
     h('p', { class: 'klein' }, K.dateiname || 'noch nicht gespeichert'),
     h('div', { class: 'knopfreihe' },

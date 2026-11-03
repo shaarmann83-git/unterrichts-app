@@ -3,6 +3,8 @@ import { K } from './kontext.js';
 import { h, leeren, toast } from './ui.js';
 import { einstellungen, ordnerHandleLaden, ordnerHandleSpeichern, ordnerHandleLoeschen, arbeitskopieSpeichern } from './speicher.js';
 import { dateiTyp, neueDateien, abgleichPlanen, abgleichAnwenden } from './untis-eingang.js';
+import { icsAbgleichStarten } from './ansichten/stundenplan.js';
+import { pruefsumme } from './untis.js';
 import { untisAbgleichStarten, vorschlaegeDialog } from './ansichten/untis-dialog.js';
 import { onedriveClient, onedriveAngemeldet } from './sync-ui.js';
 import { onedriveEingang } from './onedrive.js';
@@ -59,6 +61,7 @@ sperreZuruecksetzen();
 // ---------- Untis: Quellen ----------
 
 const HANDLE_NAME = 'untis-ordner';
+export const istIcs = (name) => /\.ics$/i.test(String(name));
 
 /** Ordner-Schnittstelle für einen gewählten PC-Ordner (File System Access API). */
 export function ordnerAusHandle(handle) {
@@ -66,7 +69,7 @@ export function ordnerAusHandle(handle) {
     async liste() {
       const out = [];
       for await (const [name, eintrag] of handle.entries()) {
-        if (eintrag.kind !== 'file' || !dateiTyp(name)) continue;
+        if (eintrag.kind !== 'file' || !(dateiTyp(name) || istIcs(name))) continue;
         const f = await eintrag.getFile();
         out.push({ name, geaendert: f.lastModified, lesen: () => f.arrayBuffer() });
       }
@@ -233,20 +236,91 @@ export async function untisPruefen() {
   }
 }
 
+// ---------- Stundenplan (.ics) in denselben Quellen (SPEC 10.1) ----------
+
+let icsLaeuft = false;
+let icsHinweisFuer = '';
+
+function icsHinweisLeiste() {
+  let el = document.getElementById('ics-hinweis');
+  if (!el) {
+    el = h('div', { id: 'ics-hinweis', class: 'hinweisleiste', role: 'status', hidden: true });
+    (document.getElementById('untis-hinweis') || document.getElementById('schutz-hinweis'))?.after(el);
+  }
+  return el;
+}
+
+/** Neueste .ics-Datei je Quelle, die noch nicht verarbeitet wurde (Prüfsumme). */
+export async function neueIcsDateien(ordner, buch) {
+  const alle = (await ordner.liste()).filter((d) => istIcs(d.name)).sort((a, b) => (b.geaendert || 0) - (a.geaendert || 0) || (a.name < b.name ? 1 : -1));
+  if (alle.length === 0) return null;
+  const neueste = alle[0];
+  const bytes = await neueste.lesen();
+  const summe = await pruefsumme(bytes);
+  if ((buch.einstellungen.untisDateien || []).some((x) => x.pruefsumme === summe)) return null;
+  return { name: neueste.name, bytes, pruefsumme: summe, geaendert: neueste.geaendert };
+}
+
+export async function icsPruefen() {
+  if (icsLaeuft || !K.buch) return;
+  icsLaeuft = true;
+  try {
+    for (const quelle of await quellen()) {
+      let datei;
+      try {
+        datei = await neueIcsDateien(quelle.ordner, K.buch);
+      } catch {
+        continue;
+      }
+      if (!datei) continue;
+      const markieren = () => {
+        K.buch.einstellungen.untisDateien ||= [];
+        if (!K.buch.einstellungen.untisDateien.some((x) => x.pruefsumme === datei.pruefsumme)) K.buch.einstellungen.untisDateien.push({ pruefsumme: datei.pruefsumme, name: datei.name, zeit: new Date().toISOString() });
+        K.aenderung();
+      };
+      const abgleichen = async (automatisch) => {
+        const fertig = await icsAbgleichStarten([{ bytes: datei.bytes, name: datei.name }], { automatisch });
+        if (fertig) {
+          markieren();
+          await nachImport(quelle, [datei.name]);
+        }
+        return fertig;
+      };
+      if (K.buch.einstellungen.untisOrdnerAutomatisch) {
+        if (await abgleichen(true)) { const el = icsHinweisLeiste(); el.hidden = true; return; }
+      }
+      if (datei.pruefsumme === icsHinweisFuer && !icsHinweisLeiste().hidden) return;
+      icsHinweisFuer = datei.pruefsumme;
+      const el = icsHinweisLeiste();
+      leeren(el);
+      const zeit = datei.geaendert ? new Date(datei.geaendert).toLocaleString('de-DE') : '';
+      el.append(
+        h('span', {}, `Neuer Stundenplan${zeit ? ' vom ' + zeit : ''} gefunden – jetzt abgleichen?`),
+        h('button', { type: 'button', class: 'knopf primaer', id: 'ics-abgleichen', onclick: async () => { el.hidden = true; await abgleichen(false); } }, 'Jetzt abgleichen'),
+        h('button', { type: 'button', class: 'knopf', onclick: () => { el.hidden = true; } }, 'Später'));
+      el.hidden = false;
+      return;
+    }
+  } finally {
+    icsLaeuft = false;
+  }
+}
+
 // Beim Öffnen der App bzw. eines Notenbuchs und danach jede Minute, solange die App sichtbar ist
 let untisTimer = null;
 export function untisUeberwachungStarten() {
   clearInterval(untisTimer);
   untisTimer = setInterval(() => {
-    if (document.visibilityState === 'visible' && K.buch && !gesperrt) untisPruefen();
+    if (document.visibilityState === 'visible' && K.buch && !gesperrt) { untisPruefen(); icsPruefen(); }
   }, 60 * 1000);
 }
 const nachOeffnenAlt = K.nachOeffnen;
 K.nachOeffnen = () => {
   nachOeffnenAlt?.();
   untisPruefen();
+  icsPruefen();
 };
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') untisPruefen(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { untisPruefen(); icsPruefen(); } });
 
 // ---------- Ziehen und Ablegen ----------
 
@@ -254,9 +328,16 @@ document.addEventListener('dragover', (e) => {
   if (e.dataTransfer?.types?.includes('Files')) e.preventDefault();
 });
 document.addEventListener('drop', async (e) => {
-  const dateien = [...(e.dataTransfer?.files || [])].filter((f) => /\.(xls|xlsx|csv)$/i.test(f.name));
-  if (dateien.length === 0) return;
+  const alleDateien = [...(e.dataTransfer?.files || [])];
+  const ics = alleDateien.filter((f) => istIcs(f.name));
+  const dateien = alleDateien.filter((f) => /\.(xls|xlsx|csv)$/i.test(f.name));
+  if (dateien.length === 0 && ics.length === 0) return;
   e.preventDefault();
+  if (ics.length) {
+    if (!K.buch) { toast('Bitte zuerst eine Notendatei öffnen, dann den Stundenplan (.ics) hineinziehen.'); return; }
+    await icsAbgleichStarten(await Promise.all(ics.map(async (f) => ({ bytes: await f.arrayBuffer(), name: f.name }))));
+    if (dateien.length === 0) return;
+  }
   if (!K.buch) {
     toast('Bitte zuerst eine Notendatei öffnen, dann die Untis-Liste hineinziehen.');
     return;

@@ -170,7 +170,7 @@ export function importPlanen(buch, ereignisse, zuordnung, jetztMs = Date.now()) 
       } else if (frei) {
         res.aktionen.push({ typ: 'termin-aendern', klasseId, terminId: t.id, datum: n.datum, uhrzeit: n.uhrzeit, ende: n.ende, halbjahr: halbjahrVon(n.datum, klasse) });
       } else if (terminHatEintraege(klasse, t)) {
-        res.abweichungen.push({ art: 'geaendert', termin: t, nachher: n, text: `in Untis verschoben auf ${n.datum} ${n.uhrzeit}, in der App aber schon Einträge` });
+        res.abweichungen.push({ art: 'geaendert', termin: t, nachher: n, text: `in Untis verschoben auf ${n.datum.split('-').reverse().join('.')} ${n.uhrzeit}, in der App aber schon Einträge` });
       }
     }
     for (const [uid, alt] of bestehend) {

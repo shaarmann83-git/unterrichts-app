@@ -166,6 +166,9 @@ tr.markiert td { background: var(--warn-bg) !important; box-shadow: inset 3px 0 
 .sperre { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: grid; place-items: center; padding: 1rem; }
 .sperre-box { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 0.8rem; padding: 1.2rem; max-width: 22rem; width: 100%; display: grid; gap: 0.7rem; }
 .einstellung-block { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 0.6rem; padding: 0.8rem 1rem; margin: 0.8rem 0; }
+/* ---------- Stufe 4: Stundenplan ---------- */
+.jetzt-leiste { background: #d9efd9; color: #14401a; border: 1px solid #8cc58c; border-radius: 0.6rem; padding: 0.6rem 0.9rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 0.8rem; }
+.abweichung { color: #7a3f00; }
 /* ---------- Stufe 3: Sport ---------- */
 body[data-ansicht="besprechung"] #navigation, body[data-ansicht="besprechung"] .klassenwahl { visibility: hidden; }
 .abzeichen { margin-left: 0.5rem; font-size: 0.7rem; background: var(--akzent); color: var(--akzent-text); border-radius: 1rem; padding: 0.05rem 0.5rem; vertical-align: middle; }

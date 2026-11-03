@@ -1,5 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, toast } from '../ui.js';
+import { jetztLeiste, stundenplanLaden } from './stundenplan.js';
 import {
   neueDateiAnlegen,
   dateiOeffnenAktion,
@@ -76,6 +77,7 @@ export function zeigeStart() {
   });
 
   wurzel.append(
+    ...[jetztLeiste()].filter(Boolean),
     h('h1', {}, 'Notenverwaltung'),
     h(
       'div',
@@ -83,6 +85,7 @@ export function zeigeStart() {
       h('button', { type: 'button', class: 'knopf primaer gross', onclick: neueDateiAnlegen }, 'Neue Notendatei'),
       h('button', { type: 'button', class: 'knopf gross', onclick: dateiOeffnenAktion }, 'Notendatei öffnen'),
       h('button', { type: 'button', class: 'knopf gross', onclick: excelImportieren }, 'Excel-Vorlage importieren'),
+      K.buch && h('button', { type: 'button', class: 'knopf gross', id: 'start-stundenplan', onclick: stundenplanLaden }, 'Stundenplan laden (.ics)'),
       K.buch && h('button', { type: 'button', class: 'knopf gross', onclick: dateiSchliessen }, 'Aktuelle Datei schließen'),
     ),
     h('h2', {}, 'Zuletzt geöffnet (lokale Arbeitskopien)'),

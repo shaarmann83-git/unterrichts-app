@@ -10,6 +10,11 @@ import { avatar as avatarUi } from '../ui.js';
 const HAEUFIG = ['.', 'V', 'sps', 'k', '|', 'E', 'A', 'U'];
 let aktuellerTermin = null;
 
+/** Vom Startvorschlag „Jetzt“ genutzt: diesen Termin vorwählen. */
+export function setzeAktuellenTermin(id) {
+  aktuellerTermin = id;
+}
+
 export function zeigeNachStunde() {
   const { d, ein, personen } = sportKontext();
   const wurzel = h('section', { class: 'seite' });
@@ -29,7 +34,7 @@ export function zeigeNachStunde() {
     leeren(inhalt);
     const t = d.sport.termine.find((x) => x.id === aktuellerTermin);
     const auswahl = h('select', { id: 'nach-termin', 'aria-label': 'Termin wählen', onchange: (e) => { aktuellerTermin = e.target.value; render(); } },
-      termine().map((x) => h('option', { value: x.id, selected: x.id === aktuellerTermin }, `${datumDeutsch(x.datum)}${x.uhrzeit ? ' ' + x.uhrzeit : ''} · ${reiheById(d, x.reihe)?.name || 'keine Reihe'}${istPruefungstag(x, ein) ? ' · Prüfungstag' : ''}`)));
+      termine().map((x) => h('option', { value: x.id, selected: x.id === aktuellerTermin }, `${datumDeutsch(x.datum)}${x.uhrzeit ? ' ' + x.uhrzeit + (x.ende ? '–' + x.ende : '') : ''} · ${reiheById(d, x.reihe)?.name || 'keine Reihe'}${istPruefungstag(x, ein) ? ' · Prüfungstag' : ''}`)));
     fuege(inhalt, h('div', { class: 'knopfreihe' },
       h('button', { type: 'button', class: 'knopf primaer gross', id: 'termin-neu', onclick: neu }, '+ Neue Einheit (heute)'),
       termine().length > 0 && h('label', { class: 'inline' }, 'Termin: ', auswahl),

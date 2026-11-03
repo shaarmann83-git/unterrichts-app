@@ -5,6 +5,7 @@ import { prozentSL, gesamtPerson, formatZahl, zahlLesen } from '../rechnen.js';
 import { FZ_STATUS } from '../fehlzeiten.js';
 import { sichtbareListen, strichHinzu, strichZurueck, strichSumme, abhakSetzen, abhakErledigt } from '../listen.js';
 import { neueId } from '../modell.js';
+import { eintraegeAm } from '../stundenplan.js';
 
 let aktuellerTermin = null; // ID des Termins in der Schnelleingabe
 const SCHNELLNOTEN = [1, 2, 3, 4, 5];
@@ -127,6 +128,8 @@ function heute(d) {
         d.sonstige.length > 0 && h('label', { class: 'inline' }, 'Termin: ', auswahl),
       ),
     );
+    const plan = eintraegeAm(d, heuteIso());
+    if (plan.length) inhalt.append(h('p', { class: 'klein', id: 'stundenplan-heute' }, `Laut Stundenplan heute: ${plan.map((x) => `${x.uhrzeit}${x.ende ? '–' + x.ende : ''} Uhr`).join(', ')}`));
     if (!t) {
       inhalt.append(h('p', { class: 'hinweis' }, 'Noch kein Termin. Mit „Neue Stunde“ legen Sie den heutigen Termin an.'));
       return;
