@@ -150,6 +150,7 @@ export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', sch
     stichtag: '',
     fachtyp, // 'lernfeld' | 'sport'
     sport: neueSport(),
+    stundenplan: [], // importierte Stundenplan-Einträge (iCal), nur Zeiten und Fach, keine Schülerdaten
   };
 }
 
@@ -163,7 +164,7 @@ export function neuesBuch(ersteKlasse = null) {
     version: FORMAT_VERSION,
     dokumentId: neueId(),
     gespeichertAm: '',
-    einstellungen: { untisOrdnerAutomatisch: false, untisDateien: [], sport: sportStandard() },
+    einstellungen: { untisOrdnerAutomatisch: false, untisDateien: [], sport: sportStandard(), stundenplan: { zuordnung: {}, letzterImport: '' } },
     klassen: ersteKlasse ? [ersteKlasse] : [],
   };
 }
@@ -204,6 +205,7 @@ export function pruefeKlasse(k) {
   }
   k.stichtag ??= '';
   k.fachtyp ||= 'lernfeld';
+  k.stundenplan ||= [];
   const sp = (k.sport ||= neueSport());
   const vorgabe = neueSport();
   for (const f of ['notensystem', 'zeitraum', 'endnoteVariante']) sp[f] ||= vorgabe[f];
@@ -295,6 +297,8 @@ export function pruefeBuch(roh) {
   buch.einstellungen.untisOrdnerAutomatisch ??= false;
   buch.einstellungen.untisDateien ||= [];
   buch.einstellungen.sport = { ...sportStandard(), ...(buch.einstellungen.sport || {}) };
+  buch.einstellungen.stundenplan ||= { zuordnung: {}, letzterImport: '' };
+  buch.einstellungen.stundenplan.zuordnung ||= {};
   for (const k of buch.klassen) pruefeKlasse(k);
   return buch;
 }
@@ -319,6 +323,7 @@ export function klasseKopieren(klasse, { listenMitnehmen = true } = {}) {
   k.listen = listenMitnehmen ? k.listen.map((l) => ({ ...l, id: neueId(), eintraege: {} })) : [];
   k.stichtag = '';
   // Sport: Reihen-Definitionen bleiben (Teile, Gewichte, Texte), Termine, Anwesenheit, Werte nicht.
+  k.stundenplan = [];
   k.sport.termine = [];
   k.sport.anwesenheit = {};
   k.sport.mitarbeit = {};
