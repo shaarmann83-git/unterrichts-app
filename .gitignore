@@ -8,3 +8,5 @@ node_modules/
 # Untis-Berichte enthalten echte Schülerdaten
 AbsenceList*
 AbsencePerStudent*
+# Stundenpläne (iCal) sind persönliche Daten
+*.ics

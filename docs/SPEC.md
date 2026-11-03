@@ -232,3 +232,140 @@ In den Grunddaten jeder Klasse drei Schalter. Ist ein Bereich aus, sind seine Fe
 ### 8.15 Tests zu 8.11 bis 8.14
 - Zwischenstand: Prüffall aus Abschnitt 4, KA 2 nach dem Stichtag → Ø KA = 73,3; Gesamt = 73,3 × 0,5 + 77,0 × 0,5 = 75,15 % → Note 3.
 - Schülerlisten-Import ohne Doppelungen; Archivieren und Wiederherstellen ändert keine Noten; Strichliste zählen und zurücknehmen; Betragsliste Rest richtig.
+
+## 9. Stufe 3: Sport
+
+Alles aus Abschnitt 1 bis 8 bleibt gültig. Sport ist ein **eigener Fachtyp** einer Klasse; Lernfeld-Klassen bleiben unverändert. Keine Rechenregel aus Abschnitt 4 oder 8 ändern.
+
+Grundlage ist das Bewertungssystem der Nutzerin (Stand 03.11.2026, abgestimmt in ihren Chats zu Badminton, Volleyball und Ultimate Frisbee), das sie bereits in einer Excel-Mappe „Sportnoten“ nutzt: Anwesenheitsliste mit eigenen Zeichen, getrennt davon die Mitarbeit (0–3 Punkte je Einheit, Standard 2), Prüfung aus Rohwerten mit Prozentschlüssel, drei Aufwertungsmerkmale, Reihenwert aus frei gewichteten Teilleistungen. Die App muss dieselben Ergebnisse liefern.
+
+### 9.1 Fachtyp, Notensystem, Zeitraum
+- Beim Anlegen einer Klasse (und in den Grunddaten) Auswahl **Fachtyp**: „Lernfeld/Fach“ (bisher) oder „Sport“. Bestehende Klassen sind „Lernfeld/Fach“.
+- **Notensystem** der Sport-Klasse: „Noten 1,0–6,0“ oder „Punkte 0–15“ (berufliches Gymnasium; erst später benötigt, Grundfunktion reicht). **Keine Prozentwerte in Noten-Übersichten** (Prozent erscheint nur intern bei der Prüfung), kein IHK-Schema, keine Klassenarbeiten, keine Dalton-Logik, keine Gewichtung schriftlich/sonstige.
+- Weiter verfügbar: Schülerliste, Fotos, Archiv, Fehlzeiten mit Untis-Import, eigene Listen, Personenübersicht, Notizen, Export, Druck, Sicherung, Synchronisation.
+- **Zeitraum:** „ein Halbjahr“ (Standard) oder „ganzes Schuljahr“ (BG 11; je Termin Halbjahr 1 oder 2).
+
+### 9.2 Termine und Anwesenheit (eigene Zeichen der Nutzerin)
+- Je Sport-Klasse eine **Terminliste**: Datum, **Reihe** (Sportart, z. B. „Badminton“), Markierung „Prüfungstag“, freier Vermerk. Reihen sind **je Klasse frei** und können innerhalb des Halbjahres wechseln. Dasselbe Datum darf **zweimal** vorkommen (ein Teil der Klasse wird noch geprüft, der Rest beginnt schon die nächste Reihe). Ein Termin kann „keiner Reihe zugeordnet“ sein (zählt nirgends).
+- Darstellung wie die bisherige Liste der Nutzerin: Spalten = Termine, oben die Reihe als durchgehender Balken, darunter Prüfungstag-Markierung, darunter das Datum (senkrecht oder kompakt).
+- **Anwesenheitszeichen** je Person und Termin (Eingabe per Tipp-Auswahl, auch per Tastatur):
+
+| Zeichen | Bedeutung | Wirkung auf die Mitarbeit dieses Termins |
+| --- | --- | --- |
+| `.` (Punkt) | anwesend und aktiv | zählt; Wert aus der Mitarbeit (Standard 2) |
+| `V` + Minuten | verspätet | wie anwesend |
+| `sps` | Sportsachen vergessen | **1. Mal im Halbjahr** (über alle Reihen der Klasse) wie anwesend; **ab dem 2. Mal fest 0** |
+| `k` | anwesend, nicht aktiv, Grund offen | **offen** (siehe unten) |
+| `ke` / `ka` | nicht aktiv, entschuldigt / mit Attest | zählt nicht |
+| `ku` | nicht aktiv, unentschuldigt | fest 0 |
+| `\|` (Strich) | fehlt, Grund offen | **offen** |
+| `E` / `A` / `B` / `P` | fehlt entschuldigt / mit Attest / betrieblich befreit / privat befreit | zählt nicht |
+| `U` | fehlt unentschuldigt | fest 0 |
+| `*` (zusätzlich) | Verweis auf einen Vermerk (Text) | keine |
+| leer | noch nicht erfasst | zählt nicht |
+
+- **Zwei Schritte:** Zu Stundenbeginn Punkt, Strich oder V (oder aus Untis übernommen). Nach der Stunde oder später werden k und Strich zum endgültigen Zeichen ergänzt. Knopf „alle übrigen anwesend“ setzt bei allen leeren Zellen des Termins einen Punkt.
+- **Offene Einträge (k, Strich):** Schalter je Klasse „offen zählt als 0“ (**Standard**) oder „offen zählt nicht“. Unabhängig davon zeigt eine Spalte „offen“ je Person die Anzahl; offene Zellen sind farbig markiert.
+- **Untis-Import (8.6)** schreibt in die Anwesenheit: „entschuldigt mit Attest“ → `A`, „entschuldigt“ → `E`, „nicht entschuldigt“ → `U`, „offen“ → `|`. Nie ein von Hand gesetztes Zeichen überschreiben; Abweichungen in der Import-Vorschau anzeigen.
+- **Farben** (Anwesenheit und Mitarbeit): `U`/`ku` rot; `sps` ab dem 2. Mal orange; offen violett; entschuldigt/nicht erfasst grau; Mitarbeit 3 grün, 1 blau, 0 rot.
+
+### 9.3 Mitarbeit und Aufwertungsmerkmale
+- **Getrennte Eingabe** „Mitarbeit“ mit denselben Terminspalten. Jede zählende Zelle ist automatisch **2** (Standard je Klasse einstellbar). Die Nutzerin tippt nur Abweichungen an: 3 (durchgehend aktiv), 1 (überwiegend passiv), 0 (anwesend ohne Beteiligung). **Automatische Nullen aus der Anwesenheit (sps ab 2. Mal, ku, U, ggf. offen) haben Vorrang** vor einem eingetippten Wert. Nicht zählende Termine bleiben leer.
+- **Schnelleingabe nach der Stunde** (Tablet, wichtigste Ansicht): Termin wählen, Klassenliste mit großen Tasten für Anwesenheitszeichen, Mitarbeit 0–3 und die drei Merkmale M1–M3. Die Eingabe muss in wenigen Minuten direkt nach der Stunde machbar sein.
+- **Ø Beteiligung** einer Person je Reihe = Mittelwert der zählenden Termine dieser Reihe. Unter **3 zählenden Terminen** (Standard, einstellbar) bleibt die Mitarbeitsnote leer; dann trägt die Prüfung allein.
+- **Umrechnung Ø → Grundnote** (Tabelle je Reihe, Vorlage-Standard für alle Sportarten): ab 2,8 → 1; ab 2,4 → 2; ab 1,7 → 3; ab 1,0 → 4; ab 0,4 → 5; darunter 6. (Bei Standardwert 2 ergibt sich eine 3, entsprechend den Verhaltensregeln der Fachgruppe „befriedigend als Regelnote“.) Für Punkte (BG) eigene Tabelle.
+- **Aufwertungsmerkmale M1–M3** je Reihe mit frei editierbaren Texten. Je Person und Termin Häkchen. Ein Merkmal gilt, wenn es in **mindestens 2 Terminen** angehakt ist. Häkchen aus Terminen mit `sps` oder `ku`/`U` zählen **nicht**. Je gezeigtem Merkmal **ein Drittel Note besser** (Schrittweite in den Sport-Einstellungen, Standard exakt 1/3), höchstens eine ganze Note, nie besser als 1,0. Punkte (BG): je Merkmal +1 Punkt, höchstens +3, höchstens 15.
+- **Mitarbeitsnote** = Grundnote − Aufwertung (Dezimalwert, z. B. 2,67). Manuell überschreibbar mit Pflicht-Begründung.
+- **Bemerkung** je Person und Reihe (Freitext), gedacht für kurze Begründungen, wenn jemand vom Standardwert 2 abweicht. Sichtbar in Reihen-Übersicht, Personenübersicht und Besprechungsmodus.
+
+### 9.4 Prüfung
+- Je Reihe frei belegbare **Prüfungsteile** (bis mindestens 10): Name, **Anzahl Versuche** (Standard 5), Höchstwert (Standard = Versuche × 3, überschreibbar, z. B. 40 für einen Regeltest), Gewicht (Standard 1), dazu für das Kriterienblatt **Zielzone/Bedingung** und **drei Merkmale** (Text).
+- **Bewertung je Versuch mit 0–3 Punkten** (Standard-Skala für alle Sportarten, Vorbild Simon/Riehl, Sportunterricht 8/2014): 0 = Netz/Aus bzw. nicht fangbar; 1 = im Feld, aber außerhalb der Zielzone; 2 = in der Zielzone; 3 = in der Zielzone und alle drei Merkmale sauber. Die Texte der Stufen sind je Teil anpassbar (z. B. Smash: Flugkurve statt Zone; Clear: Zone bis ca. 1 m hinter der Grundlinie).
+- **Eingabe:** je Person und Teil die Einzelversuche als Tipp-Reihe (0/1/2/3, nächste Person springt automatisch weiter) – die App **speichert jeden Versuch** und bildet die Summe. Alternativ direkte Eingabe der Summe (z. B. aus einer Papier-Strichliste). Eine Person nach der anderen (Einzelprüfung); die Lehrkraft sagt an, ein Schüler kann mitschreiben – die App muss daher auch zügig per Tastatur bedienbar sein.
+- **Prüfungsprozent** = Σ(Gewicht × Rohwert) / Σ(Gewicht × Höchstwert), **nur über die Teile, in denen bei dieser Person ein Wert steht**. Nicht geprüfte Teile senken den Maßstab; sie wirken nicht als 0. Ohne jeden Wert bleibt die Prüfung leer.
+- **Prüfungsnote** (ganze Note) aus Prozent über den **gemeinsamen Prüfungsschlüssel aller Sportarten** (9.6a): ab 83 % → 1; ab 58 % → 2; ab 40 % → 3; ab 25 % → 4; ab 10 % → 5; darunter 6. (Abgestimmt auf die 0–3-Skala: durchgehend 2 = 66,7 % liegt mitten in der 2, durchgehend 1 = 33,3 % mitten in der 4.)
+- **Prüfungstage:** Termine, deren Vermerk ein Kennzeichen enthält (Standard großes „T“ oder „P“, einstellbar). Fehlt eine Person an **allen** Prüfungstagen der Reihe **unentschuldigt** (U, ku, oder offen bei „offen zählt als 0“) und hat keinen Prüfungswert, ist die Prüfungsnote automatisch **6** (rot markiert). Entschuldigtes Fehlen → Status „**Nachprüfung offen**“ (Begriff im Sport: Nachprüfung, nicht Nachschreiben); erscheint in der Nachschreib-/Nachprüfliste aus 8.6. Sobald ein Prüfungswert eingetragen ist, gilt die normale Rechnung.
+- **Ersatzprüfung** für langfristig nicht sporttaugliche Personen (meist 1–2 je Klasse): eigene Teile je Reihe aus der Vorlage, gleicher Schlüssel; alternativ direkte Note. Pflicht-Beschreibung, Kennzeichnung überall.
+
+### 9.5 Reihenwert, Halbjahr, Zeugnisnote
+- **Teilleistungen der Reihe:** Prüfung, Mitarbeit, **Verhalten** (eine einzige optionale Gesamtnote je Person und Reihe, keine Einzelaspekte; bei Gewicht 0 grau und sichtbar inaktiv) und **beliebig viele weitere direkte Teilleistungen** (z. B. „Spiel“ bei Ultimate: eine Note je Person nach Stufenbeschreibung). Gewichte je Reihe frei. Fehlt eine Teilleistung (leer), verteilt sich ihr Gewicht auf die übrigen. Hinweis in der Reihen-Einstellung, wenn neben der Mitarbeit eine weitere beteiligungsnahe Teilleistung (wie „Spiel“) gewichtet ist: „Achtung, Engagement wird evtl. doppelt bewertet.“
+- **Reihenwert** = gewichteter Mittelwert (zwei Nachkommastellen in der Anzeige, intern ungerundet). **Reihennote** = ganze Note, **halbe Werte zur besseren Note** (2,5 → 2; 2,51 → 3).
+- **Gesamtnote Sport** je Person: **Ø Wert** (Mittelwert der Reihenwerte, Gewichte der Reihen Standard 1) und **Ø Note** (Mittelwert der ganzen Reihennoten). Wie bisher bei der Nutzerin („1. Wert / 2. Wert“) wird je Klasse eine der beiden Varianten für die **Endnote** verwendet: Standard „die für die Klasse insgesamt bessere“ (kleinerer Klassendurchschnitt der gerundeten Endnoten), umstellbar auf „immer Ø Wert“ oder „immer Ø Note“. Rundung der Endnote: halbe Werte zur besseren Note. Endnote manuell festsetzbar (Pflicht-Begründung), Anzeige „berechnet / festgesetzt“. *Annahme, bitte mit der Nutzerin bestätigen, falls unklar.*
+- Ganzes Schuljahr (BG): Halbjahres- und Jahreswert analog (Mittelwert der Halbjahre).
+- **Punkte (BG):** Intern wird immer mit Dezimalnoten gerechnet. Bei Ausgabe „Punkte“ wird jede ganze Note bzw. Endnote umgerechnet: Punkte = 17 − 3 × Note, kaufmännisch gerundet, begrenzt auf 0 bis 15 (Note 1,0 → 14; 0,7 → 15; 2,5 → 10; 6,0 → 0). In der Gesamtnote zusätzlich Spalte „Vorschlag (Punkte)“. Die Umrechnung ist eine Annahme nach der üblichen Oberstufentabelle; in den Einstellungen als Tabelle änderbar.
+
+### 9.6 Ansichten und Druck Sport
+- **Anwesenheit** (Raster wie oben), **Mitarbeit** (gleiches Raster), **Schnelleingabe nach der Stunde**, **Prüfung erfassen** (große Zahlenfelder, Weiter springt zur nächsten Person), **Reihen-Übersicht** (Prüfung, Grundnote, Merkmale, Mitarbeit, Verhalten, Reihenwert, Reihennote), **Gesamtnote Sport** (je Reihe Wert und Note, Ø Wert, Ø Note, Endnote, Anzahl sps, offen, Fehlzeiten).
+- **Druck:** Kriterienblatt je Reihe (Teile mit Versuchen, Zielzone und drei Merkmalen, 0–3-Skala, Schlüssel, Mitarbeitstabelle, M1–M3, Gewichte, Regeln zu sps, Fehlen und Prüfungstag), **Erfassungsbogen Prüfung** (je Person und Teil Kästchen für die Versuche), leere Anwesenheits-/Mitarbeitsliste, Notenliste.
+- **Excel-Export:** je Reihe ein Blatt (Rohwerte, Termine, Zeichen, Mitarbeit, Merkmale) und Gesamtnote.
+
+### 9.6a Sport-Einstellungen (gelten für alle Sport-Klassen des Notenbuchs)
+- Eine Seite „Sport-Einstellungen“ mit allem, was die Bewertung steuert, damit **in allen Sportarten und Klassen derselbe Maßstab** gilt (die Gesamtnote mittelt über Sportarten):
+  - Prüfungsschlüssel (Standard 83/58/40/25/10 %)
+  - Mitarbeitstabelle (Standard 2,8/2,4/1,7/1,0/0,4)
+  - Standardwert Beteiligung (2), Mindestzahl zählender Termine (3), Schrittweite je Aufwertungsmerkmal (1/3)
+  - offene Einträge „zählt als 0“ / „zählt nicht“
+  - Ausgabe Noten / Punkte und Punkte-Umrechnungstabelle
+  - Kennzeichen Prüfungstag (T, P)
+- Änderungen gelten sofort für alle Reihen; vorher Warnung, wenn in betroffenen Reihen schon Prüfungswerte stehen, und Anzeige, wie viele Noten sich ändern würden. Jede Änderung wird mit Datum protokolliert (Nachvollziehbarkeit bei Rückfragen).
+
+### 9.7 Reihen-Vorlagen
+- Vorlagen gelten für das ganze Notenbuch. Inhalt: Prüfungsteile (mit Versuchen, Höchstwert, Gewicht, Zielzone, drei Merkmalen, ggf. eigenen Stufentexten), weitere direkte Teilleistungen mit Stufenbeschreibung, Gewichte, Merkmalstexte M1–M3, Ersatzprüfung. Schlüssel und Tabellen kommen aus den Sport-Einstellungen. Neue Reihe aus Vorlage; Reihe speichert eine Kopie; „Änderungen übertragen“ mit Warnung, wenn schon Prüfungswerte existieren.
+- Mitgelieferte Vorlagen: **Badminton, Volleyball, Ultimate Frisbee**, dazu leere Vorlagen mit Namen **Basketball, Steppen, Tai-Bo**.
+- **Volleyball BBS** (Prüfung 0,5 / Mitarbeit 0,5 / Verhalten 0): Einzelprüfung mit festem Zuwerfer, je 5 Versuche (Höchstwert 15): „Pritschen“ (Zuwurf hoch aus ca. 4 m, Ziel: Reifen/Klebebandquadrat beim Zuwerfer), „Baggern“ (gleicher Ablauf), „Aufschlag von unten“ (Stufen: 0 Netz/Aus, 1 im Feld vor der 3-m-Linie, 2 hinter der 3-m-Linie, 3 hinter der 3-m-Linie in der angesagten Hälfte). Merkmale Pritschen: Hände über der Stirn/Körbchen, kleines und großes Dreieck, aus gebeugten Knien mit Ganzkörperstreckung; Baggern: Spielbrett gestreckt und geschlossen, Kontakt an den Unterarmen, Impuls aus den Beinen. M1–M3: „bewegt sich zum Ball und ruft ihn an“, „spielt gezielt in freie Räume“, „zählt sicher / leitet als Schiedsrichter“. Ersatzprüfung: „Regeltest“ (Höchstwert 40), „Aufwärmen anleiten“ (30), „Schiedsrichterleistung“ (30).
+- **Badminton BBS** (Prüfung 0,6 / Mitarbeit 0,4 / Verhalten 0): Zuspiel aus der Hand durch die Lehrkraft, je 5 Versuche (Höchstwert 15): „Aufschlag lang“ (Zone zwischen hinterer Doppel-Aufschlaglinie und Grundlinie), „Aufschlag kurz“ (direkt hinter der vorderen Aufschlaglinie, ca. 1 m tief, Klebelinie), „Clear“ (hinteres Feld bis ca. 1 m hinter der Grundlinie; 0 nur bei Netz, Halbfeld, Seitenaus), „Drop“ (zwischen Netz und vorderer Aufschlaglinie), „Smash“ (Stufen über die Flugkurve: 0 Netz/Aus, 1 im Feld mit Bogen, 2 eindeutig abwärts, 3 zusätzlich Merkmale). Schlägerhaltung ist eines der drei Merkmale je Schlag. M1–M3: „bewegt sich aktiv zum Ball, statt zu warten“, „spielt oder stellt sich taktisch sinnvoll“, „zählt sicher oder leitet ein Spiel ohne Eingreifen“. Hinweis: Die laufende Badminton-Reihe der Nutzerin nutzt noch das ältere Modell (Treffer und Ausführung getrennt); die App muss das nicht abbilden, die Vorlage gilt ab der nächsten Reihe.
+- **Ultimate Frisbee BBS** (kurze Reihe mit 4–6 Terminen; Prüfung 1 / Spiel 1 / Mitarbeit 0 als Vorschlag, siehe offene Frage): Prüfung im Zuspiel zu zweit, bewertet wird die werfende Person, je 5 Würfe auf ca. 8 m (Abwurfmarken): „Rückhand“ (Partner fängt mit Sandwich-Fang; Merkmale: Griff, seitliche Stellung, Scheibe flach und stabil; der Sandwich-Fang des Fängers wird mitbewertet), „Vorhand“ (Fangart frei). Stufen ohne Fangbarkeit (von der Nutzerin so gewünscht): Punkte je Wurf = Anzahl der sauber gezeigten Merkmale (0–3). Die Stufentexte sind je Teil in der App änderbar. Direkte Teilleistung „Spiel“ (Note nach Stufen: 1 bietet sich ständig an, läuft in freie Räume, verteidigt aktiv; 2 meist in Bewegung; 3 beteiligt sich, wenn das Spiel in der Nähe ist; 4 bewegt sich nur in kleinem Radius; 5 steht überwiegend; 6 verweigert). M1–M3: „zählt beim Markieren korrekt“, „sagt Fouls und Scheibenwechsel fair und richtig an“, „bietet sich an und läuft frei“. Ersatzleistung: Regelplakat führen, Feld auf Regelverstöße beobachten, kurzer Regeltest. Mitarbeit steht in dieser Vorlage auf Gewicht 0 (von der Nutzerin bestätigt), damit Engagement nicht doppelt neben „Spiel“ bewertet wird.
+
+### 9.8 Prüffälle Sport (automatische Tests; Standard-Einstellungen aus 9.6a)
+- **Volleyball:** Pritschen 12, Baggern 10, Aufschlag 8 → 30 von 45 = 66,7 % → 2. Mitarbeit 7 zählende Termine 3,2,2,2,2,2,2 (ein Termin `E`) → Ø 2,142857 → Grundnote 3; ein Merkmal (2 Termine mit Sportzeug) → 2,6667. Reihenwert (2 + 2,6667)/2 = 2,3333 → Reihennote 2.
+- **Skala an der Kante:** 29 von 45 (einmal 1 statt 2) = 64,4 % → 2; 26 von 45 = 57,8 % → 3.
+- **Einzelversuche:** Versuche 2,2,3,1,2 → Summe 10; Versuch nachträglich von 1 auf 2 geändert → 11.
+- **Badminton:** fünf Teile à 15, Summen 10, 9, 8, 7, 6 → 40 von 75 = 53,3 % → 3. Ø 2,4 → 2; ein Merkmal → 1,6667. Reihenwert 0,6 × 3 + 0,4 × 1,6667 = 2,4667 → 2.
+- **Teilprüfung:** nur drei Teile geprüft, 10 + 9 + 8 = 27 von 45 = 60 % → 2.
+- **Halbjahr** Volleyball + Badminton: Ø Wert (2,3333 + 2,4667)/2 = 2,4 → 2; Ø Note (2 + 2)/2 = 2.
+- **Ultimate:** Rückhand 15, Vorhand 6 → 21 von 30 = 70 % → 2; Spiel 3; Gewichte 1/1/0 → Reihenwert 2,5 → Reihennote 2 (halbe Werte zur besseren Note).
+- **Prüfungstag unentschuldigt:** ein Prüfungstag (Vermerk „T“), Person `U`, keine Werte → Prüfungsnote 6; Volleyball mit Mitarbeit 2,6667 → Reihenwert 4,3333. Gleicher Fall mit `E` → Prüfung offen, Status „Nachprüfung offen“. Zwei Prüfungstage, an einem anwesend, keine Werte → offen. Wert eingetragen → normale Rechnung.
+- **sps:** 8 Termine Punkt, davon 2× sps → 1. sps wie anwesend (2), 2. sps 0 → Ø 1,75 → 3. Ein drittes sps in einer anderen Reihe desselben Halbjahres ist ebenfalls 0.
+- **Offen:** 6 Termine Punkt, 1× `k` → „offen zählt als 0“: Ø 1,714 → 3; „offen zählt nicht“: Ø 2,0 → 3.
+- **Vorrang:** Mitarbeit 3 eingetippt, Anwesenheit `ku` → Wert 0.
+- **Merkmal mit sps:** M1 in 2 Terminen angehakt, einer davon `sps` → zählt 1 → keine Aufwertung.
+- **Mindestzahl:** 2 zählende Termine → Mitarbeit leer → Reihenwert = Prüfungsnote.
+- **Verhalten:** Gewichte 0,6/0,4/0,2, Prüfung 3, Mitarbeit 1,6667, Verhalten 2 → (1,8 + 0,6667 + 0,4)/1,2 = 2,3889.
+- **Rundung:** 2,5 → 2; 2,51 → 3.
+- **Punkte:** Note 1,0 → 14; 0,7 → 15; 2,3333 → 10; 2,5 → 10; 4,3333 → 4; 6,0 → 0.
+- **Einstellungen ändern:** Zwei-Grenze von 58 auf 65 % → Volleyball-Fall 66,7 % bleibt 2, 64,4 % wird 3; Warnung erscheint, Änderung wird protokolliert.
+- **Endnote-Variante:** Klasse mit zwei Personen; Variante mit kleinerem Klassendurchschnitt wird gewählt.
+- **Regression:** alle Tests aus Abschnitt 4 und 8 bleiben grün; Lernfeld-Klassen unverändert.
+
+### 9.9 Browserprüfung Stufe 3
+- Sport-Klasse anlegen, Reihen Badminton, Volleyball und Ultimate aus Vorlage, Prüfung über die Einzelversuch-Eingabe, Termine mit doppeltem Datum, Anwesenheit inkl. aller Zeichen, Mitarbeit über die Schnelleingabe, Prüfung inkl. Teilprüfung, Prüffälle 9.8 in der Oberfläche nachvollziehen, Farben prüfen, Kriterienblatt-Druckvorschau, schmale Ansicht (Tablet hochkant).
+
+### 9.10 Besprechungsmodus (alle Fachtypen)
+- Für Notengespräche: Ansicht, die **nur eine Person** zeigt (Noten, Teilleistungen, Termine mit Farben, Fehlzeiten, Notizen nach Auswahl), ohne andere Namen auf dem Bildschirm. Wechsel zur nächsten Person nur über eine bewusste Auswahl, keine Liste sichtbar. Gilt für Lernfeld- und Sport-Klassen. Optional „Notizen ausblenden“.
+
+## 10. Stufe 4 (nach Sport, falls Zeit bleibt): Stundenplan aus WebUntis (iCal)
+
+Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Ziel: Unterrichtstermine nicht mehr von Hand anlegen. Der WebUntis-Kalender enthält nur den **Stundenplan** der Lehrkraft (keine Abwesenheiten, keine Schülerdaten); Fehlzeiten laufen weiter über 8.6.
+
+### 10.1 Import
+- **Datei-Import** einer `.ics`-Datei (aus dem WebUntis-Kalenderabo heruntergeladen) über „Stundenplan laden“, Ziehen-und-Ablegen am PC, Teilen-Menü auf Android, Dateiauswahl am iPad, und über den überwachten Ordner bzw. OneDrive-Eingang aus 8.6 (Dateiname `*.ics`).
+- **Abo-Adresse** (optional): Die Nutzerin kann die iCal-Adresse aus WebUntis in den Einstellungen hinterlegen. Die App versucht, sie beim Start abzurufen. Scheitert das (z. B. weil der Browser den Abruf fremder Seiten blockiert), deutlicher Hinweis „bitte Datei laden“ und kein weiterer Versuch in dieser Sitzung. Die Adresse ist persönlich und wird wie ein Passwort behandelt (nur verschlüsselt speichern, nie exportieren).
+- Ein eigener kleiner iCal-Leser (RFC 5545): VEVENT mit DTSTART/DTEND (inkl. `TZID=Europe/Berlin` und UTC-Zeiten), SUMMARY, LOCATION, DESCRIPTION, STATUS, UID; gefaltete Zeilen und Escape-Zeichen beachten. Keine Fremdbibliothek nötig.
+
+### 10.2 Zuordnung zu Klassen
+- Aus SUMMARY/DESCRIPTION werden Klasse und Fach gelesen (genaues Format von Untis ist unbekannt; daher **Zuordnungsdialog** wie in 8.6: Vorschau der verschiedenen Kombinationen „Klasse + Fach“, die Nutzerin ordnet jede einer Klasse im Notenbuch zu oder ignoriert sie). Zuordnung wird gespeichert und beim nächsten Import vorgeschlagen.
+- Doppelstunden (aufeinanderfolgende Stunden derselben Klasse und desselben Fachs am selben Tag) werden zu **einem Termin** zusammengefasst, Zeit von Beginn der ersten bis Ende der letzten Stunde.
+
+### 10.3 Was daraus wird
+- **Sport-Klassen:** Termine werden in der Terminliste (9.2) angelegt, mit Datum und Uhrzeit; die Reihe übernimmt der Termin vom vorherigen Termin (änderbar). Mitarbeit/Anwesenheit bleiben leer bis zur Erfassung.
+- **Lernfeld-Klassen:** Termine dienen als Vorschlag für „Heutige Stunde“ (sonstige Leistung) und als Datums-/Uhrzeitvorschlag beim Anlegen einer Klassenarbeit (Uhrzeit für den Attest-Abgleich in 8.6).
+- **Startbildschirm:** Läuft gerade oder in den nächsten 30 Minuten ein Termin, schlägt die App diese Klasse und die passende Schnelleingabe direkt vor („Jetzt: WAK 1 Sport – Einheit erfassen“).
+- **Ausfall/Vertretung:** Ereignisse mit `STATUS:CANCELLED` (oder entsprechendem Hinweis) werden als „ausgefallen“ markiert und zählen nirgends; eine Vertretungsstunde wird nur angelegt, wenn ihre Klasse zugeordnet ist.
+
+### 10.4 Erneuter Import
+- Über die UID erkennt die App bereits importierte Termine. Bei erneutem Import werden **nur importierte, noch leere Termine in der Zukunft** aktualisiert oder entfernt. Termine mit Einträgen (Anwesenheit, Noten, Notizen) und von Hand angelegte Termine werden nie verändert; Abweichungen (z. B. Termin in Untis entfallen, in der App aber schon Einträge) werden in einer Änderungsliste gezeigt.
+- Ferien und unterrichtsfreie Tage ergeben sich daraus, dass Untis dafür keine Ereignisse liefert; die App legt nichts an.
+
+### 10.5 Tests
+- Erfundene `.ics`-Dateien: Zeitzone Europe/Berlin über die Sommerzeit-Umstellung (25.10.2026), Doppelstunde zusammenfassen, ausgefallene Stunde, gefaltete Zeilen, Zuordnungsdialog, erneuter Import mit geändertem und entfallenem Termin (leer vs. mit Einträgen), Startvorschlag „jetzt“.
+- Keine echten Stundenpläne ins Repository legen (`*.ics` in `.gitignore` ergänzen).
