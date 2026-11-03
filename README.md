@@ -20,6 +20,17 @@ Eine Web-App für Lehrkräfte, die die Excel-Vorlage „Notenliste_Teilzeit_V4.x
 
 Die Rechenregeln stehen in `docs/SPEC.md` (Abschnitt 4 und 8). Kurz: Prozent wird abgeschnitten, nicht gerundet; Notengrenzen 91,5 / 80,5 / 66,5 / 49,5 / 29,5; Durchschnitte sind gewichtet. Angezeigt wird gerundet, gerechnet wird ohne Rundung.
 
+**Stufe 3: Sport**
+- **Fachtyp „Sport“** je Klasse (beim Anlegen oder in den Grunddaten). Sport-Klassen haben eigene Ansichten statt Klassenarbeiten, sonstiger Leistung und Dalton.
+- **Anwesenheit** mit eigenen Zeichen (`.` `V` `sps` `k` `ke` `ka` `ku` `|` `E` `A` `B` `P` `U`, dazu `*` für einen Vermerk), Termine mit Reihe als Balken, Prüfungstag-Markierung, dasselbe Datum darf zweimal vorkommen. Eingabe per Tippen oder Tastatur.
+- **Mitarbeit** 0–3 (Standard 2, nur Abweichungen eintippen), drei **Aufwertungsmerkmale** je Reihe, **Schnelleingabe „Nach der Stunde“** für das Tablet.
+- **Prüfung** aus Einzelversuchen (0–3 Punkte je Versuch) oder direkter Summe, Prüfungsnote über den gemeinsamen Schlüssel, Teilprüfung, Prüfungstag-Regel (unentschuldigt = 6, entschuldigt = Nachprüfung offen), Ersatzprüfung.
+- **Reihenwert, Reihennote, Gesamtnote** (Ø Wert, Ø Note, Endnote), Verhalten, weitere Teilleistungen, Halbjahr oder ganzes Schuljahr, Ausgabe als Noten oder Punkte.
+- **Reihen-Vorlagen** (Badminton, Volleyball, Ultimate Frisbee; leer: Basketball, Steppen, Tai-Bo), **Sport-Einstellungen** für alle Sport-Klassen mit Warnung und Protokoll, **Druck** (Kriterienblatt, Erfassungsbogen, leere Listen, Notenliste), **Excel-Export**, **Besprechungsmodus** (nur eine Person sichtbar, auch für Lernfeld-Klassen).
+- Untis-Fehlzeiten schreiben `A`, `E`, `U` oder `|` in die Anwesenheit; von Hand gesetzte Zeichen werden nie überschrieben.
+- Die Texte in den Vorlagen sind Vorschläge und in jeder Reihe änderbar. Merkmale, die in der Anleitung nicht genannt sind, stehen als „(Merkmal bitte eintragen)“ da.
+- **Hinweis:** Notendateien mit Sport-Klassen sollten nur mit dieser oder einer neueren Version der App geöffnet werden; eine ältere Version zeigt Sport-Klassen nicht richtig an.
+
 ## Öffnen
 
 **Online über GitHub Pages:** Im Repository unter *Settings → Pages* bei „Build and deployment“ die Quelle „Deploy from a branch“ wählen, Branch `main`, Ordner `/ (root)`, speichern. Nach kurzer Zeit zeigt GitHub die Adresse an. Beim ersten Öffnen lädt der Browser alle Dateien. Danach läuft die App auch ohne Internet, und sie kann über das Browsermenü „installiert“ werden.
@@ -75,7 +86,7 @@ Keine Installation nötig, nur Node.js ab Version 20:
 npm test
 ```
 
-Die Tests prüfen alle Rechenregeln (Prüffälle aus `docs/SPEC.md`, Grenzwerte, Abschneiden statt Runden, Dalton, Zwischenstand), Verschlüsselung der Notendatei und der Arbeitskopie, Umwandlung alter Dateien, Sicherung, Excel-Import und -Export, den Untis-Import (Format A, B, kombiniert, Zuordnung, Doppelimport), die Import-Automatik mit einer Ordner-Attrappe, Nachschreib-Vorschläge, eigene Listen, Schülerlisten-Import, Archiv sowie die Synchronisation gegen eine Attrappe und eine nachgebaute Graph-Schnittstelle.
+Die Tests prüfen alle Rechenregeln (Prüffälle aus `docs/SPEC.md`, darunter alle Sport-Prüffälle aus 9.8, Grenzwerte, Abschneiden statt Runden, Dalton, Zwischenstand), Verschlüsselung der Notendatei und der Arbeitskopie, Umwandlung alter Dateien, Sicherung, Excel-Import und -Export, den Untis-Import (Format A, B, kombiniert, Zuordnung, Doppelimport), die Import-Automatik mit einer Ordner-Attrappe, Nachschreib-Vorschläge, eigene Listen, Schülerlisten-Import, Archiv sowie die Synchronisation gegen eine Attrappe und eine nachgebaute Graph-Schnittstelle.
 
 Bibliotheken liegen im Repository und werden nicht von einem CDN geladen: SheetJS 0.18.5 (`lib/xlsx.full.min.js`, Apache-2.0, Lizenz in `lib/xlsx.LICENSE`) und MSAL Browser 2.38.3 (`lib/msal-browser.min.js`, MIT, Lizenz in `lib/msal.LICENSE`).
 

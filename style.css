@@ -214,6 +214,16 @@ input.bemerkung { min-width: 12rem; }
 .besprechung-kopf { display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem; }
 .termin-chips { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 .termin-chip { min-width: 2.2rem; text-align: center; border-radius: 0.3rem; padding: 0.1rem 0.3rem; font-size: 0.8rem; border: 1px solid var(--rand); }
+@media (max-width: 900px) {
+  /* Tablet hochkant: Menü als eine scrollbare Zeile unter der Kopfzeile, Sport-Eingabe untereinander */
+  .kopfleiste { gap: 0.3rem 0.8rem; padding: 0.4rem 0.8rem; }
+  #navigation { order: 3; flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0.2rem; }
+  .menue-punkt { white-space: nowrap; flex: 0 0 auto; }
+  .kopf-aktionen { margin-left: auto; }
+  .sport-zeile, .dalton-zeile { grid-template-columns: 1fr; }
+  .tasten-umbruch { max-width: none; }
+  .klassenwahl { max-width: 14rem; }
+}
 @media (max-width: 760px) {
   html { font-size: 16px; }
   main { padding: 0.6rem; }
