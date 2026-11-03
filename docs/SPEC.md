@@ -275,7 +275,7 @@ Grundlage ist das Bewertungssystem der Nutzerin (Stand 03.11.2026, abgestimmt in
 - **Ø Beteiligung** einer Person je Reihe = Mittelwert der zählenden Termine dieser Reihe. Unter **3 zählenden Terminen** (Standard, einstellbar) bleibt die Mitarbeitsnote leer; dann trägt die Prüfung allein.
 - **Umrechnung Ø → Grundnote** (Tabelle je Reihe, Vorlage-Standard für alle Sportarten): ab 2,8 → 1; ab 2,4 → 2; ab 1,7 → 3; ab 1,0 → 4; ab 0,4 → 5; darunter 6. (Bei Standardwert 2 ergibt sich eine 3, entsprechend den Verhaltensregeln der Fachgruppe „befriedigend als Regelnote“.) Für Punkte (BG) eigene Tabelle.
 - **Aufwertungsmerkmale M1–M3** je Reihe mit frei editierbaren Texten. Je Person und Termin Häkchen. Ein Merkmal gilt, wenn es in **mindestens 2 Terminen** angehakt ist. Häkchen aus Terminen mit `sps` oder `ku`/`U` zählen **nicht**. Je gezeigtem Merkmal **ein Drittel Note besser** (Schrittweite in den Sport-Einstellungen, Standard exakt 1/3), höchstens eine ganze Note, nie besser als 1,0. Punkte (BG): je Merkmal +1 Punkt, höchstens +3, höchstens 15.
-- **Mitarbeitsnote** = Grundnote − Aufwertung (Dezimalwert, z. B. 2,67). Manuell überschreibbar mit Pflicht-Begründung.
+- **Mitarbeitsnote** = Grundnote − Aufwertung, **auf 2 Stellen abgeschnitten** (nicht gerundet; z. B. 3 − 1/3 = 2,666… → 2,66). Manuell überschreibbar mit Pflicht-Begründung.
 - **Bemerkung** je Person und Reihe (Freitext), gedacht für kurze Begründungen, wenn jemand vom Standardwert 2 abweicht. Sichtbar in Reihen-Übersicht, Personenübersicht und Besprechungsmodus.
 
 ### 9.4 Prüfung
@@ -289,7 +289,7 @@ Grundlage ist das Bewertungssystem der Nutzerin (Stand 03.11.2026, abgestimmt in
 
 ### 9.5 Reihenwert, Halbjahr, Zeugnisnote
 - **Teilleistungen der Reihe:** Prüfung, Mitarbeit, **Verhalten** (eine einzige optionale Gesamtnote je Person und Reihe, keine Einzelaspekte; bei Gewicht 0 grau und sichtbar inaktiv) und **beliebig viele weitere direkte Teilleistungen** (z. B. „Spiel“ bei Ultimate: eine Note je Person nach Stufenbeschreibung). Gewichte je Reihe frei. Fehlt eine Teilleistung (leer), verteilt sich ihr Gewicht auf die übrigen. Hinweis in der Reihen-Einstellung, wenn neben der Mitarbeit eine weitere beteiligungsnahe Teilleistung (wie „Spiel“) gewichtet ist: „Achtung, Engagement wird evtl. doppelt bewertet.“
-- **Reihenwert** = gewichteter Mittelwert (zwei Nachkommastellen in der Anzeige, intern ungerundet). **Reihennote** = ganze Note, **halbe Werte zur besseren Note** (2,5 → 2; 2,51 → 3).
+- **Reihenwert** = gewichteter Mittelwert, **auf 2 Stellen abgeschnitten** (wie in der Lernfeld-Notenliste: einzelne Ergebnisse werden abgeschnitten, Durchschnitte bleiben ungekürzt). Der **Ø Wert** über die Reihen bleibt ungekürzt. **Reihennote** = ganze Note, **halbe Werte zur besseren Note** (2,5 → 2; 2,51 → 3).
 - **Gesamtnote Sport** je Person: **Ø Wert** (Mittelwert der Reihenwerte, Gewichte der Reihen Standard 1) und **Ø Note** (Mittelwert der ganzen Reihennoten). Wie bisher bei der Nutzerin („1. Wert / 2. Wert“) wird je Klasse eine der beiden Varianten für die **Endnote** verwendet: Standard „die für die Klasse insgesamt bessere“ (kleinerer Klassendurchschnitt der gerundeten Endnoten), umstellbar auf „immer Ø Wert“ oder „immer Ø Note“. Rundung der Endnote: halbe Werte zur besseren Note. Endnote manuell festsetzbar (Pflicht-Begründung), Anzeige „berechnet / festgesetzt“. *Annahme, bitte mit der Nutzerin bestätigen, falls unklar.*
 - Ganzes Schuljahr (BG): Halbjahres- und Jahreswert analog (Mittelwert der Halbjahre).
 - **Punkte (BG):** Intern wird immer mit Dezimalnoten gerechnet. Bei Ausgabe „Punkte“ wird jede ganze Note bzw. Endnote umgerechnet: Punkte = 17 − 3 × Note, kaufmännisch gerundet, begrenzt auf 0 bis 15 (Note 1,0 → 14; 0,7 → 15; 2,5 → 10; 6,0 → 0). In der Gesamtnote zusätzlich Spalte „Vorschlag (Punkte)“. Die Umrechnung ist eine Annahme nach der üblichen Oberstufentabelle; in den Einstellungen als Tabelle änderbar.
@@ -317,21 +317,22 @@ Grundlage ist das Bewertungssystem der Nutzerin (Stand 03.11.2026, abgestimmt in
 - **Ultimate Frisbee BBS** (kurze Reihe mit 4–6 Terminen; Prüfung 1 / Spiel 1 / Mitarbeit 0 als Vorschlag, siehe offene Frage): Prüfung im Zuspiel zu zweit, bewertet wird die werfende Person, je 5 Würfe auf ca. 8 m (Abwurfmarken): „Rückhand“ (Partner fängt mit Sandwich-Fang; Merkmale: Griff, seitliche Stellung, Scheibe flach und stabil; der Sandwich-Fang des Fängers wird mitbewertet), „Vorhand“ (Fangart frei). Stufen ohne Fangbarkeit (von der Nutzerin so gewünscht): Punkte je Wurf = Anzahl der sauber gezeigten Merkmale (0–3). Die Stufentexte sind je Teil in der App änderbar. Direkte Teilleistung „Spiel“ (Note nach Stufen: 1 bietet sich ständig an, läuft in freie Räume, verteidigt aktiv; 2 meist in Bewegung; 3 beteiligt sich, wenn das Spiel in der Nähe ist; 4 bewegt sich nur in kleinem Radius; 5 steht überwiegend; 6 verweigert). M1–M3: „zählt beim Markieren korrekt“, „sagt Fouls und Scheibenwechsel fair und richtig an“, „bietet sich an und läuft frei“. Ersatzleistung: Regelplakat führen, Feld auf Regelverstöße beobachten, kurzer Regeltest. Mitarbeit steht in dieser Vorlage auf Gewicht 0 (von der Nutzerin bestätigt), damit Engagement nicht doppelt neben „Spiel“ bewertet wird.
 
 ### 9.8 Prüffälle Sport (automatische Tests; Standard-Einstellungen aus 9.6a)
-- **Volleyball:** Pritschen 12, Baggern 10, Aufschlag 8 → 30 von 45 = 66,7 % → 2. Mitarbeit 7 zählende Termine 3,2,2,2,2,2,2 (ein Termin `E`) → Ø 2,142857 → Grundnote 3; ein Merkmal (2 Termine mit Sportzeug) → 2,6667. Reihenwert (2 + 2,6667)/2 = 2,3333 → Reihennote 2.
+- **Volleyball:** Pritschen 12, Baggern 10, Aufschlag 8 → 30 von 45 = 66,7 % → 2. Mitarbeit 7 zählende Termine 3,2,2,2,2,2,2 (ein Termin `E`) → Ø 2,142857 → Grundnote 3; ein Merkmal (2 Termine mit Sportzeug) → 2,66 (abgeschnitten). Reihenwert (2 + 2,66)/2 = 2,33 → Reihennote 2.
 - **Skala an der Kante:** 29 von 45 (einmal 1 statt 2) = 64,4 % → 2; 26 von 45 = 57,8 % → 3.
 - **Einzelversuche:** Versuche 2,2,3,1,2 → Summe 10; Versuch nachträglich von 1 auf 2 geändert → 11.
-- **Badminton:** fünf Teile à 15, Summen 10, 9, 8, 7, 6 → 40 von 75 = 53,3 % → 3. Ø 2,4 → 2; ein Merkmal → 1,6667. Reihenwert 0,6 × 3 + 0,4 × 1,6667 = 2,4667 → 2.
+- **Badminton:** fünf Teile à 15, Summen 10, 9, 8, 7, 6 → 40 von 75 = 53,3 % → 3. Ø 2,4 → 2; ein Merkmal → 1,66. Reihenwert 0,6 × 3 + 0,4 × 1,66 = 2,46 → 2.
 - **Teilprüfung:** nur drei Teile geprüft, 10 + 9 + 8 = 27 von 45 = 60 % → 2.
-- **Halbjahr** Volleyball + Badminton: Ø Wert (2,3333 + 2,4667)/2 = 2,4 → 2; Ø Note (2 + 2)/2 = 2.
+- **Halbjahr** Volleyball + Badminton: Ø Wert (2,33 + 2,46)/2 = 2,395 → 2; Ø Note (2 + 2)/2 = 2.
 - **Ultimate:** Rückhand 15, Vorhand 6 → 21 von 30 = 70 % → 2; Spiel 3; Gewichte 1/1/0 → Reihenwert 2,5 → Reihennote 2 (halbe Werte zur besseren Note).
-- **Prüfungstag unentschuldigt:** ein Prüfungstag (Vermerk „T“), Person `U`, keine Werte → Prüfungsnote 6; Volleyball mit Mitarbeit 2,6667 → Reihenwert 4,3333. Gleicher Fall mit `E` → Prüfung offen, Status „Nachprüfung offen“. Zwei Prüfungstage, an einem anwesend, keine Werte → offen. Wert eingetragen → normale Rechnung.
+- **Prüfungstag unentschuldigt:** ein Prüfungstag (Vermerk „T“), Person `U`, keine Werte → Prüfungsnote 6; Volleyball mit Mitarbeit 2,66 → Reihenwert 4,33. Gleicher Fall mit `E` → Prüfung offen, Status „Nachprüfung offen“. Zwei Prüfungstage, an einem anwesend, keine Werte → offen. Wert eingetragen → normale Rechnung.
 - **sps:** 8 Termine Punkt, davon 2× sps → 1. sps wie anwesend (2), 2. sps 0 → Ø 1,75 → 3. Ein drittes sps in einer anderen Reihe desselben Halbjahres ist ebenfalls 0.
 - **Offen:** 6 Termine Punkt, 1× `k` → „offen zählt als 0“: Ø 1,714 → 3; „offen zählt nicht“: Ø 2,0 → 3.
 - **Vorrang:** Mitarbeit 3 eingetippt, Anwesenheit `ku` → Wert 0.
 - **Merkmal mit sps:** M1 in 2 Terminen angehakt, einer davon `sps` → zählt 1 → keine Aufwertung.
 - **Mindestzahl:** 2 zählende Termine → Mitarbeit leer → Reihenwert = Prüfungsnote.
-- **Verhalten:** Gewichte 0,6/0,4/0,2, Prüfung 3, Mitarbeit 1,6667, Verhalten 2 → (1,8 + 0,6667 + 0,4)/1,2 = 2,3889.
-- **Rundung:** 2,5 → 2; 2,51 → 3.
+- **Verhalten:** Gewichte 0,6/0,4/0,2, Prüfung 3, Mitarbeit 1,66, Verhalten 2 → (1,8 + 0,664 + 0,4)/1,2 = 2,3866… → 2,38.
+- **Abschneiden und Rundung:** 2,666… → 2,66 (nicht 2,67); ganze Note: 2,5 → 2; 2,51 → 3.
+- **Abgleich mit der Excel-Mappe „Sportnoten“ der Nutzerin** (5 erfundene Personen, Badminton und Volleyball): alle ganzen Noten gleich. Die Mappe rundet Zwischenwerte noch auf 2 Stellen; die App schneidet ab (Regel der Nutzerin), deshalb weichen einzelne Zwischenwerte in der zweiten Stelle ab (z. B. 2,66 statt 2,67).
 - **Punkte:** Note 1,0 → 14; 0,7 → 15; 2,3333 → 10; 2,5 → 10; 4,3333 → 4; 6,0 → 0.
 - **Einstellungen ändern:** Zwei-Grenze von 58 auf 65 % → Volleyball-Fall 66,7 % bleibt 2, 64,4 % wird 3; Warnung erscheint, Änderung wird protokolliert.
 - **Endnote-Variante:** Klasse mit zwei Personen; Variante mit kleinerem Klassendurchschnitt wird gewählt.
