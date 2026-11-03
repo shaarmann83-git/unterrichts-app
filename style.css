@@ -166,6 +166,53 @@ tr.markiert td { background: var(--warn-bg) !important; box-shadow: inset 3px 0 
 .sperre { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: grid; place-items: center; padding: 1rem; }
 .sperre-box { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 0.8rem; padding: 1.2rem; max-width: 22rem; width: 100%; display: grid; gap: 0.7rem; }
 .einstellung-block { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 0.6rem; padding: 0.8rem 1rem; margin: 0.8rem 0; }
+/* ---------- Stufe 3: Sport ---------- */
+.abzeichen { margin-left: 0.5rem; font-size: 0.7rem; background: var(--akzent); color: var(--akzent-text); border-radius: 1rem; padding: 0.05rem 0.5rem; vertical-align: middle; }
+.raster { max-height: 75vh; }
+.sport-raster th.reihe-balken { background: var(--akzent); color: var(--akzent-text); border-left: 2px solid var(--flaeche); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 12rem; }
+.sport-raster th.pruef-tag { background: #ffe08a; color: #3a2a00; font-size: 0.8rem; }
+.sport-raster th.pruef-leer { height: 1.1rem; }
+.sport-raster th.datum-kopf { vertical-align: bottom; padding: 0.15rem; }
+.datum-knopf { background: none; border: 0; color: inherit; font: inherit; cursor: pointer; writing-mode: vertical-rl; transform: rotate(180deg); padding: 0.2rem 0; min-height: 3.2rem; }
+span.datum-knopf { cursor: default; }
+.alle-da { display: block; margin: 0.1rem auto 0; font-size: 0.7rem; border: 1px solid var(--rand); background: var(--flaeche); color: var(--text); border-radius: 0.3rem; cursor: pointer; min-width: 1.6rem; min-height: 1.4rem; }
+.sport-raster td.zellen-td { padding: 0; width: 2.4rem; min-width: 2.4rem; }
+.sport-raster .name-spalte { position: sticky; left: 0; background: var(--flaeche); z-index: 1; }
+button.zelle { width: 100%; min-width: 2.4rem; height: 2.4rem; border: 1px solid var(--rand); background: var(--feld); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; padding: 0; }
+button.zelle:disabled { cursor: default; opacity: 0.85; }
+button.zelle.cursor { outline: 3px solid var(--akzent); outline-offset: -3px; }
+.z-normal { background: var(--feld); }
+.z-leise { color: var(--text-leise); font-weight: 400; }
+.z-rot { background: #f8c9c9 !important; color: #7a1010; }
+.z-orange { background: #ffd9a8 !important; color: #7a3f00; }
+.z-violett { background: #e1d2f7 !important; color: #3d1c78; }
+.z-grau { background: #e4e7ec !important; color: #5a6677; }
+.m-gruen { background: #c8ecc8 !important; color: #14401a; }
+.m-blau { background: #cfe3fa !important; color: #0f3b6b; }
+:root[data-farbe="dunkel"] .z-rot, :root[data-farbe="dunkel"] .z-orange, :root[data-farbe="dunkel"] .z-violett, :root[data-farbe="dunkel"] .z-grau, :root[data-farbe="dunkel"] .m-gruen, :root[data-farbe="dunkel"] .m-blau { filter: brightness(0.7); }
+.legende { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0; }
+.legende-punkt { padding: 0.1rem 0.6rem; border-radius: 0.8rem; font-size: 0.8rem; border: 1px solid var(--rand); }
+.zeichen-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: 0.4rem; }
+.zeichen-taste { display: flex; flex-direction: column; align-items: center; min-height: 3.6rem; }
+.zeichen-taste strong { font-size: 1.3rem; }
+.sport-zeile { grid-template-columns: minmax(9rem, 14rem) auto auto auto 1fr; }
+.tasten-umbruch { flex-wrap: wrap; max-width: 24rem; }
+.knopf.taste.z-rot, .knopf.taste.z-orange, .knopf.taste.z-violett, .knopf.taste.z-grau, .knopf.taste.m-gruen, .knopf.taste.m-blau { opacity: 0.55; }
+.knopf.taste[aria-pressed="true"] { opacity: 1; box-shadow: inset 0 0 0 3px var(--akzent); }
+.grosse-tasten { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.6rem 0; }
+.grosse-taste { min-width: 7rem; min-height: 5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.grosse-taste strong { font-size: 2rem; }
+.pruef-kopf h2 { margin: 0.4rem 0; }
+.pruef-gitter .aktiv-zeile td { background: var(--hoechst); }
+input.summe-feld { width: 4.5rem; text-align: right; }
+td.inaktiv { opacity: 0.5; }
+input.bemerkung { min-width: 12rem; }
+.teil-block { margin-bottom: 0.6rem; }
+.endnote.festgesetzt { box-shadow: inset 0 0 0 2px var(--akzent); }
+.cursor-pointer { cursor: pointer; }
+.besprechung-kopf { display: flex; flex-wrap: wrap; align-items: center; gap: 0.8rem; }
+.termin-chips { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.termin-chip { min-width: 2.2rem; text-align: center; border-radius: 0.3rem; padding: 0.1rem 0.3rem; font-size: 0.8rem; border: 1px solid var(--rand); }
 @media (max-width: 760px) {
   html { font-size: 16px; }
   main { padding: 0.6rem; }

@@ -166,8 +166,8 @@ export function zeigeGrunddaten() {
     });
     fuege(
       bereiche,
-      h('label', {}, 'Dalton', daltonWahl),
-      d.dalton.modus === 'einrechnen' && h('label', {}, 'Anteil an der sonstigen Leistung in %', anteil),
+      d.fachtyp !== 'sport' && h('label', {}, 'Dalton', daltonWahl),
+      d.fachtyp !== 'sport' && d.dalton.modus === 'einrechnen' && h('label', {}, 'Anteil an der sonstigen Leistung in %', anteil),
       h('label', { class: 'schalter' }, duales, ' Duales System (Ausbildungsbetrieb je Person)'),
       h('label', { class: 'schalter' }, fotos, ' Fotos'),
     );
@@ -314,7 +314,28 @@ export function zeigeGrunddaten() {
   }
   passwortZeichnen();
 
-  wurzel.append(
+  // Sport: Fachtyp, Notensystem, Zeitraum, Endnote (SPEC 9.1, 9.5)
+  const sportFelder = () => {
+    const wahl = (id, text, optionen, aktuell, bei) => h('label', {}, text, h('select', { id, 'aria-label': text, onchange: (e) => bei(e.target.value) }, optionen.map(([w, t]) => h('option', { value: w, selected: aktuell === w }, t))));
+    return h('div', { class: 'formular' },
+      wahl('sport-notensystem', 'Notensystem', [['noten', 'Noten 1,0–6,0'], ['punkte', 'Punkte 0–15']], d.sport.notensystem, (v) => { d.sport.notensystem = v; K.aenderung(); }),
+      wahl('sport-zeitraum', 'Zeitraum', [['halbjahr', 'ein Halbjahr'], ['jahr', 'ganzes Schuljahr']], d.sport.zeitraum, (v) => { d.sport.zeitraum = v; K.aenderung(); K.neuZeichnen(); }),
+      wahl('sport-endnote', 'Endnote berechnen aus', [['besser', 'der für die Klasse insgesamt besseren Variante'], ['wert', 'immer Ø Wert'], ['note', 'immer Ø Note']], d.sport.endnoteVariante, (v) => { d.sport.endnoteVariante = v; K.aenderung(); }));
+  };
+  const fachtypWahl = h('label', {}, 'Fachtyp', h('select', { id: 'grund-fachtyp', 'aria-label': 'Fachtyp', onchange: async (e) => {
+    const neu = e.target.value;
+    if (neu === d.fachtyp) return;
+    const hatDaten = d.klassenarbeiten.some((ka) => Object.keys(ka.ergebnisse).length) || d.sonstige.length || d.sport.reihen.length;
+    if (hatDaten && !(await bestaetigen('Fachtyp wechseln', 'Die vorhandenen Eingaben bleiben gespeichert, sind aber in dieser Klasse nur unter dem jeweils anderen Fachtyp sichtbar. Fachtyp wirklich wechseln?', 'Wechseln', true))) {
+      e.target.value = d.fachtyp;
+      return;
+    }
+    d.fachtyp = neu;
+    K.aenderung();
+    K.navigiere(neu === 'sport' ? 'nachstunde' : 'gesamt');
+    K.neuZeichnen();
+  } }, [['lernfeld', 'Lernfeld/Fach'], ['sport', 'Sport']].map(([w, t]) => h('option', { value: w, selected: d.fachtyp === w }, t))));
+  fuege(wurzel,
     h('h1', {}, 'Grunddaten'),
     h(
       'div',
@@ -323,9 +344,13 @@ export function zeigeGrunddaten() {
       textFeld('Lernfeld-Nr.', d.kopf, 'lernfeldNr'),
       textFeld('Lernfeld-Bezeichnung', d.kopf, 'lernfeldBez', true),
       textFeld('Schuljahr', d.kopf, 'schuljahr'),
+      fachtypWahl,
     ),
-    h('h2', {}, 'Gewichtung'),
-    h('div', { class: 'formular' }, h('label', {}, 'Schriftlich in % (0 bis 100)', schriftlich), h('p', {}, 'Sonstige Leistung: ', sonstige)),
+    d.fachtyp === 'sport' && h('h2', {}, 'Sport'),
+    d.fachtyp === 'sport' && sportFelder(),
+    d.fachtyp === 'sport' && h('p', { class: 'klein' }, 'Reihen, Termine und die Bewertung finden Sie in den Sport-Ansichten. Prüfungsschlüssel und Tabellen gelten für alle Sport-Klassen (Einstellungen → Sport-Einstellungen).'),
+    d.fachtyp !== 'sport' && h('h2', {}, 'Gewichtung'),
+    d.fachtyp !== 'sport' && h('div', { class: 'formular' }, h('label', {}, 'Schriftlich in % (0 bis 100)', schriftlich), h('p', {}, 'Sonstige Leistung: ', sonstige)),
     h('h2', {}, 'Bereiche dieser Klasse'),
     h('p', { class: 'klein' }, 'Ausgeschaltete Bereiche sind in dieser Klasse unsichtbar.'),
     bereiche,

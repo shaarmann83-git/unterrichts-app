@@ -62,7 +62,9 @@ function dialogZeigen(titel, inhalt, knoepfe) {
         ),
       ),
     );
-    dlg.append(h('h2', {}, titel), h('div', { class: 'dialog-inhalt' }, inhalt), leiste);
+    // `inhalt` darf eine Funktion sein, die den Dialog selbst schließen kann: inhalt(schliessen)
+    const inhaltEl = typeof inhalt === 'function' ? inhalt(schliessen) : inhalt;
+    dlg.append(h('h2', {}, titel), h('div', { class: 'dialog-inhalt' }, inhaltEl), leiste);
     dlg.addEventListener('cancel', (e) => {
       e.preventDefault();
       const abbruch = knoepfe.find((k) => k.abbruch);
@@ -135,6 +137,7 @@ export function auswahl(titel, text, optionen) {
   );
 }
 
+/** Wie inhaltDialog; `inhalt` kann eine Funktion sein: inhalt(schliessen) (schliessen(wert) beendet den Dialog). */
 export function inhaltDialog(titel, inhalt, knoepfe) {
   return dialogZeigen(titel, inhalt, knoepfe);
 }

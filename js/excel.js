@@ -10,6 +10,8 @@ import {
 import { gesamtPerson, prozentSL, ergebnisKA, gesamtpunkte } from './rechnen.js';
 import { daltonNote, daltonProzent } from './dalton.js';
 import { FZ_STATUS, FZ_QUELLE, fehlzeitenSummen } from './fehlzeiten.js';
+import { sportBlaetter } from './sport-excel.js';
+import { einstellungenAus } from './sport.js';
 
 const XL = () => {
   if (!globalThis.XLSX) throw new Error('Die Excel-Bibliothek ist nicht geladen.');
@@ -302,6 +304,17 @@ export function alleAlsExcel(buch) {
   const hinzu = (n, zeilen) => X.utils.book_append_sheet(mappe, X.utils.aoa_to_sheet(zeilen), n);
   for (const k of buch.klassen) {
     const kn = k.kopf.klasse;
+    if (k.fachtyp === 'sport') {
+      // Sport: je Reihe ein Blatt und die Gesamtnote; dazu Grunddaten und Fehlzeiten wie bei den anderen Klassen
+      for (const b of sportBlaetter(k, einstellungenAus(buch))) hinzu(name(kn, b.titel), b.zeilen);
+      const fzs = [['Name', 'Vorname', 'Datum', 'bis', 'Fehlstd.', 'Fach', 'Status', 'Grund', 'Quelle', 'zählt']];
+      for (const f of k.fehlzeiten) {
+        const s = k.schueler.find((x) => x.id === f.schuelerId);
+        fzs.push([s?.name || '', s?.vorname || '', datumDeutsch(f.datum), datumDeutsch(f.datumBis), f.std ?? null, f.fach || '', FZ_STATUS[f.status] || '', f.grund || '', FZ_QUELLE[f.quelle] || '', f.zaehltNicht ? 'nein' : 'ja']);
+      }
+      hinzu(name(kn, 'Fehlzeiten'), fzs);
+      continue;
+    }
     const personen = k.schueler.filter((s) => s.name || s.vorname);
     const duales = k.bereiche?.duales;
     const kopfInfo = [

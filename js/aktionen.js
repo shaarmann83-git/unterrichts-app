@@ -38,14 +38,15 @@ export async function neueDateiAnlegen() {
   const nr = feld('Lernfeld-Nr.', '', 'z. B. 3');
   const bez = feld('Lernfeld-Bezeichnung');
   const jahr = feld('Schuljahr', '', 'z. B. 2025/26');
+  const fach = h('select', { 'aria-label': 'Fachtyp' }, [['lernfeld', 'Lernfeld/Fach'], ['sport', 'Sport']].map(([w, t]) => h('option', { value: w }, t)));
   const eingaben = [klasse, nr, bez, jahr];
-  const ok = await inhaltDialog('Neue Notendatei', [h('p', { class: 'klein' }, 'Die Notendatei ist ein Notenbuch. Weitere Klassen legen Sie danach an.'), ...eingaben], [
+  const ok = await inhaltDialog('Neue Notendatei', [h('p', { class: 'klein' }, 'Die Notendatei ist ein Notenbuch. Weitere Klassen legen Sie danach an.'), ...eingaben, h('label', {}, 'Fachtyp', fach)], [
     { text: 'Abbrechen', wert: false, abbruch: true },
     { text: 'Anlegen', wert: true, klasse: 'knopf primaer' },
   ]);
   if (!ok) return;
   const [k, n, b, j] = eingaben.map((l) => l.querySelector('input').value.trim());
-  const klasseObj = neueKlasse({ klasse: k, lernfeldNr: n, lernfeldBez: b, schuljahr: j });
+  const klasseObj = neueKlasse({ klasse: k, lernfeldNr: n, lernfeldBez: b, schuljahr: j, fachtyp: fach.value });
   const buch = neuesBuch(klasseObj);
   setzeDokument(buch, { ziel: 'grunddaten', geaendert: true, name: dateiname(buch), klasseId: klasseObj.id });
 }

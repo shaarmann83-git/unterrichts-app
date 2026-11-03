@@ -17,9 +17,10 @@ import { zeigeDruck } from './ansichten/drucken.js';
 ansichtRegistrieren('start', { text: 'Start', bauen: zeigeStart, klasse: false, reihe: 0 });
 ansichtRegistrieren('buch', { text: 'Notenbuch', bauen: zeigeBuch, klasse: false, reihe: 1 });
 ansichtRegistrieren('grunddaten', { text: 'Grunddaten', bauen: zeigeGrunddaten, klasse: true, reihe: 2 });
-ansichtRegistrieren('ka', { text: 'Klassenarbeiten', bauen: zeigeKlassenarbeit, klasse: true, reihe: 3 });
-ansichtRegistrieren('sl', { text: 'Sonstige Leistung', bauen: zeigeSonstige, klasse: true, reihe: 4 });
-ansichtRegistrieren('gesamt', { text: 'Gesamtübersicht', bauen: zeigeGesamt, klasse: true, reihe: 8 });
+const lernfeld = () => !K.daten || K.daten.fachtyp !== 'sport';
+ansichtRegistrieren('ka', { text: 'Klassenarbeiten', bauen: zeigeKlassenarbeit, klasse: true, reihe: 3, nurWenn: lernfeld });
+ansichtRegistrieren('sl', { text: 'Sonstige Leistung', bauen: zeigeSonstige, klasse: true, reihe: 4, nurWenn: lernfeld });
+ansichtRegistrieren('gesamt', { text: 'Gesamtübersicht', bauen: zeigeGesamt, klasse: true, reihe: 8, nurWenn: lernfeld });
 ansichtRegistrieren('druck', { text: 'Drucken', bauen: zeigeDruck, klasse: true, reihe: 10 });
 
 let aktuell = null; // {el, update}
@@ -121,6 +122,11 @@ function zeigeAnsicht() {
   }
   if (bereich !== 'start' && !K.buch && !def.ohneBuch) {
     location.hash = '#/start';
+    return;
+  }
+  // Ansichten, die für den Fachtyp der gewählten Klasse nicht passen: zur passenden Startansicht
+  if (def.klasse && K.daten && def.nurWenn && !def.nurWenn()) {
+    location.hash = K.daten.fachtyp === 'sport' ? '#/nachstunde' : '#/gesamt';
     return;
   }
   if (def.klasse && !K.daten && K.buch) {

@@ -16,21 +16,26 @@ import { ausDateitext, istVerschluesselt } from '../krypto.js';
 import { passwortFrage } from '../ui.js';
 import { alleAlsExcel } from '../excel.js';
 
-function klassenFormular(k = { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: '', schuljahr: '' } }) {
+function klassenFormular(k = { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: '', schuljahr: '' }, fachtyp: null }) {
   const feld = (beschriftung, wert, platzhalter = '') =>
     h('label', {}, beschriftung, h('input', { type: 'text', value: wert, placeholder: platzhalter }));
-  return [feld('Klasse', k.kopf.klasse, 'z. B. FIA 25'), feld('Lernfeld-Nr.', k.kopf.lernfeldNr), feld('Lernfeld-Bezeichnung', k.kopf.lernfeldBez), feld('Schuljahr', k.kopf.schuljahr, 'z. B. 2025/26')];
+  const fach = h('select', { 'aria-label': 'Fachtyp', id: 'klasse-fachtyp' }, [['lernfeld', 'Lernfeld/Fach'], ['sport', 'Sport']].map(([w, t]) => h('option', { value: w }, t)));
+  const felder = [feld('Klasse', k.kopf.klasse, 'z. B. FIA 25'), feld('Lernfeld-Nr.', k.kopf.lernfeldNr), feld('Lernfeld-Bezeichnung', k.kopf.lernfeldBez), feld('Schuljahr', k.kopf.schuljahr, 'z. B. 2025/26')];
+  // Der Fachtyp wird nur beim Anlegen gewählt (danach in den Grunddaten)
+  if (k.fachtyp === null) felder.push(h('label', {}, 'Fachtyp', fach));
+  return { felder, lesen: () => {
+    const [klasseName, nr, bez, jahr] = felder.slice(0, 4).map((l) => l.querySelector('input').value.trim());
+    return { klasse: klasseName, lernfeldNr: nr, lernfeldBez: bez, schuljahr: jahr, ...(k.fachtyp === null ? { fachtyp: fach.value } : {}) };
+  } };
 }
 
 async function klasseFragen(titel, klasse, okText) {
-  const felder = klassenFormular(klasse);
-  const ok = await inhaltDialog(titel, felder, [
+  const f = klassenFormular(klasse);
+  const ok = await inhaltDialog(titel, f.felder, [
     { text: 'Abbrechen', wert: false, abbruch: true },
     { text: okText, wert: true, klasse: 'knopf primaer' },
   ]);
-  if (!ok) return null;
-  const [klasseName, nr, bez, jahr] = felder.map((l) => l.querySelector('input').value.trim());
-  return { klasse: klasseName, lernfeldNr: nr, lernfeldBez: bez, schuljahr: jahr };
+  return ok ? f.lesen() : null;
 }
 
 export async function klasseAusAndererDateiUebernehmen() {
@@ -82,8 +87,8 @@ export function zeigeBuch() {
           { class: 'kachel' },
           h(
             'a',
-            { href: `#/gesamt`, class: 'kachel-link', onclick: () => { K.klasseId = k.id; } },
-            h('strong', {}, titel),
+            { href: k.fachtyp === 'sport' ? '#/nachstunde' : '#/gesamt', class: 'kachel-link', onclick: () => { K.klasseId = k.id; } },
+            h('strong', {}, titel, k.fachtyp === 'sport' && h('span', { class: 'abzeichen' }, 'Sport')),
             h('div', {}, [k.kopf.lernfeldNr && `Lernfeld ${k.kopf.lernfeldNr}`, k.kopf.lernfeldBez].filter(Boolean).join(': ') || 'Kein Lernfeld'),
             h('div', { class: 'klein' }, `Schuljahr ${k.kopf.schuljahr || '–'} · ${aktiveSchueler(k).length} Schüler:innen`),
           ),
@@ -139,7 +144,7 @@ export function zeigeBuch() {
     h('p', { class: 'klein' }, K.dateiname || 'noch nicht gespeichert'),
     h('div', { class: 'knopfreihe' },
       h('button', { type: 'button', class: 'knopf primaer', onclick: async () => {
-        const f = await klasseFragen('Neue Klasse', undefined, 'Anlegen');
+        const f = await klasseFragen('Neue Klasse', { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: '', schuljahr: '' }, fachtyp: null }, 'Anlegen');
         if (!f) return;
         const k = neueKlasse(f);
         buch.klassen.push(k);
