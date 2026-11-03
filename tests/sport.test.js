@@ -636,3 +636,23 @@ test('Sport-Klasse kopieren: Reihen-Definitionen bleiben, Termine und Werte nich
   assert.deepEqual(kopie.sport.anwesenheit, {});
   assert.equal(k.sport.termine.length > 0, true, 'Original unverändert');
 });
+
+test('Nachprüfliste: „Nachprüfung offen“ erscheint in der Nachschreibliste über alle Klassen', async () => {
+  const { nachschreibListe } = await import('../js/nachschreiben.js');
+  const k = sportKlasse(2);
+  const r = reihe(k, 'Volleyball');
+  teile(r, 3);
+  termin(k, r, ['E', 'U'], { vermerk: 'T', datum: '2026-03-04' });
+  const buch = neuesBuch(k);
+  const l = nachschreibListe(buch);
+  assert.equal(l.offen.length, 1);
+  assert.equal(l.offen[0].art, 'Nachprüfung');
+  assert.equal(l.offen[0].bezeichnung, 'Nachprüfung Volleyball');
+  assert.equal(l.offen[0].person.id, k.schueler[0].id);
+  assert.equal(l.offen[0].datum, '2026-03-04');
+  l.offen[0].setTermin('2026-03-18');
+  assert.equal(nachschreibListe(buch).offen[0].termin, '2026-03-18');
+  // Sobald ein Prüfungswert da ist, fällt die Person aus der Liste
+  summen(k, r, [12, 10, 8], 0);
+  assert.equal(nachschreibListe(buch).offen.length, 0);
+});

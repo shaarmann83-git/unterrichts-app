@@ -167,6 +167,7 @@ tr.markiert td { background: var(--warn-bg) !important; box-shadow: inset 3px 0 
 .sperre-box { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 0.8rem; padding: 1.2rem; max-width: 22rem; width: 100%; display: grid; gap: 0.7rem; }
 .einstellung-block { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 0.6rem; padding: 0.8rem 1rem; margin: 0.8rem 0; }
 /* ---------- Stufe 3: Sport ---------- */
+body[data-ansicht="besprechung"] #navigation, body[data-ansicht="besprechung"] .klassenwahl { visibility: hidden; }
 .abzeichen { margin-left: 0.5rem; font-size: 0.7rem; background: var(--akzent); color: var(--akzent-text); border-radius: 1rem; padding: 0.05rem 0.5rem; vertical-align: middle; }
 .raster { max-height: 75vh; }
 .sport-raster th.reihe-balken { background: var(--akzent); color: var(--akzent-text); border-left: 2px solid var(--flaeche); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 12rem; }

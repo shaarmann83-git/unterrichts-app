@@ -12,12 +12,12 @@ export function zeigeNachschreiben() {
   const wurzel = h('section', { class: 'seite' });
   const { offen, entscheidung } = nachschreibListe(buch);
   const tabelle = (zeilen, mitTermin) => h('div', { class: 'tabelle-rahmen' }, h('table', { class: 'tabelle' },
-    h('thead', {}, h('tr', {}, ['Klasse', 'Arbeit', 'Datum', 'Person', mitTermin ? 'Nachschreibtermin' : 'Stand'].map((t) => h('th', {}, t)))),
+    h('thead', {}, h('tr', {}, ['Klasse', 'Arbeit / Prüfung', 'Datum', 'Person', mitTermin ? 'Nachschreib-/Nachprüftermin' : 'Stand'].map((t) => h('th', {}, t)))),
     h('tbody', {}, zeilen.map((z) => h('tr', {},
-      h('td', {}, z.klasse.kopf.klasse), h('td', {}, `KA ${z.kaNr}`), h('td', {}, datumDeutsch(z.ka.datum)), h('td', { class: 'links name' }, z.name),
+      h('td', {}, z.klasse.kopf.klasse), h('td', {}, z.bezeichnung), h('td', {}, datumDeutsch(z.datum)), h('td', { class: 'links name' }, z.name),
       mitTermin
         ? h('td', {}, h('input', { type: 'date', class: 'nachschreibtermin', 'aria-label': `Nachschreibtermin ${z.name}`, value: z.termin, onchange: (e) => {
-            z.ka.teilnahme[z.person.id] = { ...z.ka.teilnahme[z.person.id], nachschreibtermin: e.target.value };
+            z.setTermin(e.target.value);
             K.aenderung();
           } }), h('span', { class: 'nur-druck' }, datumDeutsch(z.termin)))
         : h('td', { class: 'links' }, TEILNAHME[z.status]))))));
@@ -28,7 +28,7 @@ export function zeigeNachschreiben() {
       h('button', { type: 'button', class: 'knopf', onclick: async () => { await vorschlaegeDialog(buch.klassen); K.neuZeichnen(); } }, 'Vorschläge prüfen'),
       h('button', { type: 'button', class: 'knopf', onclick: () => window.print() }, 'Liste drucken / PDF')),
     h('h2', {}, `Muss noch nachschreiben (${offen.length})`),
-    offen.length ? tabelle(offen, true) : h('p', { class: 'hinweis' }, 'Niemand. Fehlt jemand mit Attest bei einer Klassenarbeit, erscheint die Person hier.'),
+    offen.length ? tabelle(offen, true) : h('p', { class: 'hinweis' }, 'Niemand. Fehlt jemand mit Attest bei einer Klassenarbeit (oder entschuldigt an einem Prüfungstag im Sport), erscheint die Person hier.'),
     h('h2', { class: 'nicht-drucken' }, `Ohne Entscheidung (${entscheidung.length})`),
     h('p', { class: 'klein nicht-drucken' }, 'Gefehlt ohne Attest oder Entschuldigung offen: Wie das benotet wird, legt die App nicht fest. Tragen Sie Punkte oder Ihre Entscheidung in der Klassenarbeit ein.'),
     entscheidung.length ? h('div', { class: 'nicht-drucken' }, tabelle(entscheidung, false)) : null,

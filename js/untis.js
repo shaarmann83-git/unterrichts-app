@@ -421,20 +421,75 @@ export function importPlanen(klasse, eingabe, optionen = {}) {
   }
   const weggefallen = [...alteMap.values()];
 
+  const ergebnisFehlzeiten = [...behalten, ...neueEintraege];
   return {
-    fehlzeiten: [...behalten, ...neueEintraege],
+    fehlzeiten: ergebnisFehlzeiten,
     neu,
     geaendert,
     weggefallen,
     unzugeordnet: [...unzugeordnet.values()],
     untisIds,
     uebernommen,
+    // Sport: Untis schreibt Zeichen in die Anwesenheit (SPEC 9.2)
+    anwesenheit: klasse.fachtyp === 'sport' ? anwesenheitPlan(klasse, ergebnisFehlzeiten) : null,
   };
+}
+
+// ---------- Sport: Untis → Anwesenheit (SPEC 9.2) ----------
+
+const STATUS_ZEICHEN = { attest: 'A', entschuldigt: 'E', nicht: 'U', offen: '|' };
+// Bei mehreren Einträgen am selben Tag gewinnt der entlastendste (so wird nie voreilig ein U gesetzt)
+const STATUS_RANG = { attest: 4, entschuldigt: 3, offen: 2, nicht: 1 };
+
+const minuten = (hhmm) => {
+  const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})/);
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+};
+
+/** Deckt der Untis-Eintrag den Sport-Termin ab? Datum im Zeitraum; mit Uhrzeit des Termins auch zeitlich (erster Tag ab Beginn, letzter Tag bis Ende). */
+function deckTermin(termin, f) {
+  if (!termin.datum) return false;
+  const bis = f.datumBis || f.datum;
+  if (termin.datum < f.datum || termin.datum > bis) return false;
+  const t = minuten(termin.uhrzeit);
+  if (t === null || f.quelle !== 'untis-b') return true;
+  const von = termin.datum === f.datum && minuten(f.zeitVon) !== null ? minuten(f.zeitVon) : 0;
+  const ende = termin.datum === bis && minuten(f.zeitBis) !== null ? minuten(f.zeitBis) : 24 * 60;
+  return t >= von && t < ende;
+}
+
+/**
+ * Vergleicht die Untis-Fehlzeiten mit der Anwesenheit einer Sport-Klasse. Nichts wird verändert.
+ * setzen: leere Zellen und frühere Untis-Zeichen, die sich ändern. abweichungen: von Hand gesetzte Zeichen, die abweichen (bleiben unangetastet).
+ */
+export function anwesenheitPlan(klasse, fehlzeiten) {
+  const setzen = [];
+  const abweichungen = [];
+  const untisEintraege = fehlzeiten.filter((f) => String(f.quelle).startsWith('untis') && !f.zaehltNicht);
+  for (const termin of klasse.sport.termine) {
+    for (const person of klasse.schueler) {
+      if (!person.name && !person.vorname) continue;
+      const treffer = untisEintraege.filter((f) => f.schuelerId === person.id && deckTermin(termin, f));
+      if (treffer.length === 0) continue;
+      const bester = treffer.reduce((a, b) => ((STATUS_RANG[b.status] || 0) > (STATUS_RANG[a.status] || 0) ? b : a));
+      const z = STATUS_ZEICHEN[bester.status];
+      if (!z) continue;
+      const bisher = klasse.sport.anwesenheit[termin.id]?.[person.id];
+      if (!bisher || !bisher.z) setzen.push({ terminId: termin.id, schuelerId: person.id, z, vorher: '' });
+      else if (bisher.z === z) continue;
+      else if (bisher.quelle === 'untis') setzen.push({ terminId: termin.id, schuelerId: person.id, z, vorher: bisher.z });
+      else abweichungen.push({ terminId: termin.id, schuelerId: person.id, hand: bisher.z, untis: z });
+    }
+  }
+  return { setzen, abweichungen };
 }
 
 /** Wendet einen Plan an. */
 export function importAnwenden(klasse, plan) {
   klasse.fehlzeiten = plan.fehlzeiten;
+  for (const x of plan.anwesenheit?.setzen || []) {
+    (klasse.sport.anwesenheit[x.terminId] ||= {})[x.schuelerId] = { z: x.z, quelle: 'untis' };
+  }
   for (const [sid, id] of plan.untisIds) {
     const s = klasse.schueler.find((x) => x.id === sid);
     if (s && !s.untisId) s.untisId = id;

@@ -1,7 +1,9 @@
 // Teilnahme an Klassenarbeiten, Vorschläge aus Untis-Fehlzeiten und Nachschreibliste (SPEC 8.6).
 import { aktiveSchueler, anzeigename } from './modell.js';
+import { einstellungenAus, pruefungReihe, istPruefungstag } from './sport.js';
 
 export const TEILNAHME = {
+  'nachpruefung-offen': 'Nachprüfung offen',
   mitgeschrieben: 'mitgeschrieben',
   'attest-offen': 'gefehlt mit Attest, Nachschreiben offen',
   nachgeschrieben: 'nachgeschrieben',
@@ -95,11 +97,32 @@ export function nachschreibListe(buch) {
       for (const person of aktiveSchueler(klasse)) {
         const t = ka.teilnahme?.[person.id];
         if (!t) continue;
-        const zeile = { klasse, ka, kaNr: i + 1, person, name: anzeigename(person), termin: t.nachschreibtermin || '', status: t.status };
+        const zeile = {
+          klasse, ka, kaNr: i + 1, person, name: anzeigename(person), termin: t.nachschreibtermin || '', status: t.status,
+          art: 'Klassenarbeit', bezeichnung: `KA ${i + 1}`, datum: ka.datum,
+          setTermin: (v) => { ka.teilnahme[person.id] = { ...ka.teilnahme[person.id], nachschreibtermin: v }; },
+        };
         if (t.status === 'attest-offen' && !hatPunkte(ka, person.id)) offen.push(zeile);
         else if ((t.status === 'ohne-attest' || t.status === 'entschuldigung-offen') && !hatPunkte(ka, person.id)) entscheidung.push(zeile);
       }
     });
+    // Sport: Nachprüfung (entschuldigtes Fehlen an allen Prüfungstagen einer Reihe, noch kein Prüfungswert; SPEC 9.4)
+    if (klasse.fachtyp === 'sport') {
+      const ein = einstellungenAus(buch);
+      klasse.sport.reihen.forEach((reihe, ri) => {
+        const tage = klasse.sport.termine.filter((t) => t.reihe === reihe.id && istPruefungstag(t, ein)).sort((a, b) => (a.datum < b.datum ? -1 : 1));
+        for (const person of aktiveSchueler(klasse)) {
+          const pr = pruefungReihe(klasse, reihe, person.id, ein);
+          if (pr.status !== 'nachpruefung-offen') continue;
+          const w = (reihe.werte[person.id] ||= {});
+          offen.push({
+            klasse, ka: { datum: tage[0]?.datum || '' }, kaNr: ri + 1, person, name: anzeigename(person), termin: w.nachpruefungTermin || '', status: 'nachpruefung-offen',
+            art: 'Nachprüfung', bezeichnung: `Nachprüfung ${reihe.name || 'Reihe'}`, datum: tage[0]?.datum || '',
+            setTermin: (v) => { w.nachpruefungTermin = v; },
+          });
+        }
+      });
+    }
   }
   const sortiere = (a, b) => (a.klasse.kopf.klasse || '').localeCompare(b.klasse.kopf.klasse || '', 'de') || a.kaNr - b.kaNr || a.name.localeCompare(b.name, 'de');
   return { offen: offen.sort(sortiere), entscheidung: entscheidung.sort(sortiere) };

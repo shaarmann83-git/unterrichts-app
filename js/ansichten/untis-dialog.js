@@ -91,6 +91,12 @@ async function vorschau(buch, eintraege) {
         aenderungsListe('Status geändert', plan.geaendert, (x) => `${name(klasse, x.nachher.schuelerId)}: ${FZ_STATUS[x.vorher.status]} → ${FZ_STATUS[x.nachher.status]} (${fzText(x.nachher)})`),
         aenderungsListe('Weggefallen', plan.weggefallen, (f) => `${name(klasse, f.schuelerId)}: ${FZ_STATUS[f.status]} ${fzText(f)}`),
       );
+      if (plan.anwesenheit && (plan.anwesenheit.setzen.length || plan.anwesenheit.abweichungen.length)) {
+        const tn = (id) => datumDeutsch(klasse.sport.termine.find((x) => x.id === id)?.datum);
+        fuege(sec,
+          aenderungsListe('Anwesenheit (Sport): Zeichen werden gesetzt', plan.anwesenheit.setzen, (x) => `${name(klasse, x.schuelerId)}, ${tn(x.terminId)}: ${x.vorher ? x.vorher + ' → ' : ''}${x.z}`),
+          plan.anwesenheit.abweichungen.length > 0 && h('div', { class: 'warnung' }, `${plan.anwesenheit.abweichungen.length} von Hand gesetzte(s) Zeichen weichen von Untis ab und bleiben unverändert:`, h('ul', { class: 'liste-kurz' }, plan.anwesenheit.abweichungen.slice(0, 40).map((x) => h('li', { class: 'abweichung' }, `${name(klasse, x.schuelerId)}, ${tn(x.terminId)}: Hand „${x.hand}“, Untis „${x.untis}“`)))));
+      }
       if (plan.unzugeordnet.length) {
         sec.append(h('p', { class: 'fehlertext' }, `${plan.unzugeordnet.length} Person(en) nicht eindeutig zuordenbar (rot):`));
         const tab = h('table', { class: 'tabelle klein-tabelle' }, h('tbody', {}, plan.unzugeordnet.map((u) => h('tr', { class: 'zeile-rot' },

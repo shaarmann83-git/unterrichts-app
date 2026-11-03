@@ -6,6 +6,7 @@ import { ergebnisKA, gesamtpunkte, gesamtPerson, formatZahl, formatKurz, NOTEN_W
 import { fotoErstellen } from '../foto.js';
 import { passwortSetzen } from '../aktionen.js';
 import { ansichtRegistrieren } from '../registry.js';
+import { sportPersonAbschnitt } from './sport-person.js';
 
 // Weitere Bereiche (Dalton, Fehlzeiten, Listen) hängen ihren Abschnitt hier ein: fn(klasse, person) -> Node | null
 const abschnitte = [];
@@ -131,12 +132,13 @@ export function zeigePerson(params) {
     h('div', { class: 'person-kopf' }, avatar(d, s, 'gross'), h('h1', {}, anzeigename(s))),
     h('div', { class: 'formular' }, feld('Geburtstag', s, 'geburtstag', 'date'), feld('Untis-ID', s, 'untisId')),
   );
+  wurzel.append(h('div', { class: 'knopfreihe' }, h('a', { class: 'knopf', href: '#/besprechung', onclick: () => { /* Person wird im Besprechungsmodus bewusst neu gewählt */ } }, 'Besprechungsmodus')));
   if (d.bereiche.duales) {
     wurzel.append(h('h2', {}, 'Ausbildungsbetrieb'),
       h('div', { class: 'formular' }, feld('Betrieb', s.betrieb, 'name'), feld('Ansprechperson', s.betrieb, 'ansprechperson'), feld('Telefon', s.betrieb, 'telefon', 'tel'), feld('E-Mail', s.betrieb, 'email', 'email'), feld('Notiz', s.betrieb, 'notiz')));
   }
   if (d.bereiche.fotos) wurzel.append(fotoAbschnitt(d, s));
-  wurzel.append(notenAbschnitt(d, s));
+  wurzel.append(d.fachtyp === 'sport' ? sportPersonAbschnitt(d, s) : notenAbschnitt(d, s));
   for (const a of abschnitte) {
     const el = a.fn(d, s);
     if (el) wurzel.append(el);

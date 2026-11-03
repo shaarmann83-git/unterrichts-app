@@ -1,6 +1,7 @@
 import { K } from '../kontext.js';
 import { h, leeren } from '../ui.js';
 import { standText } from '../excel.js';
+import { zeigeSportDruck } from './sport-druck.js';
 import { aktiveSchueler, anzeigename, kurzname, datumDeutsch } from '../modell.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE } from '../rechnen.js';
 
@@ -9,6 +10,7 @@ let kaNr = 1;
 let personId = 'alle';
 
 export function zeigeDruck() {
+  if (K.daten.fachtyp === 'sport') return zeigeSportDruck();
   const d = K.daten;
   const wurzel = h('section', { class: 'seite druck-seite' });
   const vorschau = h('div', { class: 'druck-vorschau' });
