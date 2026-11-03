@@ -15,6 +15,66 @@ export const DALTON_STANDARD_TEXTE = {
   taeuschung: 'abgeschrieben (Täuschung)',
 };
 
+// ---------- Sport (SPEC Abschnitt 9) ----------
+
+/** Standard der Sport-Einstellungen (9.6a). Gelten für alle Sport-Klassen eines Notenbuchs. */
+export function sportStandard() {
+  return {
+    pruefschluessel: [83, 58, 40, 25, 10], // ab x % -> Note 1, 2, 3, 4, 5, darunter 6
+    mitarbeitsTabelle: [2.8, 2.4, 1.7, 1.0, 0.4], // ab Ø -> Grundnote 1, 2, 3, 4, 5, darunter 6
+    standardwert: 2,
+    mindestTermine: 3,
+    schritt: 1 / 3,
+    offenZaehltNull: true,
+    punkte: { basis: 17, faktor: 3, min: 0, max: 15 },
+    pruefungstagKennzeichen: ['T', 'P'],
+    protokoll: [], // [{zeit, was, vorher, nachher}]
+  };
+}
+
+export const SPORT_ZEICHEN = ['.', 'V', 'sps', 'k', 'ke', 'ka', 'ku', '|', 'E', 'A', 'B', 'P', 'U'];
+
+export function neueSport() {
+  return {
+    notensystem: 'noten', // 'noten' | 'punkte'
+    zeitraum: 'halbjahr', // 'halbjahr' | 'jahr'
+    endnoteVariante: 'besser', // 'besser' | 'wert' | 'note'
+    termine: [], // {id, datum, uhrzeit, reihe (Reihen-ID oder ''), pruefungstag, vermerk, halbjahr, uid}
+    anwesenheit: {}, // [terminId][schuelerId] = {z, min, stern, text, quelle}
+    mitarbeit: {}, // [terminId][schuelerId] = 0..3 (nur Abweichungen vom Standardwert)
+    merkmale: {}, // [terminId][schuelerId] = [bool, bool, bool]
+    reihen: [],
+    endnoten: {}, // [schuelerId] = {wert, begruendung}
+  };
+}
+
+export const STUFEN_STANDARD = [
+  'Netz/Aus bzw. nicht fangbar',
+  'im Feld, aber außerhalb der Zielzone',
+  'in der Zielzone',
+  'in der Zielzone und alle drei Merkmale sauber',
+];
+
+export function neuerPruefteil(name = '') {
+  return { id: neueId(), name, versuche: 5, hoechst: null, gewicht: 1, zone: '', merkmale: ['', '', ''], stufen: null };
+}
+
+export function neueReihe(name = '') {
+  return {
+    id: neueId(),
+    name,
+    vorlage: '',
+    halbjahr: 1,
+    gewichtReihe: 1,
+    gewichte: { pruefung: 0.5, mitarbeit: 0.5, verhalten: 0 },
+    teile: [], // Prüfungsteile
+    direkte: [], // weitere direkte Teilleistungen {id, name, gewicht, stufen: [Text je Note 1..6]}
+    merkmaleTexte: ['', '', ''],
+    ersatzTeile: [], // Prüfungsteile der Ersatzprüfung
+    werte: {}, // [schuelerId] = {versuche, summen, direkt, verhalten, bemerkung, mitarbeitNote, ersatz}
+  };
+}
+
 export function neueId() {
   const bytes = new Uint8Array(6);
   globalThis.crypto.getRandomValues(bytes);
@@ -74,7 +134,7 @@ export function neueListe(name, art) {
 }
 
 /** Neue, leere Klasse. */
-export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', schuljahr = '' } = {}) {
+export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', schuljahr = '', fachtyp = 'lernfeld' } = {}) {
   return {
     id: neueId(),
     kopf: { klasse, lernfeldNr, lernfeldBez, schuljahr },
@@ -88,6 +148,8 @@ export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', sch
     untis: { faecher: [], klassenName: '', importiert: [] },
     listen: [],
     stichtag: '',
+    fachtyp, // 'lernfeld' | 'sport'
+    sport: neueSport(),
   };
 }
 
@@ -101,7 +163,7 @@ export function neuesBuch(ersteKlasse = null) {
     version: FORMAT_VERSION,
     dokumentId: neueId(),
     gespeichertAm: '',
-    einstellungen: { untisOrdnerAutomatisch: false, untisDateien: [] },
+    einstellungen: { untisOrdnerAutomatisch: false, untisDateien: [], sport: sportStandard() },
     klassen: ersteKlasse ? [ersteKlasse] : [],
   };
 }
@@ -141,6 +203,43 @@ export function pruefeKlasse(k) {
     l.soll ??= 0;
   }
   k.stichtag ??= '';
+  k.fachtyp ||= 'lernfeld';
+  const sp = (k.sport ||= neueSport());
+  const vorgabe = neueSport();
+  for (const f of ['notensystem', 'zeitraum', 'endnoteVariante']) sp[f] ||= vorgabe[f];
+  for (const f of ['termine', 'reihen']) sp[f] ||= [];
+  for (const f of ['anwesenheit', 'mitarbeit', 'merkmale', 'endnoten']) sp[f] ||= {};
+  for (const t of sp.termine) {
+    t.id ||= neueId();
+    t.datum ??= '';
+    t.uhrzeit ??= '';
+    t.reihe ??= '';
+    t.pruefungstag ??= false;
+    t.vermerk ??= '';
+    t.halbjahr ||= 1;
+  }
+  for (const r of sp.reihen) {
+    const v = neueReihe();
+    r.id ||= neueId();
+    r.halbjahr ||= 1;
+    r.gewichtReihe ??= 1;
+    r.gewichte = { ...v.gewichte, ...(r.gewichte || {}) };
+    r.teile ||= [];
+    r.direkte ||= [];
+    r.merkmaleTexte ||= ['', '', ''];
+    r.ersatzTeile ||= [];
+    r.werte ||= {};
+    for (const t of [...r.teile, ...r.ersatzTeile]) {
+      t.id ||= neueId();
+      t.versuche ??= 5;
+      t.gewicht ??= 1;
+      t.merkmale ||= ['', '', ''];
+    }
+    for (const d of r.direkte) {
+      d.id ||= neueId();
+      d.gewicht ??= 1;
+    }
+  }
   for (const s of k.schueler) {
     s.id ||= neueId();
     s.untisId ??= '';
@@ -195,6 +294,7 @@ export function pruefeBuch(roh) {
   buch.einstellungen ||= {};
   buch.einstellungen.untisOrdnerAutomatisch ??= false;
   buch.einstellungen.untisDateien ||= [];
+  buch.einstellungen.sport = { ...sportStandard(), ...(buch.einstellungen.sport || {}) };
   for (const k of buch.klassen) pruefeKlasse(k);
   return buch;
 }
@@ -218,6 +318,13 @@ export function klasseKopieren(klasse, { listenMitnehmen = true } = {}) {
   k.dalton.aufgaben = [];
   k.listen = listenMitnehmen ? k.listen.map((l) => ({ ...l, id: neueId(), eintraege: {} })) : [];
   k.stichtag = '';
+  // Sport: Reihen-Definitionen bleiben (Teile, Gewichte, Texte), Termine, Anwesenheit, Werte nicht.
+  k.sport.termine = [];
+  k.sport.anwesenheit = {};
+  k.sport.mitarbeit = {};
+  k.sport.merkmale = {};
+  k.sport.endnoten = {};
+  for (const r of k.sport.reihen) r.werte = {};
   // Neue Personen-IDs, damit sich Kopie und Original nie überschneiden; Fotos und Archivierung bleiben nicht erhalten.
   for (const s of k.schueler) {
     s.id = neueId();
