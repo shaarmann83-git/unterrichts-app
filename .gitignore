@@ -5,3 +5,4 @@
 *.noten.json
 .DS_Store
 node_modules/
+*.ics

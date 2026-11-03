@@ -342,3 +342,30 @@ Grundlage ist das Bewertungssystem der Nutzerin (Stand 03.11.2026, abgestimmt in
 
 ### 9.10 Besprechungsmodus (alle Fachtypen)
 - Für Notengespräche: Ansicht, die **nur eine Person** zeigt (Noten, Teilleistungen, Termine mit Farben, Fehlzeiten, Notizen nach Auswahl), ohne andere Namen auf dem Bildschirm. Wechsel zur nächsten Person nur über eine bewusste Auswahl, keine Liste sichtbar. Gilt für Lernfeld- und Sport-Klassen. Optional „Notizen ausblenden“.
+
+## 10. Stufe 4 (nach Sport, falls Zeit bleibt): Stundenplan aus WebUntis (iCal)
+
+Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Ziel: Unterrichtstermine nicht mehr von Hand anlegen. Der WebUntis-Kalender enthält nur den **Stundenplan** der Lehrkraft (keine Abwesenheiten, keine Schülerdaten); Fehlzeiten laufen weiter über 8.6.
+
+### 10.1 Import
+- **Datei-Import** einer `.ics`-Datei (aus dem WebUntis-Kalenderabo heruntergeladen) über „Stundenplan laden“, Ziehen-und-Ablegen am PC, Teilen-Menü auf Android, Dateiauswahl am iPad, und über den überwachten Ordner bzw. OneDrive-Eingang aus 8.6 (Dateiname `*.ics`).
+- **Abo-Adresse** (optional): Die Nutzerin kann die iCal-Adresse aus WebUntis in den Einstellungen hinterlegen. Die App versucht, sie beim Start abzurufen. Scheitert das (z. B. weil der Browser den Abruf fremder Seiten blockiert), deutlicher Hinweis „bitte Datei laden“ und kein weiterer Versuch in dieser Sitzung. Die Adresse ist persönlich und wird wie ein Passwort behandelt (nur verschlüsselt speichern, nie exportieren).
+- Ein eigener kleiner iCal-Leser (RFC 5545): VEVENT mit DTSTART/DTEND (inkl. `TZID=Europe/Berlin` und UTC-Zeiten), SUMMARY, LOCATION, DESCRIPTION, STATUS, UID; gefaltete Zeilen und Escape-Zeichen beachten. Keine Fremdbibliothek nötig.
+
+### 10.2 Zuordnung zu Klassen
+- Aus SUMMARY/DESCRIPTION werden Klasse und Fach gelesen (genaues Format von Untis ist unbekannt; daher **Zuordnungsdialog** wie in 8.6: Vorschau der verschiedenen Kombinationen „Klasse + Fach“, die Nutzerin ordnet jede einer Klasse im Notenbuch zu oder ignoriert sie). Zuordnung wird gespeichert und beim nächsten Import vorgeschlagen.
+- Doppelstunden (aufeinanderfolgende Stunden derselben Klasse und desselben Fachs am selben Tag) werden zu **einem Termin** zusammengefasst, Zeit von Beginn der ersten bis Ende der letzten Stunde.
+
+### 10.3 Was daraus wird
+- **Sport-Klassen:** Termine werden in der Terminliste (9.2) angelegt, mit Datum und Uhrzeit; die Reihe übernimmt der Termin vom vorherigen Termin (änderbar). Mitarbeit/Anwesenheit bleiben leer bis zur Erfassung.
+- **Lernfeld-Klassen:** Termine dienen als Vorschlag für „Heutige Stunde“ (sonstige Leistung) und als Datums-/Uhrzeitvorschlag beim Anlegen einer Klassenarbeit (Uhrzeit für den Attest-Abgleich in 8.6).
+- **Startbildschirm:** Läuft gerade oder in den nächsten 30 Minuten ein Termin, schlägt die App diese Klasse und die passende Schnelleingabe direkt vor („Jetzt: WAK 1 Sport – Einheit erfassen“).
+- **Ausfall/Vertretung:** Ereignisse mit `STATUS:CANCELLED` (oder entsprechendem Hinweis) werden als „ausgefallen“ markiert und zählen nirgends; eine Vertretungsstunde wird nur angelegt, wenn ihre Klasse zugeordnet ist.
+
+### 10.4 Erneuter Import
+- Über die UID erkennt die App bereits importierte Termine. Bei erneutem Import werden **nur importierte, noch leere Termine in der Zukunft** aktualisiert oder entfernt. Termine mit Einträgen (Anwesenheit, Noten, Notizen) und von Hand angelegte Termine werden nie verändert; Abweichungen (z. B. Termin in Untis entfallen, in der App aber schon Einträge) werden in einer Änderungsliste gezeigt.
+- Ferien und unterrichtsfreie Tage ergeben sich daraus, dass Untis dafür keine Ereignisse liefert; die App legt nichts an.
+
+### 10.5 Tests
+- Erfundene `.ics`-Dateien: Zeitzone Europe/Berlin über die Sommerzeit-Umstellung (25.10.2026), Doppelstunde zusammenfassen, ausgefallene Stunde, gefaltete Zeilen, Zuordnungsdialog, erneuter Import mit geändertem und entfallenem Termin (leer vs. mit Einträgen), Startvorschlag „jetzt“.
+- Keine echten Stundenpläne ins Repository legen (`*.ics` in `.gitignore` ergänzen).
