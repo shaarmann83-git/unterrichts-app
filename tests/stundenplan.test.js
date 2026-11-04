@@ -295,3 +295,18 @@ test('Gemerkte Zuordnung wird beim nächsten Import vorgeschlagen (auch ohne Kla
   b.klassen = b.klassen.filter((x) => x.id !== sport.id);
   assert.equal(kombinationen(b, lesen([ev('q3', 'Sport Gruppe A', '20261109T080000', '20261109T084500')]))[0].vorschlag, '');
 });
+
+test('WebUntis-Format: Fach im Titel, Klasse und Lehrkürzel in der Beschreibung', () => {
+  const { b, sport } = buch();
+  const plan = lesen([
+    ev('w1', 'SP', '20261028T113000', '20261028T130000', { tz: 'Europe/Vienna', location: 'SPHA', description: 'WAK 1 HM' }),
+    ev('w2', 'SP', '20261029T080000', '20261029T093000', { tz: 'Europe/Vienna', location: 'SPHA', description: 'WKM1-1 HM' }),
+    ev('w3', 'SP', '20261104T113000', '20261104T130000', { tz: 'Europe/Vienna', location: 'SPHA', description: 'WAK 1 XY' }),
+    ev('w4', 'DALTON', '20261030T080000', '20261030T093000', { description: 'WKM1-2; WKM2-2 BA; HM' }),
+    ev('w5', '', '20261028T130000', '20261028T133000', { location: 'Außen', description: 'HM' }),
+  ]);
+  const k = kombinationen(b, plan);
+  // Vertretung (anderes Lehrkürzel) ergibt keine neue Kombination; Klassen werden getrennt.
+  assert.deepEqual(k.map((x) => [x.text, x.anzahl]), [['DALTON · WKM1-2 WKM2-2', 1], ['HM', 1], ['SP · WAK 1', 2], ['SP · WKM1-1', 1]]);
+  assert.equal(k.find((x) => x.text === 'SP · WAK 1').vorschlag, sport.id);
+});

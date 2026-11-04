@@ -12,9 +12,28 @@ export function stundenplanEinstellung(buch) {
   return e;
 }
 
-/** Schlüssel einer „Klasse + Fach“-Kombination: der normalisierte SUMMARY (bei leerem SUMMARY die DESCRIPTION). */
+/**
+ * Klassen aus der DESCRIPTION. WebUntis schreibt dort „Klasse(n) Lehrkürzel“, z. B. „WAK1-1 HM“ oder
+ * „WKM2-1 BA; HM“. Die Lehrkürzel am Ende (nur Buchstaben) bleiben weg, damit eine Vertretung keine
+ * neue Kombination erzeugt.
+ */
+export function klassenAusBeschreibung(beschreibung) {
+  const zeile = String(beschreibung || '').split('\n')[0];
+  const teile = zeile.split(/[\s;,]+/).filter(Boolean);
+  while (teile.length && /^[A-Za-zÄÖÜäöüß]+$/.test(teile[teile.length - 1])) teile.pop();
+  return teile.join(' ');
+}
+
+/** Anzeigetext einer „Fach + Klasse“-Kombination, z. B. „SP · WAK1-1“. Ohne SUMMARY die erste Zeile der DESCRIPTION. */
+export function kombiText(e) {
+  const klassen = klassenAusBeschreibung(e.description);
+  const fach = e.summary || (klassen ? '' : String(e.description || '').split('\n')[0]);
+  return [fach, klassen].filter(Boolean).join(' · ');
+}
+
+/** Schlüssel einer Kombination: Fach (SUMMARY) und Klassen (aus der DESCRIPTION), normalisiert. */
 export function kombiSchluessel(e) {
-  return normName(e.summary || e.description.split('\n')[0] || '');
+  return normName(kombiText(e));
 }
 
 const mitWortgrenze = (text, wort) => !!wort && new RegExp(`(^|[^a-z0-9äöüß])${wort.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z0-9äöüß])`).test(text);
@@ -37,7 +56,7 @@ export function kombinationen(buch, ereignisse) {
     if (ev.ganztaegig) continue;
     const s = kombiSchluessel(ev);
     if (!s) continue;
-    const k = map.get(s) || { schluessel: s, text: ev.summary || ev.description.split('\n')[0], anzahl: 0, beispiel: `${ev.datum} ${ev.uhrzeit}`, location: ev.location, vorschlag: '' };
+    const k = map.get(s) || { schluessel: s, text: kombiText(ev), anzahl: 0, beispiel: `${ev.datum} ${ev.uhrzeit}`, location: ev.location, vorschlag: '' };
     k.anzahl += 1;
     map.set(s, k);
   }
