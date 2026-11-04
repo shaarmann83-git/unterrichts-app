@@ -62,3 +62,15 @@ test('Doppelte Einträge innerhalb der Importliste werden nur einmal angelegt', 
   const e = schuelerAusZeilen([['A', 'B'], ['a', 'b']], { name: 0, vorname: 1 });
   assert.deepEqual(schuelerVergleichen(k, e).map((x) => x.vorhanden), [false, true]);
 });
+
+test('WebUntis-Stammdatenexport: longName/foreName statt Kurzname „name“', () => {
+  const kopf = ['name', 'longName', 'foreName', 'gender', 'birthDate', 'klasse.name', 'entryDate', 'exitDate', 'text', 'id',
+    'externKey', 'medicalReportDuty', 'schulpflicht', 'majority', 'address.email', 'address.mobile', 'address.phone',
+    'address.city', 'address.postCode', 'address.street'];
+  const z = schuelerSpaltenRaten(kopf);
+  assert.deepEqual(z, { name: 1, vorname: 2, geburtstag: 4, geschlecht: 3, untisId: 9 });
+  const zeile = ['MusteEri', 'Muster', 'Erika', 'w', '03.02.2005', 'WKM2-1', '01.08.2025', '31.07.2028', '', 4711,
+    '', 'false', 'false', 'true', 'erika@example.org', '0170 0000000', '', 'Lingen', '49808', 'Musterweg 1'];
+  const [p] = schuelerAusZeilen([zeile], z);
+  assert.deepEqual(p, { name: 'Muster', vorname: 'Erika', geburtstag: '2005-02-03', geschlecht: 'w', betrieb: '', untisId: '4711' });
+});

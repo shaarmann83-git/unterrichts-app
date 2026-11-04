@@ -1,6 +1,6 @@
 // Schülerliste importieren (SPEC 8.12): Zeilen -> Personen, Vergleich mit der vorhandenen Klasse.
 import { neuerSchueler } from './modell.js';
-import { normName, spaltenRaten, datumIso, zelle } from './tabelle.js';
+import { normName, normKopf, spaltenRaten, datumIso, zelle } from './tabelle.js';
 
 export const SCHUELER_FELDER = [
   { id: 'name', text: 'Name (Nachname)' },
@@ -22,7 +22,19 @@ const REGELN = {
   untisId: ['id', 'externe id', 'untis-id', 'untis id', 'schüler-id'],
 };
 
+// WebUntis-Stammdatenexport (Student_<Klasse>_….xls) hat englische Überschriften. Dort steht in „name“
+// das Untis-Kurzzeichen, der Nachname in „longName“ und der Vorname in „foreName“.
+const UNTIS_STAMMDATEN = {
+  name: ['longname'],
+  vorname: ['forename'],
+  geburtstag: ['birthdate'],
+  geschlecht: ['gender'],
+  untisId: ['id'],
+};
+
 export function schuelerSpaltenRaten(kopf) {
+  const norm = kopf.map(normKopf);
+  if (norm.includes('longname') && norm.includes('forename')) return spaltenRaten(kopf, UNTIS_STAMMDATEN);
   const z = spaltenRaten(kopf, REGELN);
   if (z.name !== undefined && z.namevorname !== undefined) delete z.namevorname;
   return z;
