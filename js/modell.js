@@ -158,12 +158,13 @@ export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', sch
 export const neueDaten = neueKlasse;
 
 /** Neues, leeres Notenbuch (optional mit einer ersten Klasse). */
-export function neuesBuch(ersteKlasse = null) {
+export function neuesBuch(ersteKlasse = null, schuljahr = '') {
   return {
     format: 'noten',
     version: FORMAT_VERSION,
     dokumentId: neueId(),
     gespeichertAm: '',
+    schuljahr: schuljahr || '',
     einstellungen: { untisOrdnerAutomatisch: false, untisDateien: [], sport: sportStandard(), stundenplan: { zuordnung: {}, letzterImport: '' } },
     klassen: ersteKlasse ? [ersteKlasse] : [],
   };
@@ -391,6 +392,7 @@ export function datumDeutsch(iso) {
 const rein = (t) => String(t || '').trim().replace(/[\\/:*?"<>|\s]+/g, '-');
 
 export function dateiname(buch) {
+  if (buch.klassen.length === 0) return `Notenbuch_${rein(buch.schuljahr).replace(/\//g, '-') || 'Schuljahr'}.noten`;
   const jahr = rein(buch.klassen[0]?.kopf.schuljahr).replace(/\//g, '-') || 'Schuljahr';
   if (buch.klassen.length > 1) return `Notenbuch_${jahr}.noten`;
   const klasse = rein(buch.klassen[0]?.kopf.klasse) || 'Klasse';

@@ -116,3 +116,12 @@ test('Archivieren und Wiederherstellen ändert keine Noten (SPEC 8.15)', () => {
   assert.deepEqual(notenspiegel(k.klassenarbeiten[0], aktiveSchueler(k)), spiegelVorher);
   assert.deepEqual(gesamtPerson(k, 's1'), vorher);
 });
+
+test('Leeres Notenbuch: Dateiname nach Schuljahr, Klassen später im Notenbuch', () => {
+  const buch = neuesBuch(null, '2026/27');
+  assert.equal(buch.klassen.length, 0);
+  assert.equal(dateiname(buch), 'Notenbuch_2026-27.noten');
+  buch.klassen.push(neueKlasse({ klasse: 'WAK1-1', schuljahr: '2026/27' }));
+  assert.equal(dateiname(buch), 'WAK1-1_2026-27.noten');
+  assert.equal(neuesBuch(null).schuljahr, '');
+});

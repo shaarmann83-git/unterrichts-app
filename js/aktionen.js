@@ -1,6 +1,6 @@
 // Aktionen mit der Notendatei (Notenbuch): neu, öffnen, speichern, schließen, Passwort, Excel-Import, Sicherung.
 import { K } from './kontext.js';
-import { neueKlasse, neuesBuch, dateiname, datumDeutsch, buchHatFotos, pruefeBuch } from './modell.js';
+import { neuesBuch, dateiname, datumDeutsch, buchHatFotos, pruefeBuch } from './modell.js';
 import { inDateitext, ausDateitext, istVerschluesselt, objektEntschluesseln, schluesselVergessen } from './krypto.js';
 import {
   dateiOeffnen,
@@ -32,23 +32,19 @@ export function setzeDokument(buch, { passwort = '', handle = null, name = '', g
 }
 
 export async function neueDateiAnlegen() {
-  const feld = (beschriftung, wert = '', platzhalter = '') =>
-    h('label', {}, beschriftung, h('input', { type: 'text', value: wert, placeholder: platzhalter }));
-  const klasse = feld('Klasse', '', 'z. B. FIA 25');
-  const nr = feld('Lernfeld-Nr.', '', 'z. B. 3');
-  const bez = feld('Lernfeld-Bezeichnung');
-  const jahr = feld('Schuljahr', '', 'z. B. 2025/26');
-  const fach = h('select', { 'aria-label': 'Fachtyp' }, [['lernfeld', 'Lernfeld/Fach'], ['sport', 'Sport']].map(([w, t]) => h('option', { value: w }, t)));
-  const eingaben = [klasse, nr, bez, jahr];
-  const ok = await inhaltDialog('Neue Notendatei', [h('p', { class: 'klein' }, 'Die Notendatei ist ein Notenbuch. Weitere Klassen legen Sie danach an.'), ...eingaben, h('label', {}, 'Fachtyp', fach)], [
+  // Eine neue Notendatei ist zunächst ein leeres Notenbuch. Klassen legt man danach im Notenbuch an.
+  const jahrFeld = h('label', {}, 'Schuljahr', h('input', { type: 'text', value: '', placeholder: 'z. B. 2026/27', 'aria-label': 'Schuljahr' }));
+  const ok = await inhaltDialog('Neue Notendatei', [
+    h('p', { class: 'klein' }, 'Die Notendatei ist ein Notenbuch für alle Klassen eines Schuljahres. Klassen legen Sie danach im Notenbuch an.'),
+    jahrFeld,
+  ], [
     { text: 'Abbrechen', wert: false, abbruch: true },
     { text: 'Anlegen', wert: true, klasse: 'knopf primaer' },
   ]);
   if (!ok) return;
-  const [k, n, b, j] = eingaben.map((l) => l.querySelector('input').value.trim());
-  const klasseObj = neueKlasse({ klasse: k, lernfeldNr: n, lernfeldBez: b, schuljahr: j, fachtyp: fach.value });
-  const buch = neuesBuch(klasseObj);
-  setzeDokument(buch, { ziel: 'grunddaten', geaendert: true, name: dateiname(buch), klasseId: klasseObj.id });
+  const jahr = jahrFeld.querySelector('input').value.trim();
+  const buch = neuesBuch(null, jahr);
+  setzeDokument(buch, { ziel: 'buch', geaendert: true, name: dateiname(buch) });
 }
 
 export async function dateiTextLaden(text, name, handle) {

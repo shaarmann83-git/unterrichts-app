@@ -146,7 +146,8 @@ export function zeigeBuch() {
     h('p', { class: 'klein' }, K.dateiname || 'noch nicht gespeichert'),
     h('div', { class: 'knopfreihe' },
       h('button', { type: 'button', class: 'knopf primaer', onclick: async () => {
-        const f = await klasseFragen('Neue Klasse', { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: '', schuljahr: '' }, fachtyp: null }, 'Anlegen');
+        const vorgabeJahr = buch.schuljahr || buch.klassen.at(-1)?.kopf.schuljahr || '';
+        const f = await klasseFragen('Neue Klasse', { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: '', schuljahr: vorgabeJahr }, fachtyp: null }, 'Anlegen');
         if (!f) return;
         const k = neueKlasse(f);
         buch.klassen.push(k);
