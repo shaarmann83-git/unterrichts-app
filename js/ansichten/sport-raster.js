@@ -292,5 +292,5 @@ export function zeigeMitarbeit() {
 }
 
 const sport = (extra) => ({ klasse: true, nurWenn: sportKlasse, ...extra });
-ansichtRegistrieren('anwesenheit', sport({ text: 'Anwesenheit', bauen: zeigeAnwesenheit, reihe: 2.2 }));
+ansichtRegistrieren('anwesenheit', sport({ text: 'Anwesenheit', bauen: zeigeAnwesenheit, reihe: 2.1 }));
 ansichtRegistrieren('mitarbeit', sport({ text: 'Mitarbeit', bauen: zeigeMitarbeit, reihe: 2.3 }));

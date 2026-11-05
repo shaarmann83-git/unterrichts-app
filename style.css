@@ -146,7 +146,7 @@ input.notizfeld { width: 100%; }
 .avatar.klein { width: 2rem; height: 2rem; }
 .avatar.gross { width: 10rem; height: 10rem; }
 .person-kopf { display: flex; align-items: center; gap: 1rem; margin: 0.6rem 0; }
-.foto-vorschau { width: 256px; height: 256px; max-width: 100%; border-radius: 0.5rem; border: 1px solid var(--rand); }
+.foto-vorschau { width: 384px; height: 384px; max-width: 100%; aspect-ratio: 1 / 1; height: auto; border-radius: 0.5rem; border: 1px solid var(--rand); }
 .zeile-grau td { color: var(--text-leise); }
 .zeile-gruen td { background: #e3f4e5; color: #14401a; }
 .zeile-rot td { background: var(--fehler-bg); }

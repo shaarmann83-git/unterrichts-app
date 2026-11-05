@@ -104,9 +104,9 @@ export function zeigeNachStunde() {
     inhalt.append(liste);
   }
 
-  fuege(wurzel, h('h1', {}, 'Nach der Stunde'), inhalt);
+  fuege(wurzel, h('h1', {}, 'Stunde erfassen'), inhalt);
   render();
   return { el: wurzel, update: () => {} };
 }
 
-ansichtRegistrieren('nachstunde', { text: 'Nach der Stunde', bauen: zeigeNachStunde, klasse: true, nurWenn: sportKlasse, reihe: 2.1 });
+ansichtRegistrieren('nachstunde', { text: 'Stunde erfassen', bauen: zeigeNachStunde, klasse: true, nurWenn: sportKlasse, reihe: 2.2 });

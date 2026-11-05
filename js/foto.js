@@ -105,8 +105,8 @@ async function ausschnittWaehlen(bild) {
   const b = bild.naturalWidth;
   const hh = bild.naturalHeight;
   const vorschau = document.createElement('canvas');
-  vorschau.width = 256;
-  vorschau.height = 256;
+  vorschau.width = 384;
+  vorschau.height = 384;
   vorschau.className = 'foto-vorschau';
   const regler = (beschriftung, min, max, wert, schritt) => {
     const el = h('input', { type: 'range', min, max, step: schritt, value: wert, 'aria-label': beschriftung });
@@ -115,15 +115,15 @@ async function ausschnittWaehlen(bild) {
   // Voreinstellung: das ganze Bild ist sichtbar, nichts wird abgeschnitten.
   // Der große Zoombereich ist für Gruppenfotos nötig, aus denen ein Gesicht geschnitten wird.
   const start = ganzBildZoom(b, hh);
-  const zoom = regler('Zoom', 0.3, 20, start, 0.05);
-  const xs = regler('Ausschnitt links/rechts', -1, 1, 0, 0.05);
-  const ys = regler('Ausschnitt oben/unten', -1, 1, 0, 0.05);
+  const zoom = regler('Zoom', 0.3, 20, start, 0.01);
+  const xs = regler('Ausschnitt links/rechts', -1, 1, 0, 0.001);
+  const ys = regler('Ausschnitt oben/unten', -1, 1, 0, 0.001);
   const zeichnen = () => {
     const a = zuschnitt(b, hh, Number(zoom.el.value), Number(xs.el.value), Number(ys.el.value));
     const g = vorschau.getContext('2d');
     g.fillStyle = '#fff';
-    g.fillRect(0, 0, 256, 256);
-    g.drawImage(bild, a.sx, a.sy, a.seite, a.seite, 0, 0, 256, 256);
+    g.fillRect(0, 0, vorschau.width, vorschau.height);
+    g.drawImage(bild, a.sx, a.sy, a.seite, a.seite, 0, 0, vorschau.width, vorschau.height);
   };
   for (const r of [zoom, xs, ys]) r.el.addEventListener('input', zeichnen);
 
@@ -134,7 +134,9 @@ async function ausschnittWaehlen(bild) {
     const a = zuschnitt(b, hh, Number(zoom.el.value), 0, 0);
     const spielX = Math.abs((b - a.seite) / 2);
     const spielY = Math.abs((hh - a.seite) / 2);
-    const proPixel = a.seite / 256;
+    // Die Leinwand wird per CSS skaliert; ohne die echte Breite wandert das Bild zu weit.
+    const breiteAufSchirm = vorschau.getBoundingClientRect().width || 256;
+    const proPixel = a.seite / breiteAufSchirm;
     if (spielX > 0) xs.el.value = String(Math.min(1, Math.max(-1, Number(xs.el.value) - (dx * proPixel) / spielX)));
     if (spielY > 0) ys.el.value = String(Math.min(1, Math.max(-1, Number(ys.el.value) - (dy * proPixel) / spielY)));
     zeichnen();

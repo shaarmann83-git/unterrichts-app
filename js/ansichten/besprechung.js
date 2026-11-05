@@ -52,9 +52,19 @@ export function zeigeBesprechung() {
         if (gefunden.length === 0) return treffer.append(h('span', { class: 'klein' }, 'Kein Treffer.'));
         for (const p of gefunden) treffer.append(h('button', { type: 'button', class: 'knopf gross', 'data-person': p.id, onclick: () => { gewaehlt = p.id; zeigen(); } }, anzeigename(p)));
       } });
+    // Auswahlliste für den Fall, dass der Name nicht einfällt. Sie steht nur hier,
+    // nicht in der Personenansicht, damit im Gespräch keine Klassenliste sichtbar ist.
+    const liste = h('select', { id: 'besprechung-liste', 'aria-label': 'Person aus der Liste wählen', onchange: (e) => {
+      if (!e.target.value) return;
+      gewaehlt = e.target.value;
+      zeigen();
+    } }, [h('option', { value: '' }, '– aus der Liste wählen –'), ...personen.map((p) => h('option', { value: p.id }, anzeigename(p)))]);
     fuege(inhalt,
-      h('p', {}, 'Für Gespräche: Es wird nur eine Person angezeigt, ohne Klassenliste. Geben Sie den Namen ein und wählen Sie die Person aus.'),
-      h('label', {}, 'Person suchen', suche), treffer);
+      h('p', {}, 'Für Gespräche: Es wird nur eine Person angezeigt, ohne Klassenliste. Geben Sie den Namen ein oder wählen Sie die Person aus der Liste.'),
+      h('label', {}, 'Person suchen', suche), treffer,
+      h('label', {}, 'Oder aus der Liste', liste),
+      h('div', { class: 'knopfreihe' },
+        h('a', { class: 'knopf', href: d.fachtyp === 'sport' ? '#/anwesenheit' : '#/gesamt', id: 'besprechung-ende-wahl', onclick: () => { gewaehlt = null; } }, 'Besprechung beenden')));
     suche.focus();
   }
 
@@ -67,7 +77,7 @@ export function zeigeBesprechung() {
         avatar(d, s, 'gross'), h('h1', { id: 'besprechung-name' }, anzeigename(s)),
         h('label', { class: 'schalter' }, h('input', { type: 'checkbox', id: 'notizen-aus', checked: ohneNotizen, onchange: (e) => { ohneNotizen = e.target.checked; zeigen(); } }), ' Notizen ausblenden'),
         h('button', { type: 'button', class: 'knopf', id: 'andere-person', onclick: () => { gewaehlt = null; waehlen(); } }, 'Andere Person wählen'),
-        h('a', { class: 'knopf', href: d.fachtyp === 'sport' ? '#/nachstunde' : '#/gesamt', id: 'besprechung-ende', onclick: () => { gewaehlt = null; } }, 'Besprechung beenden')),
+        h('a', { class: 'knopf', href: d.fachtyp === 'sport' ? '#/anwesenheit' : '#/gesamt', id: 'besprechung-ende', onclick: () => { gewaehlt = null; } }, 'Besprechung beenden')),
       d.fachtyp === 'sport' ? sportPersonAbschnitt(d, s, { notizen: !ohneNotizen }) : lernfeldInhalt(d, s, !ohneNotizen));
   }
 
