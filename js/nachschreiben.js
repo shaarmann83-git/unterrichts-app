@@ -9,6 +9,8 @@ export const TEILNAHME = {
   nachgeschrieben: 'nachgeschrieben',
   'ohne-attest': 'gefehlt ohne Attest',
   'entschuldigung-offen': 'gefehlt, Entschuldigung offen',
+  // Zählt nicht als fehlende Leistung und erscheint nicht in der Nachschreibliste.
+  'nicht-in-klasse': 'noch nicht in der Klasse',
 };
 
 const min = (hhmm) => {

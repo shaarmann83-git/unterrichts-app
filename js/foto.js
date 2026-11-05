@@ -4,14 +4,24 @@ import { h, inhaltDialog, meldung } from './ui.js';
 export const FOTO_MAX_SEITE = 256;
 export const FOTO_MAX_BYTES = 30 * 1024;
 
-/** Quelle des quadratischen Ausschnitts. zoom ≥ 1, ox/oy in −1..1 (Verschiebung). */
+/**
+ * Quelle des quadratischen Ausschnitts. ox/oy in −1..1 verschieben den Ausschnitt.
+ * Bei zoom < 1 ist der Ausschnitt größer als das Bild: Dann wird das ganze Bild gezeigt
+ * und der Rest bleibt weiß. So gehen bereits zugeschnittene Fotos nicht verloren.
+ */
 export function zuschnitt(breite, hoehe, zoom = 1, ox = 0, oy = 0) {
-  const z = Math.max(1, zoom);
+  const z = Math.max(0.1, zoom);
   const seite = Math.min(breite, hoehe) / z;
-  const klemme = (v, max) => Math.min(Math.max(v, 0), max);
-  const sx = klemme((breite - seite) / 2 + ox * ((breite - seite) / 2), breite - seite);
-  const sy = klemme((hoehe - seite) / 2 + oy * ((hoehe - seite) / 2), hoehe - seite);
-  return { sx, sy, seite };
+  const grenze = (v) => Math.min(Math.max(v, -1), 1);
+  const spielX = (breite - seite) / 2;
+  const spielY = (hoehe - seite) / 2;
+  return { sx: spielX + grenze(ox) * Math.abs(spielX), sy: spielY + grenze(oy) * Math.abs(spielY), seite };
+}
+
+/** Zoomwert, bei dem das ganze Bild in das Quadrat passt (bei quadratischen Bildern 1). */
+export function ganzBildZoom(breite, hoehe) {
+  if (!(breite > 0) || !(hoehe > 0)) return 1;
+  return Math.min(breite, hoehe) / Math.max(breite, hoehe);
 }
 
 /** Größe der Daten, die ein data-URL im Dateiformat belegt (Bytes). */
@@ -79,7 +89,9 @@ export async function fotoErstellen(datei) {
     const el = h('input', { type: 'range', min, max, step: schritt, value: wert, 'aria-label': beschriftung });
     return { el, label: h('label', {}, beschriftung, el) };
   };
-  const zoom = regler('Zoom', 1, 4, 1, 0.05);
+  // Voreinstellung: das ganze Bild ist sichtbar, nichts wird abgeschnitten.
+  const start = ganzBildZoom(b, hh);
+  const zoom = regler('Zoom', 0.3, 4, start, 0.05);
   const xs = regler('Ausschnitt links/rechts', -1, 1, 0, 0.05);
   const ys = regler('Ausschnitt oben/unten', -1, 1, 0, 0.05);
   const zeichnen = () => {
@@ -91,7 +103,11 @@ export async function fotoErstellen(datei) {
   };
   for (const r of [zoom, xs, ys]) r.el.addEventListener('input', zeichnen);
   zeichnen();
-  const ok = await inhaltDialog('Bildausschnitt wählen', [vorschau, zoom.label, xs.label, ys.label], [
+  const setzen = (z) => { zoom.el.value = String(z); xs.el.value = '0'; ys.el.value = '0'; zeichnen(); };
+  const knoepfe = h('div', { class: 'knopfreihe' },
+    h('button', { type: 'button', class: 'knopf klein', onclick: () => setzen(start) }, 'Ganzes Bild'),
+    h('button', { type: 'button', class: 'knopf klein', onclick: () => setzen(1) }, 'Quadrat füllen'));
+  const ok = await inhaltDialog('Bildausschnitt wählen', [vorschau, knoepfe, zoom.label, xs.label, ys.label], [
     { text: 'Abbrechen', wert: false, abbruch: true },
     { text: 'Foto übernehmen', wert: true, klasse: 'knopf primaer' },
   ]);

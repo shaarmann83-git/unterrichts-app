@@ -2,7 +2,7 @@
   --bg: #f4f6f9; --flaeche: #ffffff; --text: #1b2430; --text-leise: #5a6677;
   --rand: #cfd6e0; --akzent: #1f4e79; --akzent-text: #ffffff; --kopf: #1f4e79;
   --fehler: #c62828; --fehler-bg: #fde8e8; --warn-bg: #fff4d6; --ok: #2e7d32;
-  --zebra: #f0f3f8; --feld: #ffffff; --hoechst: #e8eef7;
+  --zebra: #f0f3f8; --feld: #ffffff; --hoechst: #e8eef7; --hoechst-stark: #cfdcf0; --rand-stark: #7d93b5;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -10,14 +10,14 @@
     --bg: #11161d; --flaeche: #1a212b; --text: #e6ebf2; --text-leise: #9aa7b8;
     --rand: #36414f; --akzent: #6fa8dc; --akzent-text: #0b1118; --kopf: #1a212b;
     --fehler: #ff8a80; --fehler-bg: #4a2323; --warn-bg: #4a3d12; --ok: #81c784;
-    --zebra: #1f2733; --feld: #11161d; --hoechst: #243044; color-scheme: dark;
+    --zebra: #1f2733; --feld: #11161d; --hoechst: #243044; --hoechst-stark: #33455f; --rand-stark: #6a7f9e; color-scheme: dark;
   }
 }
 :root[data-farbe="dunkel"] {
   --bg: #11161d; --flaeche: #1a212b; --text: #e6ebf2; --text-leise: #9aa7b8;
   --rand: #36414f; --akzent: #6fa8dc; --akzent-text: #0b1118; --kopf: #1a212b;
   --fehler: #ff8a80; --fehler-bg: #4a2323; --warn-bg: #4a3d12; --ok: #81c784;
-  --zebra: #1f2733; --feld: #11161d; --hoechst: #243044; color-scheme: dark;
+  --zebra: #1f2733; --feld: #11161d; --hoechst: #243044; --hoechst-stark: #33455f; --rand-stark: #6a7f9e; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -78,9 +78,12 @@ label.schalter { display: flex; flex-direction: row; align-items: center; gap: 0
 .tabelle .mitte { text-align: center; }
 .tabelle .name { font-weight: 500; }
 .tabelle td input[type="text"], .tabelle td input[type="date"], .tabelle td select { min-height: 2.4rem; width: 100%; }
-.tabelle.eingabe input.punkte { width: 4.2rem; text-align: right; padding: 0.3rem 0.35rem; }
+.tabelle.eingabe th, .tabelle.eingabe td { padding: 0.1rem 0.2rem; }
+.tabelle.eingabe td input.punkte { min-height: 1.9rem; }
+.tabelle.eingabe input.punkte { width: 3.1rem; text-align: right; padding: 0.15rem 0.25rem; }
 .tabelle.eingabe input.sonstiges { min-width: 12rem; }
-.hoechstzeile td { background: var(--hoechst); font-weight: 600; }
+.hoechstzeile td { background: var(--hoechst-stark); font-weight: 700; border-bottom: 2px solid var(--rand-stark); }
+.hoechstzeile td input.punkte { background: var(--hoechst-stark); font-weight: 700; }
 .note { font-weight: 700; }
 tr.klickbar { cursor: pointer; }
 tr.klickbar:hover { background: var(--hoechst) !important; }

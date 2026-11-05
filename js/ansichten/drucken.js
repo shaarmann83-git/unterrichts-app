@@ -1,5 +1,5 @@
 import { K } from '../kontext.js';
-import { h, leeren } from '../ui.js';
+import { h, leeren, bestaetigen } from '../ui.js';
 import { standText } from '../excel.js';
 import { zeigeSportDruck } from './sport-druck.js';
 import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile } from '../modell.js';
@@ -47,7 +47,15 @@ export function zeigeDruck() {
         steuerung.append(h('label', {}, 'Person', pWahl));
       }
     }
-    steuerung.append(h('button', { type: 'button', class: 'knopf primaer', onclick: () => window.print() }, 'Drucken / PDF speichern'));
+    const ka = d.klassenarbeiten[kaNr - 1] || d.klassenarbeiten[0];
+    if (art === 'protokoll' && ka && !ka.korrekturdatum) {
+      steuerung.append(h('p', { class: 'warnung' }, 'Kein Korrekturdatum eingetragen. Es erscheint dann nicht im Protokoll. Sie können es oben bei der Klassenarbeit nachtragen.'));
+    }
+    steuerung.append(h('button', { type: 'button', class: 'knopf primaer', onclick: async () => {
+      if (art === 'protokoll' && ka && !ka.korrekturdatum
+        && !(await bestaetigen('Korrekturdatum fehlt', 'Für diese Klassenarbeit ist kein Korrekturdatum eingetragen. Trotzdem drucken?', 'Trotzdem drucken'))) return;
+      window.print();
+    } }, 'Drucken / PDF speichern'));
   }
 
   function protokollSeite(ka, nr, s) {
@@ -73,6 +81,7 @@ export function zeigeDruck() {
             zeile('Prozentzahl:', e.prozent === null ? '' : `${formatZahl(e.prozent, 1)} %`),
             zeile(istPunktsystem(d) ? 'Notenpunkte:' : 'Note:', e.note === null ? '' : (istPunktsystem(d) ? String(e.note).padStart(2, '0') : NOTEN_WORTE[e.note])),
           ],
+      ka.korrekturdatum ? h('p', { class: 'protokoll-zeile' }, h('strong', {}, 'Korrekturdatum: '), datumDeutsch(ka.korrekturdatum)) : null,
       h('div', { class: 'unterschriften' },
         (d.unterschriften || []).filter((t) => String(t).trim()).map((t) => h('div', { class: 'linie' }, t)),
       ),

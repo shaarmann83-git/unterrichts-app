@@ -390,3 +390,13 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
   - Beim Zurückschalten auf „Nur Gesamtpunkte“ bleiben alle Spalten und Punkte erhalten; aus den Teilaufgaben werden einzelne Aufgaben.
   - Prüffall: Teile 3, 1, 1 mit Höchstpunkten 5, 4, 6, 4, 13 ergeben für Aufgabe 1 fünfzehn Punkte und gesamt 32. Eingaben 4, 4, 3, 2, 10 ergeben für Aufgabe 1 elf Punkte, gesamt 23, also 71,8 % und Note 3.
 - **Enter in Dialogen:** In einem Eingabefeld oder einer Auswahlliste löst Enter den Hauptknopf aus (OK, Anlegen, Übernehmen). Prüfungen greifen weiterhin, ein leeres Passwort schließt den Dialog also nicht. Escape bricht wie bisher ab.
+
+## 12 Verbesserungen aus der Praxis (11/2026)
+
+- **Teilnahme-Status „noch nicht in der Klasse“**: für Personen, die zum Zeitpunkt der Arbeit noch nicht in der Klasse waren. Die Arbeit zählt für sie nicht und sie erscheinen nicht in der Nachschreibliste.
+- **Unentschuldigt mit 0 % werten**: Bei Status „gefehlt ohne Attest“ oder „gefehlt, Entschuldigung offen“ und noch ohne Punkte erscheint in der Zeile der Knopf „mit 0 % werten“. Er setzt alle Aufgaben auf 0 Punkte, nach Rückfrage und jederzeit änderbar.
+- **Korrekturdatum je Klassenarbeit**: eigenes Feld im Kopf der Klassenarbeit. Es wird im Protokoll gedruckt. Fehlt es, warnt die Druckansicht und fragt vor dem Drucken nach.
+- **Punktetabelle**: geringere Zeilenhöhe, schmalere Punktespalten, die Zeile „Höchstpunkte“ ist durch kräftigeren Hintergrund und eine stärkere Trennlinie deutlich abgesetzt.
+- **Dalton-Schnelleingabe**: Beim Klick auf ein Symbol wird nur noch die betroffene Zeile neu gezeichnet, die Seite springt nicht mehr nach oben. Zusätzlich eine Reihe „Allen zuweisen“, die allen Personen denselben Status gibt oder den Status bei allen entfernt, jeweils nach Rückfrage.
+- **Foto-Zuschnitt**: Der Zoom beginnt jetzt bei 0,3. Voreingestellt ist der Wert, bei dem das ganze Bild sichtbar ist, bereits zugeschnittene Fotos werden also nicht erneut beschnitten. Zwei Knöpfe „Ganzes Bild“ und „Quadrat füllen“ setzen den Ausschnitt zurück.
+- **Offen:** Anwesenheitsliste für Lernfeld-, Fach-, Kurs- und Lerngebietsklassen; Protokoll nach der Excel-Vorlage der Nutzerin.

@@ -75,6 +75,7 @@ export function zeigeKlassenarbeit(params) {
       } }, h('option', { value: '' }, '– wählen –'), eintraegeAb(d, heuteIso(), 12).map((x, i) => h('option', { value: i }, `${datumDeutsch(x.datum)} ${x.uhrzeit}${x.ende ? '–' + x.ende : ''}`)))),
     h('label', {}, 'Uhrzeit von', h('input', { type: 'time', value: ka.uhrzeitVon || '', 'aria-label': 'Uhrzeit von', onchange: (e) => { ka.uhrzeitVon = e.target.value; K.aenderung(); } })),
     h('label', {}, 'Uhrzeit bis', h('input', { type: 'time', value: ka.uhrzeitBis || '', 'aria-label': 'Uhrzeit bis', onchange: (e) => { ka.uhrzeitBis = e.target.value; K.aenderung(); } })),
+    h('label', {}, 'Korrekturdatum', h('input', { type: 'date', value: ka.korrekturdatum || '', 'aria-label': 'Korrekturdatum', onchange: (e) => { ka.korrekturdatum = e.target.value; K.aenderung(); } })),
     h(
       'label',
       {},
@@ -214,6 +215,9 @@ export function zeigeKlassenarbeit(params) {
     K.neuZeichnen();
   }
 
+  /** Hat die Person schon Punkte eingetragen? */
+  const hatEintrag = (e) => (e.punkte || []).some((p) => p !== null && p !== undefined && p !== '');
+
   // ----- Zeilen-Steuerelemente (für Tabelle und Einzelansicht gleich) -----
   function steuerelemente(s) {
     const e = ergebnisHolen(ka, s);
@@ -281,6 +285,17 @@ export function zeigeKlassenarbeit(params) {
       hinweis.append(h('button', { type: 'button', class: 'knopf klein', title: 'Laut Untis entschuldigt mit Attest. Feld „Attest“ setzen?', onclick: () => { e.attest = true; K.aenderung(); K.neuZeichnen(); } }, 'Attest laut Untis: setzen'));
     } else if (treffer.some((f) => f.status === 'nicht')) {
       hinweis.append(h('span', { class: 'klein fehlertext', title: 'Laut Untis am Termin nicht entschuldigt' }, 'nicht entschuldigt (Untis)'));
+    }
+    // Unentschuldigtes Fehlen von Hand werten: alle Aufgaben auf 0, das ergibt 0 % und die schlechteste Note.
+    const status = ka.teilnahme[s.id]?.status;
+    const ohneEntschuldigung = status === 'ohne-attest' || status === 'entschuldigung-offen';
+    if (ohneEntschuldigung && !e.attest && !hatEintrag(e)) {
+      hinweis.append(h('button', { type: 'button', class: 'knopf klein', title: 'Alle Aufgaben auf 0 Punkte setzen', onclick: async () => {
+        if (!(await bestaetigen('Mit 0 Punkten werten', `${anzeigename(s)} bekommt in allen Aufgaben 0 Punkte, also 0 %. Das lässt sich wieder ändern.`, 'Mit 0 werten'))) return;
+        e.punkte = ka.aufgaben.map(() => 0);
+        K.aenderung();
+        K.neuZeichnen();
+      } }, 'mit 0 % werten'));
     }
     const gruppenFelder = new Map();
     for (const g of aufgabenGruppen(ka)) if (g.geteilt) gruppenFelder.set(g.schluessel, { gruppe: g, el: h('strong', {}) });

@@ -88,6 +88,7 @@ export function neueKlassenarbeit(aufgabenAnzahl = STANDARD_AUFGABEN) {
     datum: '',
     uhrzeitVon: '',
     uhrzeitBis: '',
+    korrekturdatum: '',
     schwerpunkte: '',
     gewicht: 1,
     aufgaben: Array.from({ length: aufgabenAnzahl }, () => null),
@@ -370,6 +371,7 @@ export function pruefeKlasse(k) {
     ka.gewicht ??= 1;
     ka.uhrzeitVon ??= '';
     ka.uhrzeitBis ??= '';
+    ka.korrekturdatum ??= '';
     ka.aufgaben ||= [];
     ka.teilaufgaben = !!ka.teilaufgaben;
     // Ältere Dateien mit getippten Beschriftungen (1a, 1b, …) in Teile je Aufgabe umwandeln.

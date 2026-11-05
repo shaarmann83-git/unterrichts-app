@@ -97,7 +97,17 @@ function eingabe(d) {
     if (!a) return inhalt.append(h('p', { class: 'hinweis' }, 'Noch keine Dalton-Aufgabe. Legen Sie die erste an.'));
     if (personen.length === 0) return inhalt.append(h('p', { class: 'hinweis' }, 'Bitte zuerst unter „Grunddaten“ Schüler:innen eintragen.'));
     const liste = h('div', { class: 'schnell-liste' });
-    for (const s of personen) {
+    const zeilen = new Map();
+
+    // Eine Zeile wird einzeln neu gezeichnet. Früher wurde die ganze Liste erneuert,
+    // dadurch sprang die Seite bei jedem Klick nach oben.
+    function zeileNeu(s) {
+      const neu = zeileBauen(s);
+      zeilen.get(s.id)?.replaceWith(neu);
+      zeilen.set(s.id, neu);
+    }
+
+    function zeileBauen(s) {
       const e = (a.eintraege[s.id] ||= {});
       const pr = h('span', { class: 'klein prozent' });
       const statusTasten = Object.entries(DALTON_STATUS).map(([wert, text]) =>
@@ -105,13 +115,13 @@ function eingabe(d) {
           e.status = e.status === wert ? undefined : wert;
           if (e.status !== 'abgegeben') delete e.qualitaet;
           K.aenderung();
-          render();
+          zeileNeu(s);
         } }, SYMBOL[wert]));
       const qualiTasten = e.status === 'abgegeben' ? Object.entries(DALTON_QUALITAET).map(([wert, text]) =>
         h('button', { type: 'button', class: 'knopf taste', 'data-qualitaet': wert, 'aria-pressed': String(e.qualitaet === wert), 'aria-label': `${anzeigename(s)}: Qualität ${text}`, onclick: () => {
           e.qualitaet = e.qualitaet === wert ? undefined : wert;
           K.aenderung();
-          render();
+          zeileNeu(s);
         } }, text)) : [];
       const selbst = e.status === 'abgegeben' ? h('label', { class: 'inline klein' }, 'selbstständig: ',
         h('select', { 'aria-label': `${anzeigename(s)}: selbstständig erarbeitet`, onchange: (ev) => { e.selbststaendig = ev.target.value || undefined; K.aenderung(); } },
@@ -121,23 +131,55 @@ function eingabe(d) {
           const z = zahlLesen(ev.target.value);
           const ok = z === null || (!Number.isNaN(z) && z >= 1 && z <= 6);
           ev.target.classList.toggle('fehler', !ok);
-          if (ok) { e.note = z === null ? undefined : z; K.aenderung(); }
+          if (ok) { e.note = z === null ? undefined : z; K.aenderung(); prozentZeigen(); }
         } });
       const notiz = h('input', { type: 'text', class: 'notizfeld', placeholder: 'Notiz', 'aria-label': `${anzeigename(s)}: Notiz`, value: e.notiz || '', oninput: (ev) => { e.notiz = ev.target.value; K.aenderung(); } });
-      updater.push(() => {
+      function prozentZeigen() {
         const n = daltonNote(e, d.dalton.zuordnung);
-        const p = daltonProzent(e, d.dalton.zuordnung);
-        pr.textContent = n === null ? '' : `Note ${formatZahl(n, 1)} = ${formatZahl(p, 2)} %`;
-      });
-      liste.append(h('div', { class: 'schnell-zeile dalton-zeile' },
+        const pz = daltonProzent(e, d.dalton.zuordnung);
+        pr.textContent = n === null ? '' : `Note ${formatZahl(n, 1)} = ${formatZahl(pz, 2)} %`;
+      }
+      prozentZeigen();
+      return h('div', { class: 'schnell-zeile dalton-zeile' },
         h('div', { class: 'schnell-name' }, avatar(d, s), ' ', anzeigename(s)),
         h('div', { class: 'tasten' }, statusTasten),
         h('div', { class: 'tasten' }, qualiTasten, selbst),
         h('div', { class: 'schnell-note' }, note, pr),
-        notiz));
+        notiz);
     }
+
+    for (const s of personen) {
+      const zeile = zeileBauen(s);
+      zeilen.set(s.id, zeile);
+      liste.append(zeile);
+    }
+
+    // Allen Personen auf einmal denselben Status geben.
+    const alleTasten = h('div', { class: 'knopfreihe' },
+      h('span', { class: 'klein' }, 'Allen zuweisen:'),
+      Object.entries(DALTON_STATUS).map(([wert, text]) =>
+        h('button', { type: 'button', class: 'knopf klein', title: `Allen „${text}“ geben`, onclick: async () => {
+          if (!(await bestaetigen('Allen zuweisen', `Alle ${personen.length} Personen bekommen „${text}“. Bereits gesetzte Angaben werden überschrieben.`, 'Zuweisen'))) return;
+          for (const s of personen) {
+            const e = (a.eintraege[s.id] ||= {});
+            e.status = wert;
+            if (wert !== 'abgegeben') delete e.qualitaet;
+            zeileNeu(s);
+          }
+          K.aenderung();
+        } }, `${SYMBOL[wert]} ${text}`)),
+      h('button', { type: 'button', class: 'knopf klein', title: 'Status bei allen entfernen', onclick: async () => {
+        if (!(await bestaetigen('Status entfernen', `Bei allen ${personen.length} Personen wird der Status entfernt.`, 'Entfernen', true))) return;
+        for (const s of personen) {
+          const e = (a.eintraege[s.id] ||= {});
+          delete e.status;
+          delete e.qualitaet;
+          zeileNeu(s);
+        }
+        K.aenderung();
+      } }, 'leeren'));
+    inhalt.append(alleTasten);
     inhalt.append(h('p', { class: 'klein' }, `✔ abgegeben · ✘ nicht abgegeben · ○ entschuldigt (zählt nicht) · ⚠ Täuschung. Ohne Status zählt der Eintrag nicht.`), liste);
-    updater.forEach((f) => f());
   }
   render();
   wurzel.append(inhalt);
