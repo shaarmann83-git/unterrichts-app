@@ -1,7 +1,7 @@
 // Notenbuch: Kacheln je Klasse und Aktionen für das ganze Notenbuch (SPEC 8.1, 8.7).
 import { K } from '../kontext.js';
-import { h, bestaetigen, inhaltDialog, meldung, toast, fuege, auswahl } from '../ui.js';
-import { neueKlasse, fachZeile, klasseKopieren, aktiveSchueler, neueId, pruefeKlasse, buchHatFotos } from '../modell.js';
+import { h, bestaetigen, inhaltDialog, meldung, toast, fuege, auswahl, auswahlMitFreitext } from '../ui.js';
+import { neueKlasse, fachZeile, BEZEICHNUNGEN, klasseKopieren, aktiveSchueler, neueId, pruefeKlasse, buchHatFotos } from '../modell.js';
 import {
   passwortSetzen,
   passwortEntfernen,
@@ -21,14 +21,16 @@ function klassenFormular(k = { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: 
   const feld = (beschriftung, wert, platzhalter = '') =>
     h('label', {}, beschriftung, h('input', { type: 'text', value: wert, placeholder: platzhalter }));
   const fach = h('select', { 'aria-label': 'Fachtyp', id: 'klasse-fachtyp' }, [['lernfeld', 'Lernfeld/Fach'], ['sport', 'Sport']].map(([w, t]) => h('option', { value: w }, t)));
-  // „Lernfeld“ passt nicht überall (z. B. Politik). Die Bezeichnung ist deshalb frei.
+  // „Lernfeld“ passt nicht überall (z. B. Politik). Deshalb Auswahl mit eigenem Text.
   const label = k.kopf.fachLabel || 'Lernfeld';
-  const felder = [feld('Klasse', k.kopf.klasse, 'z. B. FIA 25'), feld('Bezeichnung (Lernfeld, Fach, …)', label, 'Lernfeld'), feld(`${label}-Nr.`, k.kopf.lernfeldNr), feld(`${label}-Bezeichnung`, k.kopf.lernfeldBez), feld('Schuljahr', k.kopf.schuljahr, 'z. B. 2025/26')];
+  const bez = auswahlMitFreitext({ werte: BEZEICHNUNGEN, wert: label, bezeichnung: 'Bezeichnung' });
+  const felder = [feld('Klasse', k.kopf.klasse, 'z. B. FIA 25'), feld(`${label}-Nr.`, k.kopf.lernfeldNr), feld(`${label}-Bezeichnung`, k.kopf.lernfeldBez), feld('Schuljahr', k.kopf.schuljahr, 'z. B. 2025/26')];
+  felder.splice(1, 0, h('label', {}, 'Bezeichnung', bez.el));
   // Der Fachtyp wird nur beim Anlegen gewählt (danach in den Grunddaten)
   if (k.fachtyp === null) felder.push(h('label', {}, 'Fachtyp', fach));
   return { felder, lesen: () => {
-    const [klasseName, fachLabel, nr, bez, jahr] = felder.slice(0, 5).map((l) => l.querySelector('input').value.trim());
-    return { klasse: klasseName, fachLabel: fachLabel || 'Lernfeld', lernfeldNr: nr, lernfeldBez: bez, schuljahr: jahr, ...(k.fachtyp === null ? { fachtyp: fach.value } : {}) };
+    const [klasseName, nr, bezText, jahr] = [felder[0], felder[2], felder[3], felder[4]].map((l) => l.querySelector('input').value.trim());
+    return { klasse: klasseName, fachLabel: bez.lesen() || 'Lernfeld', lernfeldNr: nr, lernfeldBez: bezText, schuljahr: jahr, ...(k.fachtyp === null ? { fachtyp: fach.value } : {}) };
   } };
 }
 

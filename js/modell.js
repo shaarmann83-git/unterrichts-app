@@ -207,6 +207,9 @@ export function neueListe(name, art) {
 }
 
 /** Neue, leere Klasse. */
+/** Auswahl für die Bezeichnung einer Klasse. Eigener Text bleibt möglich. */
+export const BEZEICHNUNGEN = ['Lernfeld', 'Lerngebiet', 'Fach', 'Kurs'];
+
 /** Auswahlbare Vorlagen für die Unterschriftszeilen. Freier Text bleibt immer möglich. */
 export const UNTERSCHRIFT_VORLAGEN = [
   'Korrekturdatum und Unterschrift der Lehrkraft',

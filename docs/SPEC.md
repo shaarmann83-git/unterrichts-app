@@ -379,7 +379,7 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - **Der Rechenweg ändert sich nicht.** Gerechnet wird durchgehend über Prozent; erst am Ende wird der Prozentwert in eine Note oder in Notenpunkte umgesetzt. Prüffall: 15 von 20 Punkten sind 75 %, nach IHK Note 3, nach BG-Schema 11 Punkte.
 - **Sonstige Leistung im Punktsystem:** Eingabe als Punktwert 0 bis 15. Die Umrechnung in Prozent ist die Mitte des zugehörigen Intervalls, analog zum IHK-Schema (AVERAGEIF). Beispiel: 11 Punkte gelten von 75 bis 79 %, also 77 %.
 - **Notenspiegel** zeigt im Punktsystem die Stufen 15 bis 0 statt der Noten 1 bis 6.
-- **Beschriftung je Klasse frei:** Statt „Lernfeld“ kann „Fach“ oder ein eigener Text stehen (Grunddaten, Feld „Bezeichnung“). Wirkt in Ausdruck, Gesamtübersicht und Klassenübersicht.
+- **Beschriftung je Klasse über eine Auswahl:** Lernfeld, Lerngebiet, Fach, Kurs oder „Anderes …“ mit eigenem Text (im Dialog „Neue Klasse“ und in den Grunddaten). Die Wahl bestimmt auch die Beschriftung der Felder „…-Nr.“ und „…-Bezeichnung“ und wirkt in Ausdruck, Gesamtübersicht und Klassenübersicht.
 - **Unterschriftszeilen je Klasse frei** (Grunddaten). Standard sind die beiden bisherigen Zeilen; leere Zeilen werden nicht gedruckt. Neben jedem Feld steht eine Auswahl mit Vorlagen (Lehrkraft, Ausbilderin/Ausbilder, Erziehungsberechtigte, Ausbildungsbetrieb, Schülerin/Schüler, zur Kenntnis genommen). Die Vorlage füllt das Feld, das danach weiter änderbar bleibt.
 - **Eigene Listen** (Strich-, Abhak-, Betragsliste) lassen sich über „Drucken / PDF speichern“ ausgeben.
 - **Offen:** Der Excel-Import erwartet weiterhin genau die Vorlage V4. Für andere Vorlagen fehlt eine freie Spaltenzuordnung.

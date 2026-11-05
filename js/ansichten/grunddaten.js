@@ -1,6 +1,6 @@
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen, fuege, inhaltDialog, avatar, spaltenDialog, meldung, toast } from '../ui.js';
-import { neuerSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD, UNTERSCHRIFT_VORLAGEN } from '../modell.js';
+import { h, leeren, bestaetigen, fuege, inhaltDialog, avatar, spaltenDialog, meldung, toast, auswahlMitFreitext } from '../ui.js';
+import { neuerSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD, UNTERSCHRIFT_VORLAGEN, BEZEICHNUNGEN } from '../modell.js';
 import { istVolljaehrig, zahlLesen, NOTENGRENZEN_STANDARD, PUNKTEGRENZEN_STANDARD } from '../rechnen.js';
 import { passwortSetzen, passwortEntfernen, speichern, passwortFuerFotosSicherstellen } from '../aktionen.js';
 import { kannDirektSpeichern, dateiAlsBytes } from '../speicher.js';
@@ -341,7 +341,12 @@ export function zeigeGrunddaten() {
       'div',
       { class: 'formular' },
       textFeld('Klasse', d.kopf, 'klasse'),
-      textFeld('Bezeichnung (Lernfeld, Fach, …)', d.kopf, 'fachLabel'),
+      h('label', {}, 'Bezeichnung', auswahlMitFreitext({
+        werte: BEZEICHNUNGEN,
+        wert: d.kopf.fachLabel || 'Lernfeld',
+        bezeichnung: 'Bezeichnung',
+        beiAenderung: (v) => { d.kopf.fachLabel = v || 'Lernfeld'; K.aenderung(); },
+      }).el),
       textFeld(`${d.kopf.fachLabel || 'Lernfeld'}-Nr.`, d.kopf, 'lernfeldNr'),
       textFeld(`${d.kopf.fachLabel || 'Lernfeld'}-Bezeichnung`, d.kopf, 'lernfeldBez', true),
       textFeld('Schuljahr', d.kopf, 'schuljahr'),

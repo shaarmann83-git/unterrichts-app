@@ -158,6 +158,39 @@ export function toast(text, art = '') {
 }
 
 /** Enter springt in der Tabelle zur gleichen Spalte der nächsten Zeile (wie in Excel). */
+/**
+ * Auswahlliste mit zusätzlichem Eintrag „Anderes …“, der ein Textfeld einblendet.
+ * Rückgabe: { el, lesen }. `beiAenderung` wird bei jeder Änderung mit dem Wert gerufen.
+ */
+export function auswahlMitFreitext({ werte, wert = '', bezeichnung = 'Auswahl', beiAenderung = () => {} }) {
+  const eigen = wert !== '' && !werte.includes(wert);
+  const feld = h('input', {
+    type: 'text',
+    value: eigen ? wert : '',
+    placeholder: 'Eigener Text',
+    'aria-label': `${bezeichnung}: eigener Text`,
+    class: eigen ? '' : 'versteckt',
+    oninput: (e) => beiAenderung(e.target.value.trim()),
+  });
+  const liste = h('select', { 'aria-label': bezeichnung, onchange: (e) => {
+    if (e.target.value === '__eigen') {
+      feld.classList.remove('versteckt');
+      feld.focus();
+      beiAenderung(feld.value.trim());
+      return;
+    }
+    feld.classList.add('versteckt');
+    beiAenderung(e.target.value);
+  } }, [
+    ...werte.map((w) => h('option', { value: w, selected: !eigen && wert === w }, w)),
+    h('option', { value: '__eigen', selected: eigen }, 'Anderes …'),
+  ]);
+  return {
+    el: h('div', { class: 'wahl-mit-text' }, liste, feld),
+    lesen: () => (liste.value === '__eigen' ? feld.value.trim() : liste.value),
+  };
+}
+
 export function enterNachUnten(tabelle) {
   tabelle.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
