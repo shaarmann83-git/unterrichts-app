@@ -69,7 +69,7 @@ export function zeigeNachStunde() {
         zelleSetzen(d, t.id, p.id, z === zeichen ? null : { z: zeichen, stern: alt.stern, text: alt.text, min: zeichen === 'V' ? alt.min : undefined });
         render();
       };
-      const chips = HAEUFIG.map((zz) => h('button', { type: 'button', class: `knopf taste ${zeichenFarbe(zz, 0)}`, 'data-zeichen': zz, 'aria-pressed': String(z === zz), 'aria-label': `${anzeigename(p)}: ${zz} ${ZEICHEN[zz].text}`, title: ZEICHEN[zz].text, onclick: () => setze(zz) }, zz));
+      const chips = HAEUFIG.map((zz) => h('button', { type: 'button', class: `knopf taste ${zeichenFarbe(zz, 0)}${zz === '.' ? ' punkt' : ''}`, 'data-zeichen': zz, 'aria-pressed': String(z === zz), 'aria-label': `${anzeigename(p)}: ${zz} ${ZEICHEN[zz].text}`, title: ZEICHEN[zz].text, onclick: () => setze(zz) }, zz));
       const mehr = h('button', { type: 'button', class: 'knopf taste', 'aria-label': `${anzeigename(p)}: weitere Zeichen`, onclick: async () => {
         const erg = await zeichenPalette(d, t, p, d.sport.anwesenheit[t.id]?.[p.id] || {});
         if (erg === null || erg === undefined) return;

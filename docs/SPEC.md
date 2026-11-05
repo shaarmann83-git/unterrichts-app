@@ -430,3 +430,12 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - Anwesenheitsliste der Lernfeldklassen: Spalten sind alle Unterrichtstage aus dem importierten Stundenplan (ausgefallene ausgenommen) plus die Tage der sL-Stunden.
 - Sport-Raster: je Tag ein beschrifteter Knopf „Alle da“; der Punkt für anwesend wird groß und fett gezeigt.
 - „Notendatei öffnen“ ohne Dateityp-Filter (Android/iOS), damit .noten wählbar ist.
+
+### 12.5 Schuljahr aus dem Wochenrhythmus fortschreiben
+- Untis liefert nur 1 Woche zurück und 12 Wochen voraus. Aus den echten Einträgen erkennt die App je Klasse den Wochenrhythmus (Wochentag, Uhrzeit, Fach; Takt 1 oder 2 Wochen, mindestens 4 gleiche Wochen nötig) und ergänzt die übrigen Unterrichtstage des Schuljahres.
+- Ferien und Feiertage Niedersachsen liegen als feste Daten im Repository (`js/rhythmus.js`, keine Abfrage zur Laufzeit). Quelle: Ferienübersicht des Kultusministeriums, abgeglichen mit zwei weiteren Seiten. Hinterlegt sind die Schuljahre 2026/27 und 2027/28.
+- Erzeugt wird nur außerhalb des Zeitraums, den Untis geliefert hat. Echte Untis-Termine ersetzen Ergänzungen beim nächsten Import. Ergänzungen sind nicht besonders gekennzeichnet; Termine mit Inhalt bleiben immer erhalten.
+- Automatisch nach jedem Stundenplan-Import, zusätzlich Knopf „Schuljahr auffüllen“ in der Stundenplan-Ansicht.
+
+### 12.6 OneDrive-Anmeldung
+- Die Anmeldung wird im localStorage gehalten und beim Öffnen einer synchronisierten Datei still erneuert. Nur wenn das nicht geht, fragt die App einmal nach der Anmeldung.

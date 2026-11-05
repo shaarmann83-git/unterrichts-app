@@ -34,6 +34,21 @@ export function onedriveAbmelden() {
   K.statusAktualisieren?.();
 }
 
+/** Ohne Fenster anmelden, wenn die Anmeldung noch gültig ist. Gibt den Client oder null zurück. */
+export async function onedriveStill() {
+  if (client) return client;
+  const e = einstellungen();
+  if (!e.onedriveClientId?.trim() || !e.onedriveTenantId?.trim()) return null;
+  try {
+    const tokenHolen = await anmelden({ clientId: e.onedriveClientId.trim(), tenantId: e.onedriveTenantId.trim(), still: true });
+    client = graphClient({ tokenHolen });
+    K.statusAktualisieren?.();
+    return client;
+  } catch {
+    return null;
+  }
+}
+
 async function clientSicherstellen() {
   if (client) return client;
   try {
@@ -233,7 +248,17 @@ window.addEventListener('online', () => {
 
 /** Beim Öffnen einer lokalen Datei, die synchronisiert wird: neuere Fassung in OneDrive anbieten. */
 export async function neuereFassungPruefen() {
-  if (!client || !K.buch?.einstellungen.sync?.name || K.sync) return;
+  if (!K.buch?.einstellungen.sync?.name || K.sync) return;
+  if (!client && !(await onedriveStill())) {
+    // Anmeldung abgelaufen: ein Klick (Benutzeraktion) erlaubt das Anmeldefenster
+    const e = einstellungen();
+    if (!e.onedriveClientId?.trim()) return;
+    const wahl = await auswahl('OneDrive-Anmeldung nötig', 'Dieses Notenbuch wird mit OneDrive synchronisiert, aber die Anmeldung ist abgelaufen. Jetzt anmelden?', [
+      { text: 'Jetzt nicht', wert: 'nein', abbruch: true },
+      { text: 'Anmelden', wert: 'ja', klasse: 'knopf primaer' },
+    ]);
+    if (wahl !== 'ja' || !(await clientSicherstellen())) return;
+  }
   try {
     const sync = syncStarten(onedriveOrt(client, K.buch.einstellungen.sync.name));
     const r = await syncLaden(sync);

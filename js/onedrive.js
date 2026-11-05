@@ -170,16 +170,22 @@ function skriptLaden(src) {
  * Meldet mit dem dienstlichen Konto an (Popup) und liefert eine Funktion, die Zugriffstokens holt.
  * `einstellung`: { clientId, tenantId }. Nichts davon ist im Code fest verdrahtet.
  */
-export async function anmelden({ clientId, tenantId }) {
+export async function anmelden({ clientId, tenantId, still = false }) {
   if (!clientId || !tenantId) throw new Error('Bitte zuerst Client-ID und Tenant-ID in den Einstellungen eintragen.');
   await skriptLaden('lib/msal-browser.min.js');
   const app = new globalThis.msal.PublicClientApplication({
     auth: { clientId, authority: `https://login.microsoftonline.com/${tenantId}`, redirectUri: location.origin + location.pathname },
-    cache: { cacheLocation: 'sessionStorage' },
+    // localStorage: die Anmeldung übersteht das Schließen von Browser oder App (sessionStorage ging dabei verloren)
+    cache: { cacheLocation: 'localStorage' },
   });
   await app.initialize?.();
   const anfrage = { scopes: [BERECHTIGUNG] };
   let konto = app.getAllAccounts()[0];
+  if (still) {
+    // ohne Fenster: nur, wenn schon angemeldet und das Token still erneuert werden kann
+    if (!konto) throw new Error('Nicht angemeldet.');
+    await app.acquireTokenSilent({ ...anfrage, account: konto });
+  }
   if (!konto) konto = (await app.loginPopup(anfrage)).account;
   return async () => {
     try {

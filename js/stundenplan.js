@@ -160,7 +160,7 @@ export function importPlanen(buch, ereignisse, zuordnung, jetztMs = Date.now()) 
     const neueMap = new Map(neueEintraege.map((x) => [x.uid, x]));
     const res = { klasse, aktionen: [], neu: [], geaendert: [], entfallen: [], ausgefallen: [], abweichungen: [], uebersprungen: [] };
     const sport = klasse.fachtyp === 'sport';
-    const handTermine = sport ? klasse.sport.termine.filter((t) => !t.uid) : [];
+    const handTermine = sport ? klasse.sport.termine.filter((t) => !t.uid || (t.quelle === 'regel' && terminHatEintraege(klasse, t))) : [];
     const terminZuUid = (uid) => (sport ? klasse.sport.termine.find((t) => t.uid === uid || (t.uids || []).includes(uid)) : null);
 
     for (const n of neueEintraege) {
@@ -195,7 +195,7 @@ export function importPlanen(buch, ereignisse, zuordnung, jetztMs = Date.now()) 
     for (const [uid, alt] of bestehend) {
       if (neueMap.has(uid)) continue;
       if (bereich[0] && (alt.datum < bereich[0] || alt.datum > bereich[1])) continue; // außerhalb des Zeitraums der Datei: unverändert
-      res.entfallen.push(alt);
+      if (alt.quelle !== 'regel') res.entfallen.push(alt); // aus dem Rhythmus erzeugte Einträge werden still durch echte ersetzt
       res.aktionen.push({ typ: 'eintrag-entfernen', klasseId, uid });
       if (!sport) continue;
       const t = terminZuUid(uid);

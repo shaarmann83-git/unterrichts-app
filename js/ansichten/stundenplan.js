@@ -7,6 +7,7 @@ import { kombinationen, importPlanen, importAnwenden, jetztVorschlag, stundenpla
 import { dateienAlsBytes } from '../speicher.js';
 import { pruefsumme } from '../untis.js';
 import { ansichtRegistrieren } from '../registry.js';
+import { rhythmusAuffuellen } from '../rhythmus.js';
 import { setzeAktuellenTermin } from './sport-nachstunde.js';
 
 const wochentag = (iso) => ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][new Date(`${iso}T12:00:00Z`).getUTCDay()];
@@ -104,6 +105,7 @@ export async function icsAbgleichStarten(dateien, { automatisch = false, jetzt =
     if (!veraendert) return true;
   } else if (!(await vorschau(plan))) return false;
   importAnwenden(K.buch, plan, zuordnung);
+  for (const r of plan.klassen) if ((r.klasse.stundenplan || []).length) rhythmusAuffuellen(r.klasse); // Schuljahr fortschreiben
   K.aenderung();
   K.neuZeichnen();
   const zahl = plan.klassen.reduce((n, r) => ({ neu: n.neu + r.neu.length, geaendert: n.geaendert + r.geaendert.length, entfallen: n.entfallen + r.entfallen.length }), { neu: 0, geaendert: 0, entfallen: 0 });
@@ -144,7 +146,13 @@ export function zeigeStundenplan() {
   const tabellen = K.buch.klassen.filter((k) => (k.stundenplan || []).length).map((k) => {
     const naechste = k.stundenplan.filter((x) => x.datum >= heute).sort((a, b) => a.startMs - b.startMs).slice(0, 8);
     return h('div', {}, h('h2', {}, `${k.kopf.klasse || 'Klasse'}${k.fachtyp === 'sport' ? ' (Sport)' : ''}`),
-      h('p', { class: 'klein' }, `${k.stundenplan.length} Einträge, davon ${k.stundenplan.filter((x) => x.status === 'ausgefallen').length} ausgefallen.`),
+      h('p', { class: 'klein' }, `${k.stundenplan.length} Einträge, davon ${k.stundenplan.filter((x) => x.status === 'ausgefallen').length} ausgefallen und ${k.stundenplan.filter((x) => x.quelle === 'regel').length} aus dem Wochenrhythmus ergänzt.`),
+      h('button', { type: 'button', class: 'knopf', 'data-auffuellen': k.id, title: 'Ergänzt die Tage des Schuljahres, die Untis nicht liefert (ohne Ferien und Feiertage in Niedersachsen)', onclick: () => {
+        const r = rhythmusAuffuellen(k);
+        K.aenderung();
+        K.neuZeichnen();
+        toast(r.grund || `${r.neu} Unterrichtstag(e) ergänzt${r.entfernt ? `, ${r.entfernt} frühere Ergänzung(en) neu berechnet` : ''}.`);
+      } }, 'Schuljahr auffüllen'),
       naechste.length ? h('ul', {}, naechste.map((x) => h('li', {}, `${zeitText(x)}${x.status === 'ausgefallen' ? ' (ausgefallen)' : ''}${x.stunden > 1 ? ` · ${x.stunden} Stunden` : ''}`))) : h('p', { class: 'hinweis' }, 'Keine kommenden Einträge.'));
   });
   const zuordnungen = Object.entries(e.zuordnung);
