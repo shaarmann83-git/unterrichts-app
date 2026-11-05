@@ -1,7 +1,7 @@
 import { K } from '../kontext.js';
 import { h, avatar } from '../ui.js';
 import { archivierteSchueler, fachZeile } from '../modell.js';
-import { gesamtPerson, formatZahl, formatKurz, zahlLesen, NOTEN_WORTE } from '../rechnen.js';
+import { gesamtPerson, formatZahl, formatKurz, zahlLesen, NOTEN_WORTE, bewertungText } from '../rechnen.js';
 import { fehlzeitenSummen } from '../fehlzeiten.js';
 import { gesamtXlsx, gesamtCsv, standText } from '../excel.js';
 import { herunterladen } from '../speicher.js';
@@ -104,7 +104,7 @@ export function zeigeGesamt() {
       const g = gesamtPerson(d, s.id);
       zellen.gesamt.textContent = g.gesamtProzent === null ? '' : formatZahl(g.gesamtProzent, 2);
       zellen.note.textContent = g.gesamtNote === null ? '' : String(g.gesamtNote);
-      zellen.note.title = g.gesamtNote === null ? '' : NOTEN_WORTE[g.gesamtNote];
+      zellen.note.title = bewertungText(g.gesamtNote, d);
       g.kaProzente.forEach((p, j) => (zellen.ka[j].textContent = p === null ? '' : formatZahl(p, 1)));
       zellen.oKA.textContent = g.oKA === null ? '' : formatZahl(g.oKA, 2);
       zellen.anz.textContent = String(g.anzahlSL);

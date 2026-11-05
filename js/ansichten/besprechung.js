@@ -2,7 +2,7 @@
 import { K } from '../kontext.js';
 import { h, leeren, fuege, avatar } from '../ui.js';
 import { aktiveSchueler, anzeigename, datumDeutsch } from '../modell.js';
-import { gesamtPerson, ergebnisKA, gesamtpunkte, formatZahl, formatKurz, NOTEN_WORTE, prozentSL } from '../rechnen.js';
+import { gesamtPerson, ergebnisKA, gesamtpunkte, formatZahl, formatKurz, NOTEN_WORTE, prozentSL, bewertungText } from '../rechnen.js';
 import { daltonNote, daltonProzent, DALTON_STATUS, DALTON_QUALITAET } from '../dalton.js';
 import { fehlzeitenSummen, fehlzeitenVon, FZ_STATUS } from '../fehlzeiten.js';
 import { TEILNAHME } from '../nachschreiben.js';
@@ -16,11 +16,11 @@ const norm = (t) => String(t || '').toLowerCase().replace(/\s+/g, ' ').trim();
 function lernfeldInhalt(d, s, notizen) {
   const g = gesamtPerson(d, s.id);
   const fz = fehlzeitenSummen(d, s.id);
-  const kaZeilen = d.klassenarbeiten.map((ka, i) => ({ ka, i, e: ergebnisKA(ka, s.id) })).filter(({ e, ka }) => e.summe !== null || e.attest || ka.teilnahme?.[s.id]);
+  const kaZeilen = d.klassenarbeiten.map((ka, i) => ({ ka, i, e: ergebnisKA(ka, s.id, d) })).filter(({ e, ka }) => e.summe !== null || e.attest || ka.teilnahme?.[s.id]);
   const sl = d.sonstige.map((t) => ({ t, e: t.eintraege[s.id] })).filter(({ e }) => e && (e.note !== null && e.note !== undefined || (notizen && e.notiz)));
   return h('div', {},
     h('h2', {}, 'Noten'),
-    h('p', { class: 'summe-zeile' }, `Ø Klassenarbeiten ${g.oKA === null ? '–' : formatZahl(g.oKA, 2) + ' %'} · Ø sonstige Leistung ${g.oSL === null ? '–' : formatZahl(g.oSL, 2) + ' %'} (${g.anzahlSL} Noten) · Gesamt `, h('strong', {}, g.gesamtProzent === null ? '–' : `${formatZahl(g.gesamtProzent, 2)} % (Note ${g.gesamtNote}, ${NOTEN_WORTE[g.gesamtNote]})`), d.stichtag && ` · Zwischenstand zum ${datumDeutsch(d.stichtag)}`),
+    h('p', { class: 'summe-zeile' }, `Ø Klassenarbeiten ${g.oKA === null ? '–' : formatZahl(g.oKA, 2) + ' %'} · Ø sonstige Leistung ${g.oSL === null ? '–' : formatZahl(g.oSL, 2) + ' %'} (${g.anzahlSL} Noten) · Gesamt `, h('strong', {}, g.gesamtProzent === null ? '–' : `${formatZahl(g.gesamtProzent, 2)} % (${bewertungText(g.gesamtNote, d)})`), d.stichtag && ` · Zwischenstand zum ${datumDeutsch(d.stichtag)}`),
     kaZeilen.length > 0 && h('div', { class: 'tabelle-rahmen' }, h('table', { class: 'tabelle klein-tabelle' },
       h('thead', {}, h('tr', {}, ['Klassenarbeit', 'Datum', 'Punkte', '%', 'Note', 'Teilnahme', ...(notizen ? ['Sonstiges'] : [])].map((t) => h('th', {}, t)))),
       h('tbody', {}, kaZeilen.map(({ ka, i, e }) => h('tr', {}, h('td', {}, `KA ${i + 1}`), h('td', {}, datumDeutsch(ka.datum)), h('td', { class: 'zahl' }, e.summe === null ? '' : `${formatKurz(e.summe)}/${formatKurz(gesamtpunkte(ka))}`), h('td', { class: 'zahl' }, e.prozent === null ? '' : formatZahl(e.prozent, 1)), h('td', { class: 'mitte' }, e.attest ? 'Attest' : e.note ?? ''), h('td', { class: 'links' }, TEILNAHME[ka.teilnahme?.[s.id]?.status] || ''), notizen && h('td', { class: 'links' }, ka.ergebnisse[s.id]?.sonstiges || '')))))),

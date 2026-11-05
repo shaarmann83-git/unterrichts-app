@@ -3,7 +3,7 @@ import { h, leeren } from '../ui.js';
 import { standText } from '../excel.js';
 import { zeigeSportDruck } from './sport-druck.js';
 import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile } from '../modell.js';
-import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE } from '../rechnen.js';
+import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE, istPunktsystem } from '../rechnen.js';
 
 let art = 'protokoll';
 let kaNr = 1;
@@ -51,7 +51,7 @@ export function zeigeDruck() {
   }
 
   function protokollSeite(ka, nr, s) {
-    const e = ergebnisKA(ka, s.id);
+    const e = ergebnisKA(ka, s.id, d);
     const roh = ka.ergebnisse[s.id];
     const gesamt = gesamtpunkte(ka);
     const zeile = (text, wert) => h('p', { class: 'protokoll-zeile' }, h('strong', {}, `${text} `), wert);
@@ -71,7 +71,7 @@ export function zeigeDruck() {
         : [
             zeile('erreichte Punktzahl:', e.summe === null ? '' : `${formatKurz(e.summe)}/${formatKurz(gesamt)}`),
             zeile('Prozentzahl:', e.prozent === null ? '' : `${formatZahl(e.prozent, 1)} %`),
-            zeile('Note:', e.note === null ? '' : NOTEN_WORTE[e.note]),
+            zeile(istPunktsystem(d) ? 'Notenpunkte:' : 'Note:', e.note === null ? '' : (istPunktsystem(d) ? String(e.note).padStart(2, '0') : NOTEN_WORTE[e.note])),
           ],
       h('div', { class: 'unterschriften' },
         (d.unterschriften || []).filter((t) => String(t).trim()).map((t) => h('div', { class: 'linie' }, t)),
@@ -117,7 +117,7 @@ export function zeigeDruck() {
   }
 
   function spiegelDruck(ka, nr) {
-    const sp = notenspiegel(ka, aktiveSchueler(d));
+    const sp = notenspiegel(ka, aktiveSchueler(d), d);
     return h(
       'article',
       { class: 'druckseite' },
@@ -127,7 +127,7 @@ export function zeigeDruck() {
         'table',
         { class: 'tabelle druck-tabelle' },
         h('thead', {}, h('tr', {}, h('th', {}, 'Note'), h('th', {}, 'Bezeichnung'), h('th', {}, 'Anzahl'))),
-        h('tbody', {}, sp.anzahl.map((a, i) => h('tr', {}, h('td', { class: 'mitte' }, String(i + 1)), h('td', { class: 'links' }, NOTEN_WORTE[i + 1]), h('td', { class: 'zahl' }, String(a)))),
+        h('tbody', {}, sp.anzahl.map((a, i) => h('tr', {}, h('td', { class: 'mitte' }, sp.punkte ? String(sp.stufen[i]).padStart(2, '0') : String(sp.stufen[i])), h('td', { class: 'links' }, sp.punkte ? 'Punkte' : NOTEN_WORTE[sp.stufen[i]]), h('td', { class: 'zahl' }, String(a)))),
           h('tr', {}, h('td', { colspan: 2, class: 'links' }, 'Teilnehmende mit Note'), h('td', { class: 'zahl' }, String(sp.gesamt))),
           h('tr', {}, h('td', { colspan: 2, class: 'links' }, 'Durchschnitt'), h('td', { class: 'zahl' }, sp.durchschnitt === null ? '' : formatZahl(sp.durchschnitt, 2)))),
       ),
@@ -163,7 +163,7 @@ export function zeigeDruck() {
       if (art === 'spiegel') return vorschau.append(spiegelDruck(ka, nr));
       let personen = aktiveSchueler(d);
       if (personId !== 'alle') personen = personen.filter((s) => s.id === personId);
-      else personen = personen.filter((s) => ergebnisKA(ka, s.id).note !== null || ergebnisKA(ka, s.id).attest);
+      else personen = personen.filter((s) => ergebnisKA(ka, s.id, d).note !== null || ergebnisKA(ka, s.id, d).attest);
       if (personen.length === 0) vorschau.append(h('p', { class: 'hinweis' }, 'Für diese Klassenarbeit sind noch keine Ergebnisse eingetragen.'));
       for (const s of personen) vorschau.append(protokollSeite(ka, nr, s));
     }

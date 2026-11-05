@@ -2,7 +2,7 @@
 import { K } from '../kontext.js';
 import { h, bestaetigen, avatar, meldung, toast, leeren } from '../ui.js';
 import { aktiveSchueler, anzeigename, datumDeutsch, heuteIso } from '../modell.js';
-import { ergebnisKA, gesamtpunkte, gesamtPerson, formatZahl, formatKurz, NOTEN_WORTE, prozentSL } from '../rechnen.js';
+import { ergebnisKA, gesamtpunkte, gesamtPerson, formatZahl, formatKurz, NOTEN_WORTE, prozentSL, bewertungText } from '../rechnen.js';
 import { fotoErstellen } from '../foto.js';
 import { passwortSetzen } from '../aktionen.js';
 import { ansichtRegistrieren } from '../registry.js';
@@ -91,7 +91,7 @@ function fotoAbschnitt(d, s) {
 function notenAbschnitt(d, s) {
   const g = gesamtPerson(d, s.id);
   const kaZeilen = d.klassenarbeiten.map((ka, i) => {
-    const e = ergebnisKA(ka, s.id);
+    const e = ergebnisKA(ka, s.id, d);
     const t = ka.teilnahme?.[s.id]?.status;
     return h('tr', {}, h('td', {}, `KA ${i + 1}`), h('td', {}, datumDeutsch(ka.datum)),
       h('td', { class: 'zahl' }, e.summe === null ? '' : `${formatKurz(e.summe)}/${formatKurz(gesamtpunkte(ka))}`),
@@ -105,7 +105,7 @@ function notenAbschnitt(d, s) {
       h('thead', {}, h('tr', {}, ['Arbeit', 'Datum', 'Punkte', '%', 'Note', 'Teilnahme'].map((t) => h('th', {}, t)))), h('tbody', {}, kaZeilen))),
     h('p', { class: 'summe-zeile' },
       `Ø KA: ${g.oKA === null ? '–' : formatZahl(g.oKA, 2)} % · Ø sonstige Leistung: ${g.oSL === null ? '–' : formatZahl(g.oSL, 2)} % (${g.anzahlSL} Noten) · Gesamt: `,
-      h('strong', {}, g.gesamtProzent === null ? '–' : `${formatZahl(g.gesamtProzent, 2)} % (Note ${g.gesamtNote}, ${NOTEN_WORTE[g.gesamtNote]})`)),
+      h('strong', {}, g.gesamtProzent === null ? '–' : `${formatZahl(g.gesamtProzent, 2)} % (${bewertungText(g.gesamtNote, d)})`)),
     h('a', { href: `#/sl/person/${s.id}`, class: 'knopf' }, 'Sonstige Leistung dieser Person'),
   );
 }

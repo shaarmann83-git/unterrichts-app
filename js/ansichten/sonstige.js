@@ -1,7 +1,11 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, meldung, fuege, avatar } from '../ui.js';
 import { neuerTermin, heuteIso, datumDeutsch, aktiveSchueler, anzeigename } from '../modell.js';
-import { prozentSL, gesamtPerson, formatZahl, zahlLesen } from '../rechnen.js';
+import { prozentSLKlasse, gesamtPerson, formatZahl, zahlLesen, istPunktsystem } from '../rechnen.js';
+
+// Eingabebereich der sonstigen Leistung: Noten 1 bis 6 oder Notenpunkte 0 bis 15.
+const slMin = (d) => (istPunktsystem(d) ? 0 : 1);
+const slMax = (d) => (istPunktsystem(d) ? 15 : 6);
 import { FZ_STATUS } from '../fehlzeiten.js';
 import { sichtbareListen, strichHinzu, strichZurueck, strichSumme, abhakSetzen, abhakErledigt } from '../listen.js';
 import { neueId } from '../modell.js';
@@ -200,10 +204,10 @@ function heute(d) {
         class: 'notenfeld',
         'aria-label': `Note ${anzeigename(s)}`,
         value: noteText(e.note),
-        placeholder: 'Note',
+        placeholder: istPunktsystem(d) ? 'Punkte' : 'Note',
         oninput: (ev) => {
           const z = zahlLesen(ev.target.value);
-          const ok = z === null || (!Number.isNaN(z) && z >= 1 && z <= 6);
+          const ok = z === null || (!Number.isNaN(z) && z >= slMin(d) && z <= slMax(d));
           ev.target.classList.toggle('fehler', !ok);
           if (ok) {
             e.note = z;
@@ -240,7 +244,7 @@ function heute(d) {
         },
       });
       updater.push(() => {
-        const p = e.note === null || e.note === undefined ? null : prozentSL(e.note);
+        const p = e.note === null || e.note === undefined ? null : prozentSLKlasse(e.note, d);
         prozent.textContent = p === null ? '' : `= ${formatZahl(p, 2)} %`;
       });
       zeilen.append(
@@ -321,7 +325,7 @@ function nachTermin(d) {
           const note = e?.note ?? null;
           const zelle = h('td', { class: 'mitte' });
           if (note !== null) {
-            zelle.append(h('strong', {}, formatZahl(note, 1)), h('div', { class: 'klein' }, `${formatZahl(prozentSL(note), 2)} %`));
+            zelle.append(h('strong', {}, formatZahl(note, 1)), h('div', { class: 'klein' }, `${formatZahl(prozentSLKlasse(note, d), 2)} %`));
           }
           if (e?.notiz) {
             zelle.append(
@@ -398,7 +402,7 @@ function nachPerson(d, id) {
                   h('td', {}, datumDeutsch(t.datum)),
                   h('td', { class: 'links' }, t.stichwort || ''),
                   h('td', { class: 'zahl' }, noteText(e.note)),
-                  h('td', { class: 'zahl' }, e.note === null || e.note === undefined ? '' : `${formatZahl(prozentSL(e.note), 2)} %`),
+                  h('td', { class: 'zahl' }, e.note === null || e.note === undefined ? '' : `${formatZahl(prozentSLKlasse(e.note, d), 2)} %`),
                   h('td', { class: 'zahl' }, String(t.gewicht).replace('.', ',')),
                   h('td', { class: 'links' }, e.notiz || ''),
                 ),

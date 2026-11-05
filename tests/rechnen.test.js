@@ -5,6 +5,13 @@ import {
   abschneiden,
   prozentKA,
   noteAusProzent,
+  punkteAusProzent,
+  prozentAusPunkten,
+  bewertungAusProzent,
+  bewertungText,
+  prozentSLKlasse,
+  NOTENGRENZEN_STANDARD,
+  PUNKTEGRENZEN_STANDARD,
   ihkProzent,
   prozentSL,
   gewichteterMittelwert,
@@ -16,7 +23,7 @@ import {
   zahlLesen,
 } from '../js/rechnen.js';
 import { IHK_EINTRAEGE } from '../js/ihk-schema.js';
-import { neueDaten, neueKlassenarbeit, neuerTermin } from '../js/modell.js';
+import { neueDaten, neueKlasse, neueKlassenarbeit, neuerTermin } from '../js/modell.js';
 
 const nah = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} != ${b}`);
 
@@ -207,4 +214,88 @@ test('formatKurz ohne überflüssige Nullen', async () => {
   assert.equal(formatKurz(12.5), '12,5');
   assert.equal(formatKurz(12.25), '12,25');
   assert.equal(formatKurz(null), '');
+});
+
+test('Notengrenzen und Punkteschlüssel: Standard und eigene Grenzen', () => {
+  // Standard bleibt der Schlüssel der Excel-Vorlage.
+  assert.equal(noteAusProzent(91.5), 1);
+  assert.equal(noteAusProzent(91.4), 2);
+  assert.equal(noteAusProzent(29.4), 6);
+
+  // Eigener Schlüssel, z. B. gleichmäßig in Zehnerschritten.
+  const eigen = [90, 80, 70, 60, 50];
+  assert.equal(noteAusProzent(90, eigen), 1);
+  assert.equal(noteAusProzent(89.9, eigen), 2);
+  assert.equal(noteAusProzent(49.9, eigen), 6);
+
+  // Bewertungsschema BG der BBS Lingen: Intervalle als Untergrenzen gelesen.
+  assert.equal(punkteAusProzent(100), 15);
+  assert.equal(punkteAusProzent(95), 15);
+  assert.equal(punkteAusProzent(94), 14);
+  assert.equal(punkteAusProzent(94.9), 14);
+  assert.equal(punkteAusProzent(50), 6);
+  assert.equal(punkteAusProzent(49.9), 5);
+  assert.equal(punkteAusProzent(20), 1);
+  assert.equal(punkteAusProzent(19.9), 0);
+  assert.equal(punkteAusProzent(0), 0);
+  assert.equal(punkteAusProzent(null), null);
+});
+
+test('Beispiel aus der Praxis: 15 von 20 Punkten sind 75 %, IHK-Note 3, BG 11 Punkte', () => {
+  const p = prozentKA(15, 20);
+  assert.equal(p, 75);
+  assert.equal(noteAusProzent(p), 3);
+  assert.equal(punkteAusProzent(p), 11);
+});
+
+test('Punktsystem: Umkehrung des Punkteschlüssels und Bewertung je Klasse', () => {
+  // Intervallmitte, wie beim IHK-Schema über AVERAGEIF.
+  assert.equal(prozentAusPunkten(11), 77);   // 75 bis 79
+  assert.equal(prozentAusPunkten(15), 97.5); // 95 bis 100
+  assert.equal(prozentAusPunkten(0), 9.5);   // 0 bis 19
+  assert.equal(prozentAusPunkten(6), 52);    // 50 bis 54
+  assert.equal(prozentAusPunkten(16), null);
+  assert.equal(prozentAusPunkten(null), null);
+
+  const bg = { notensystem: 'punkte', punktegrenzen: PUNKTEGRENZEN_STANDARD, notengrenzen: NOTENGRENZEN_STANDARD };
+  const bs = { notensystem: 'noten', punktegrenzen: PUNKTEGRENZEN_STANDARD, notengrenzen: NOTENGRENZEN_STANDARD };
+  assert.equal(bewertungAusProzent(75, bg), 11);
+  assert.equal(bewertungAusProzent(75, bs), 3);
+  assert.equal(bewertungText(11, bg), '11 Punkte');
+  assert.equal(bewertungText(3, bs), '3 (befriedigend)');
+  assert.equal(bewertungText(null, bg), '');
+
+  // Sonstige Leistung: im Punktsystem zählt der Punktwert, sonst die Note über das IHK-Schema.
+  assert.equal(prozentSLKlasse(11, bg), 77);
+  assert.equal(prozentSLKlasse(3, bs), prozentSL(3));
+});
+
+test('BG-Klasse durchgerechnet: Prozent bleibt der Rechenweg, Ausgabe in Notenpunkten', () => {
+  const k = neueKlasse({ klasse: 'BRC13GA01', fachLabel: 'Fach', lernfeldBez: 'Politik', schuljahr: '2026/27' });
+  k.notensystem = 'punkte';
+  k.gewichtSchriftlich = 50;
+  const s = k.schueler[0] || { id: 's1' };
+  if (!k.schueler.length) k.schueler.push(s);
+
+  const ka = neueKlassenarbeit(1);
+  ka.aufgaben = [20];
+  ka.ergebnisse[s.id] = { punkte: [15], attest: false, sonstiges: '' };
+  k.klassenarbeiten.push(ka);
+
+  // 15 von 20 sind 75 %, nach dem Schema der BBS Lingen 11 Punkte.
+  const e = ergebnisKA(ka, s.id, k);
+  assert.equal(e.prozent, 75);
+  assert.equal(e.note, 11);
+
+  // Sonstige Leistung als Punktwert: 11 Punkte gelten als 77 %.
+  k.sonstige.push({ id: 't1', datum: '2026-09-20', gewicht: 1, eintraege: { [s.id]: { note: 11 } } });
+  const g = gesamtPerson(k, s.id);
+  assert.equal(g.oKA, 75);
+  assert.equal(g.oSL, 77);
+  assert.equal(g.gesamtProzent, 76);
+  assert.equal(g.gesamtNote, 11); // 76 % liegt im Intervall 75 bis 79
+
+  // Dieselben Zahlen in einer Berufsschulklasse ergeben weiterhin eine Note.
+  k.notensystem = 'noten';
+  assert.equal(ergebnisKA(ka, s.id, k).note, 3);
 });

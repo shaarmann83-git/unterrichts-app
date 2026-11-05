@@ -1,3 +1,4 @@
+import { NOTENGRENZEN_STANDARD, PUNKTEGRENZEN_STANDARD } from './rechnen.js';
 // Datenmodell: Notenbuch (Datei) mit beliebig vielen Klassen und einfache Änderungen daran.
 // Eine Klasse enthält alles aus SPEC Abschnitt 3 plus die Erweiterungen aus Abschnitt 8.
 
@@ -157,6 +158,10 @@ export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', sch
     id: neueId(),
     kopf: { klasse, lernfeldNr, lernfeldBez, schuljahr, fachLabel },
     unterschriften: [...UNTERSCHRIFTEN_STANDARD],
+    // Notenschlüssel je Klasse, damit Berufsschule (Noten) und berufliches Gymnasium (Punkte) nebeneinander möglich sind.
+    notensystem: 'noten', // 'noten' = 1 bis 6, 'punkte' = 0 bis 15
+    notengrenzen: [...NOTENGRENZEN_STANDARD],
+    punktegrenzen: [...PUNKTEGRENZEN_STANDARD],
     gewichtSchriftlich: 50,
     schueler: Array.from({ length: STANDARD_SCHUELER }, neuerSchueler),
     klassenarbeiten: Array.from({ length: STANDARD_KLASSENARBEITEN }, () => neueKlassenarbeit()),
@@ -196,6 +201,9 @@ export function pruefeKlasse(k) {
   for (const f of ['klasse', 'lernfeldNr', 'lernfeldBez', 'schuljahr']) k.kopf[f] ??= '';
   k.kopf.fachLabel ||= 'Lernfeld';
   if (!Array.isArray(k.unterschriften)) k.unterschriften = [...UNTERSCHRIFTEN_STANDARD];
+  k.notensystem ||= 'noten';
+  if (!Array.isArray(k.notengrenzen) || k.notengrenzen.length !== 5) k.notengrenzen = [...NOTENGRENZEN_STANDARD];
+  if (!Array.isArray(k.punktegrenzen) || k.punktegrenzen.length !== 15) k.punktegrenzen = [...PUNKTEGRENZEN_STANDARD];
   k.gewichtSchriftlich ??= 50;
   k.schueler ||= [];
   k.klassenarbeiten ||= [];

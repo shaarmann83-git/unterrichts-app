@@ -237,7 +237,7 @@ export function zeigeKlassenarbeit(params) {
       hinweis.append(h('span', { class: 'klein fehlertext', title: 'Laut Untis am Termin nicht entschuldigt' }, 'nicht entschuldigt (Untis)'));
     }
     updater.push(() => {
-      const erg = ergebnisKA(ka, s.id);
+      const erg = ergebnisKA(ka, s.id, d);
       summe.textContent = erg.summe === null ? '' : formatKurz(erg.summe);
       prozent.textContent = erg.prozent === null ? '' : formatZahl(erg.prozent, 1);
       note.textContent = erg.attest ? 'Attest' : erg.note === null ? '' : String(erg.note);
@@ -368,12 +368,12 @@ export function zeigeKlassenarbeit(params) {
 
   function spiegelZeichnen() {
     leeren(spiegel);
-    const sp = notenspiegel(ka, aktiveSchueler(d));
+    const sp = notenspiegel(ka, aktiveSchueler(d), d);
     spiegel.append(
       h(
         'table',
         { class: 'tabelle klein-tabelle' },
-        h('thead', {}, h('tr', {}, [1, 2, 3, 4, 5, 6].map((n) => h('th', { title: NOTEN_WORTE[n] }, `Note ${n}`)), h('th', {}, 'Anzahl'), h('th', {}, 'Durchschnitt'))),
+        h('thead', {}, h('tr', {}, sp.stufen.map((n) => h('th', { title: sp.punkte ? `${n} Punkte` : NOTEN_WORTE[n] }, sp.punkte ? String(n).padStart(2, '0') : `Note ${n}`)), h('th', {}, 'Anzahl'), h('th', {}, 'Durchschnitt'))),
         h('tbody', {}, h('tr', {}, sp.anzahl.map((a) => h('td', { class: 'zahl' }, String(a))), h('td', { class: 'zahl' }, String(sp.gesamt)), h('td', { class: 'zahl' }, sp.durchschnitt === null ? '' : formatZahl(sp.durchschnitt, 2)))),
       ),
     );
