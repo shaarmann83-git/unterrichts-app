@@ -2,7 +2,7 @@ import { K } from '../kontext.js';
 import { h, leeren } from '../ui.js';
 import { standText } from '../excel.js';
 import { zeigeSportDruck } from './sport-druck.js';
-import { aktiveSchueler, anzeigename, kurzname, datumDeutsch } from '../modell.js';
+import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile } from '../modell.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE } from '../rechnen.js';
 
 let art = 'protokoll';
@@ -61,7 +61,7 @@ export function zeigeDruck() {
       h('h2', {}, anzeigename(s)),
       h('p', {}, `Klasse: ${d.kopf.klasse || ''}`),
       h('p', {}, `Datum der Arbeit: ${datumDeutsch(ka.datum)}`),
-      h('p', {}, `Lernfeld ${d.kopf.lernfeldNr || ''}: ${d.kopf.lernfeldBez || ''}`),
+      h('p', {}, fachZeile(d.kopf)),
       h('p', { class: 'protokoll-zeile' }, h('strong', {}, `Thematische Schwerpunkte der Klassenarbeit Nr. ${nr}:`)),
       h('p', { class: 'freitext' }, ka.schwerpunkte || ''),
       h('p', { class: 'protokoll-zeile' }, h('strong', {}, 'Sonstiges:')),
@@ -74,8 +74,7 @@ export function zeigeDruck() {
             zeile('Note:', e.note === null ? '' : NOTEN_WORTE[e.note]),
           ],
       h('div', { class: 'unterschriften' },
-        h('div', { class: 'linie' }, 'Korrekturdatum und Unterschrift der Lehrkraft'),
-        h('div', { class: 'linie' }, 'Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)'),
+        (d.unterschriften || []).filter((t) => String(t).trim()).map((t) => h('div', { class: 'linie' }, t)),
       ),
     );
   }
@@ -87,7 +86,7 @@ export function zeigeDruck() {
       'article',
       { class: 'druckseite quer' },
       h('h2', {}, 'Korrekturliste'),
-      h('p', {}, `Klasse: ${d.kopf.klasse || ''}   ·   Lernfeld ${d.kopf.lernfeldNr || ''}: ${d.kopf.lernfeldBez || ''}   ·   Klassenarbeit Nr.: ______`),
+      h('p', {}, `Klasse: ${d.kopf.klasse || ''}   ·   ${fachZeile(d.kopf)}   ·   Klassenarbeit Nr.: ______`),
       h(
         'table',
         { class: 'tabelle druck-tabelle blanko' },
@@ -104,7 +103,7 @@ export function zeigeDruck() {
       { class: 'druckseite quer' },
       h('h2', {}, 'Gesamtübersicht'),
       h('p', { class: 'stand' }, h('strong', {}, standText(d))),
-      h('p', {}, `Klasse ${d.kopf.klasse || ''} · Lernfeld ${d.kopf.lernfeldNr || ''} ${d.kopf.lernfeldBez || ''} · Schuljahr ${d.kopf.schuljahr || ''} · Gewichtung schriftlich ${String(d.gewichtSchriftlich).replace('.', ',')} % / sonstige ${String(100 - d.gewichtSchriftlich).replace('.', ',')} %`),
+      h('p', {}, `Klasse ${d.kopf.klasse || ''} · ${fachZeile(d.kopf)} · Schuljahr ${d.kopf.schuljahr || ''} · Gewichtung schriftlich ${String(d.gewichtSchriftlich).replace('.', ',')} % / sonstige ${String(100 - d.gewichtSchriftlich).replace('.', ',')} %`),
       h(
         'table',
         { class: 'tabelle druck-tabelle' },
@@ -123,7 +122,7 @@ export function zeigeDruck() {
       'article',
       { class: 'druckseite' },
       h('h2', {}, `Notenspiegel Klassenarbeit ${nr}`),
-      h('p', {}, `Klasse ${d.kopf.klasse || ''} · Lernfeld ${d.kopf.lernfeldNr || ''} ${d.kopf.lernfeldBez || ''} · ${datumDeutsch(ka.datum)}`),
+      h('p', {}, `Klasse ${d.kopf.klasse || ''} · ${fachZeile(d.kopf)} · ${datumDeutsch(ka.datum)}`),
       h(
         'table',
         { class: 'tabelle druck-tabelle' },
@@ -143,7 +142,7 @@ export function zeigeDruck() {
       'article',
       { class: 'druckseite' },
       h('h2', {}, 'Bewertungskriterien Dalton'),
-      h('p', {}, `Klasse ${d.kopf.klasse || ''} · Lernfeld ${d.kopf.lernfeldNr || ''} ${d.kopf.lernfeldBez || ''} · Schuljahr ${d.kopf.schuljahr || ''}`),
+      h('p', {}, `Klasse ${d.kopf.klasse || ''} · ${fachZeile(d.kopf)} · Schuljahr ${d.kopf.schuljahr || ''}`),
       h('p', {}, d.dalton.modus === 'einrechnen' ? `Die Dalton-Aufgaben haben einen Anteil von ${String(d.dalton.anteil).replace('.', ',')} % an der sonstigen Leistung.` : 'Die Dalton-Aufgaben werden dokumentiert und fließen nicht in die Note ein.'),
       h('table', { class: 'tabelle druck-tabelle' },
         h('thead', {}, h('tr', {}, ['Stufe', 'Beschreibung', 'Note'].map((x) => h('th', {}, x)))),

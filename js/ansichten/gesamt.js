@@ -1,6 +1,6 @@
 import { K } from '../kontext.js';
 import { h, avatar } from '../ui.js';
-import { archivierteSchueler } from '../modell.js';
+import { archivierteSchueler, fachZeile } from '../modell.js';
 import { gesamtPerson, formatZahl, formatKurz, zahlLesen, NOTEN_WORTE } from '../rechnen.js';
 import { fehlzeitenSummen } from '../fehlzeiten.js';
 import { gesamtXlsx, gesamtCsv, standText } from '../excel.js';
@@ -36,7 +36,7 @@ export function zeigeGesamt() {
     h(
       'p',
       { class: 'kopfzeile-info' },
-      `Klasse ${kopf.klasse || '–'} · Lernfeld ${[kopf.lernfeldNr, kopf.lernfeldBez].filter(Boolean).join(' ') || '–'} · Schuljahr ${kopf.schuljahr || '–'} · Gewichtung schriftlich ${String(d.gewichtSchriftlich).replace('.', ',')} % / sonstige ${String(100 - d.gewichtSchriftlich).replace('.', ',')} %`,
+      `Klasse ${kopf.klasse || '–'} · ${fachZeile(kopf, { leer: '–' })} · Schuljahr ${kopf.schuljahr || '–'} · Gewichtung schriftlich ${String(d.gewichtSchriftlich).replace('.', ',')} % / sonstige ${String(100 - d.gewichtSchriftlich).replace('.', ',')} %`,
     ),
     stand,
     h('div', { class: 'formular' },

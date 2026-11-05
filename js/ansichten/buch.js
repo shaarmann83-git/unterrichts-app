@@ -1,7 +1,7 @@
 // Notenbuch: Kacheln je Klasse und Aktionen für das ganze Notenbuch (SPEC 8.1, 8.7).
 import { K } from '../kontext.js';
 import { h, bestaetigen, inhaltDialog, meldung, toast, fuege, auswahl } from '../ui.js';
-import { neueKlasse, klasseKopieren, aktiveSchueler, neueId, pruefeKlasse, buchHatFotos } from '../modell.js';
+import { neueKlasse, fachZeile, klasseKopieren, aktiveSchueler, neueId, pruefeKlasse, buchHatFotos } from '../modell.js';
 import {
   passwortSetzen,
   passwortEntfernen,
@@ -17,16 +17,18 @@ import { passwortFrage } from '../ui.js';
 import { alleAlsExcel } from '../excel.js';
 import { jetztLeiste } from './stundenplan.js';
 
-function klassenFormular(k = { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: '', schuljahr: '' }, fachtyp: null }) {
+function klassenFormular(k = { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: '', schuljahr: '', fachLabel: 'Lernfeld' }, fachtyp: null }) {
   const feld = (beschriftung, wert, platzhalter = '') =>
     h('label', {}, beschriftung, h('input', { type: 'text', value: wert, placeholder: platzhalter }));
   const fach = h('select', { 'aria-label': 'Fachtyp', id: 'klasse-fachtyp' }, [['lernfeld', 'Lernfeld/Fach'], ['sport', 'Sport']].map(([w, t]) => h('option', { value: w }, t)));
-  const felder = [feld('Klasse', k.kopf.klasse, 'z. B. FIA 25'), feld('Lernfeld-Nr.', k.kopf.lernfeldNr), feld('Lernfeld-Bezeichnung', k.kopf.lernfeldBez), feld('Schuljahr', k.kopf.schuljahr, 'z. B. 2025/26')];
+  // „Lernfeld“ passt nicht überall (z. B. Politik). Die Bezeichnung ist deshalb frei.
+  const label = k.kopf.fachLabel || 'Lernfeld';
+  const felder = [feld('Klasse', k.kopf.klasse, 'z. B. FIA 25'), feld('Bezeichnung (Lernfeld, Fach, …)', label, 'Lernfeld'), feld(`${label}-Nr.`, k.kopf.lernfeldNr), feld(`${label}-Bezeichnung`, k.kopf.lernfeldBez), feld('Schuljahr', k.kopf.schuljahr, 'z. B. 2025/26')];
   // Der Fachtyp wird nur beim Anlegen gewählt (danach in den Grunddaten)
   if (k.fachtyp === null) felder.push(h('label', {}, 'Fachtyp', fach));
   return { felder, lesen: () => {
-    const [klasseName, nr, bez, jahr] = felder.slice(0, 4).map((l) => l.querySelector('input').value.trim());
-    return { klasse: klasseName, lernfeldNr: nr, lernfeldBez: bez, schuljahr: jahr, ...(k.fachtyp === null ? { fachtyp: fach.value } : {}) };
+    const [klasseName, fachLabel, nr, bez, jahr] = felder.slice(0, 5).map((l) => l.querySelector('input').value.trim());
+    return { klasse: klasseName, fachLabel: fachLabel || 'Lernfeld', lernfeldNr: nr, lernfeldBez: bez, schuljahr: jahr, ...(k.fachtyp === null ? { fachtyp: fach.value } : {}) };
   } };
 }
 
@@ -55,7 +57,7 @@ export async function klasseAusAndererDateiUebernehmen() {
   const wahl = h(
     'select',
     { 'aria-label': 'Klasse auswählen' },
-    buch.klassen.map((k, i) => h('option', { value: i }, [k.kopf.klasse || 'Ohne Namen', k.kopf.lernfeldNr && `LF ${k.kopf.lernfeldNr}`, k.kopf.schuljahr].filter(Boolean).join(' · '))),
+    buch.klassen.map((k, i) => h('option', { value: i }, [k.kopf.klasse || 'Ohne Namen', fachZeile(k.kopf), k.kopf.schuljahr].filter(Boolean).join(' · '))),
   );
   const ok = await inhaltDialog('Klasse übernehmen', [h('label', {}, 'Welche Klasse soll übernommen werden?', wahl)], [
     { text: 'Abbrechen', wert: false, abbruch: true },
@@ -90,7 +92,7 @@ export function zeigeBuch() {
             'a',
             { href: k.fachtyp === 'sport' ? '#/nachstunde' : '#/gesamt', class: 'kachel-link', onclick: () => { K.klasseId = k.id; } },
             h('strong', {}, titel, k.fachtyp === 'sport' && h('span', { class: 'abzeichen' }, 'Sport')),
-            h('div', {}, [k.kopf.lernfeldNr && `Lernfeld ${k.kopf.lernfeldNr}`, k.kopf.lernfeldBez].filter(Boolean).join(': ') || 'Kein Lernfeld'),
+            h('div', {}, fachZeile(k.kopf, { leer: 'Kein Fach angegeben' })),
             h('div', { class: 'klein' }, `Schuljahr ${k.kopf.schuljahr || '–'} · ${aktiveSchueler(k).length} Schüler:innen`),
           ),
           h(

@@ -1,6 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, fuege, inhaltDialog, avatar, spaltenDialog, meldung, toast } from '../ui.js';
-import { neuerSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch } from '../modell.js';
+import { neuerSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD } from '../modell.js';
 import { istVolljaehrig, zahlLesen } from '../rechnen.js';
 import { passwortSetzen, passwortEntfernen, speichern, passwortFuerFotosSicherstellen } from '../aktionen.js';
 import { kannDirektSpeichern, dateiAlsBytes } from '../speicher.js';
@@ -341,10 +341,21 @@ export function zeigeGrunddaten() {
       'div',
       { class: 'formular' },
       textFeld('Klasse', d.kopf, 'klasse'),
-      textFeld('Lernfeld-Nr.', d.kopf, 'lernfeldNr'),
-      textFeld('Lernfeld-Bezeichnung', d.kopf, 'lernfeldBez', true),
+      textFeld('Bezeichnung (Lernfeld, Fach, …)', d.kopf, 'fachLabel'),
+      textFeld(`${d.kopf.fachLabel || 'Lernfeld'}-Nr.`, d.kopf, 'lernfeldNr'),
+      textFeld(`${d.kopf.fachLabel || 'Lernfeld'}-Bezeichnung`, d.kopf, 'lernfeldBez', true),
       textFeld('Schuljahr', d.kopf, 'schuljahr'),
       fachtypWahl,
+    ),
+    d.fachtyp !== 'sport' && h('h2', {}, 'Unterschriftszeilen im Ausdruck'),
+    d.fachtyp !== 'sport' && h('p', { class: 'klein' }, 'Diese Zeilen stehen unter dem Protokoll zur Klassenarbeit. Leere Zeilen werden nicht gedruckt. Beispiel für Schüler:innen ohne Ausbildung: „Unterschrift Erziehungsberechtigte(r) (unter 18)“.'),
+    d.fachtyp !== 'sport' && h('div', { class: 'formular' },
+      (d.unterschriften || []).map((t, i) => h('label', { class: 'breit' }, `Zeile ${i + 1}`,
+        h('input', { type: 'text', value: t, 'aria-label': `Unterschriftszeile ${i + 1}`, oninput: (e) => { d.unterschriften[i] = e.target.value; K.aenderung(); } }))),
+      h('div', { class: 'knopfreihe' },
+        h('button', { type: 'button', class: 'knopf klein', onclick: () => { (d.unterschriften ||= []).push(''); K.aenderung(); K.neuZeichnen(); } }, '+ Zeile'),
+        (d.unterschriften || []).length > 0 && h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.unterschriften.pop(); K.aenderung(); K.neuZeichnen(); } }, 'Letzte Zeile entfernen'),
+        h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.unterschriften = [...UNTERSCHRIFTEN_STANDARD]; K.aenderung(); K.neuZeichnen(); } }, 'Standard wiederherstellen')),
     ),
     d.fachtyp === 'sport' && h('h2', {}, 'Sport'),
     d.fachtyp === 'sport' && sportFelder(),

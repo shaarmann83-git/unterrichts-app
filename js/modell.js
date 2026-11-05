@@ -134,10 +134,29 @@ export function neueListe(name, art) {
 }
 
 /** Neue, leere Klasse. */
-export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', schuljahr = '', fachtyp = 'lernfeld' } = {}) {
+/** Standardtexte der Unterschriftszeilen im Protokoll (SPEC 4). Je Klasse änderbar. */
+export const UNTERSCHRIFTEN_STANDARD = [
+  'Korrekturdatum und Unterschrift der Lehrkraft',
+  'Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)',
+];
+
+/**
+ * Zeile „<Bezeichnung> <Nr>: <Text>“ für Ausdruck und Übersichten.
+ * `fachLabel` ist frei, z. B. „Lernfeld“ oder „Fach“; ohne Nummer entfällt sie.
+ */
+export function fachZeile(kopf, { leer = '' } = {}) {
+  const label = (kopf.fachLabel || 'Lernfeld').trim();
+  const nr = String(kopf.lernfeldNr || '').trim();
+  const bez = String(kopf.lernfeldBez || '').trim();
+  if (!nr && !bez) return leer;
+  return `${[label, nr].filter(Boolean).join(' ')}${bez ? `: ${bez}` : ''}`;
+}
+
+export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', schuljahr = '', fachtyp = 'lernfeld', fachLabel = 'Lernfeld' } = {}) {
   return {
     id: neueId(),
-    kopf: { klasse, lernfeldNr, lernfeldBez, schuljahr },
+    kopf: { klasse, lernfeldNr, lernfeldBez, schuljahr, fachLabel },
+    unterschriften: [...UNTERSCHRIFTEN_STANDARD],
     gewichtSchriftlich: 50,
     schueler: Array.from({ length: STANDARD_SCHUELER }, neuerSchueler),
     klassenarbeiten: Array.from({ length: STANDARD_KLASSENARBEITEN }, () => neueKlassenarbeit()),
@@ -175,6 +194,8 @@ export function pruefeKlasse(k) {
   k.id ||= neueId();
   k.kopf ||= {};
   for (const f of ['klasse', 'lernfeldNr', 'lernfeldBez', 'schuljahr']) k.kopf[f] ??= '';
+  k.kopf.fachLabel ||= 'Lernfeld';
+  if (!Array.isArray(k.unterschriften)) k.unterschriften = [...UNTERSCHRIFTEN_STANDARD];
   k.gewichtSchriftlich ??= 50;
   k.schueler ||= [];
   k.klassenarbeiten ||= [];

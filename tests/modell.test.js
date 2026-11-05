@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  neueKlasse, neuesBuch, pruefeBuch, klasseKopieren, aktiveSchueler, archivierteSchueler,
+  neueKlasse, neuesBuch, pruefeBuch, pruefeKlasse, klasseKopieren, aktiveSchueler, archivierteSchueler, fachZeile, UNTERSCHRIFTEN_STANDARD,
   neuerTermin, neueDaltonAufgabe, buchHatFotos, dateiname, FORMAT_VERSION,
 } from '../js/modell.js';
 import { ausDateitext, inDateitext } from '../js/krypto.js';
@@ -124,4 +124,26 @@ test('Leeres Notenbuch: Dateiname nach Schuljahr, Klassen später im Notenbuch',
   buch.klassen.push(neueKlasse({ klasse: 'WAK1-1', schuljahr: '2026/27' }));
   assert.equal(dateiname(buch), 'WAK1-1_2026-27.noten');
   assert.equal(neuesBuch(null).schuljahr, '');
+});
+
+test('Bezeichnung und Unterschriftszeilen je Klasse frei wählbar', () => {
+  const lf = neueKlasse({ klasse: 'WKM1-2', lernfeldNr: '2', lernfeldBez: 'Arbeitsraum', schuljahr: '2026/27' });
+  assert.equal(fachZeile(lf.kopf), 'Lernfeld 2: Arbeitsraum');
+  assert.deepEqual(lf.unterschriften, UNTERSCHRIFTEN_STANDARD);
+
+  const pol = neueKlasse({ klasse: 'BRC13GA01', fachLabel: 'Fach', lernfeldBez: 'Politik', schuljahr: '2026/27' });
+  assert.equal(fachZeile(pol.kopf), 'Fach: Politik');
+  pol.unterschriften = ['Unterschrift der Lehrkraft', 'Unterschrift Erziehungsberechtigte(r) (unter 18)'];
+  assert.equal(pol.unterschriften.length, 2);
+
+  // Ohne Nummer und ohne Bezeichnung bleibt die Zeile leer bzw. zeigt den Ersatztext.
+  const ohne = neueKlasse({ klasse: 'X' });
+  assert.equal(fachZeile(ohne.kopf), '');
+  assert.equal(fachZeile(ohne.kopf, { leer: '–' }), '–');
+
+  // Alte Dateien ohne die neuen Felder werden ergänzt.
+  const alt = { id: 'a', kopf: { klasse: 'Alt', lernfeldNr: '3', lernfeldBez: 'Test', schuljahr: '2025/26' } };
+  const ergaenzt = pruefeKlasse(alt);
+  assert.equal(ergaenzt.kopf.fachLabel, 'Lernfeld');
+  assert.deepEqual(ergaenzt.unterschriften, UNTERSCHRIFTEN_STANDARD);
 });
