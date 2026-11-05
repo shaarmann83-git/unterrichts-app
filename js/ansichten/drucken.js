@@ -2,7 +2,7 @@ import { K } from '../kontext.js';
 import { h, leeren, bestaetigen } from '../ui.js';
 import { standText } from '../excel.js';
 import { zeigeSportDruck } from './sport-druck.js';
-import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile } from '../modell.js';
+import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, unterschriftenFuer } from '../modell.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE, istPunktsystem } from '../rechnen.js';
 
 let art = 'protokoll';
@@ -62,29 +62,41 @@ export function zeigeDruck() {
     const e = ergebnisKA(ka, s.id, d);
     const roh = ka.ergebnisse[s.id];
     const gesamt = gesamtpunkte(ka);
-    const zeile = (text, wert) => h('p', { class: 'protokoll-zeile' }, h('strong', {}, `${text} `), wert);
+    const dr = K.buch?.einstellungen?.druck || {};
+    const band = (text, stark = false) => h('div', { class: `protokoll-band${stark ? ' stark' : ''}` }, text);
+    const kasten = (text, hoch) => h('div', { class: 'protokoll-kasten', style: `min-height:${hoch}` }, text || '');
+    const werte = e.attest
+      ? [['Bewertung', 'Attest vorgelegt, keine Bewertung.']]
+      : [
+          ['erreichte Punktzahl:', e.summe === null ? '' : `${formatKurz(e.summe)}/${formatKurz(gesamt)}`],
+          ['Prozentzahl:', e.prozent === null ? '' : `${formatZahl(e.prozent, 1)} %`],
+          [istPunktsystem(d) ? 'Notenpunkte:' : 'Note:', e.note === null ? '' : (istPunktsystem(d) ? String(e.note).padStart(2, '0') : NOTEN_WORTE[e.note])],
+        ];
+    const zeilen = unterschriftenFuer(d, s);
     return h(
       'article',
       { class: 'druckseite protokoll' },
-      h('h2', {}, anzeigename(s)),
-      h('p', {}, `Klasse: ${d.kopf.klasse || ''}`),
-      h('p', {}, `Datum der Arbeit: ${datumDeutsch(ka.datum)}`),
-      h('p', {}, fachZeile(d.kopf)),
-      h('p', { class: 'protokoll-zeile' }, h('strong', {}, `Thematische Schwerpunkte der Klassenarbeit Nr. ${nr}:`)),
-      h('p', { class: 'freitext' }, ka.schwerpunkte || ''),
-      h('p', { class: 'protokoll-zeile' }, h('strong', {}, 'Sonstiges:')),
-      h('p', { class: 'freitext' }, roh?.sonstiges || ''),
-      e.attest
-        ? h('p', { class: 'protokoll-zeile' }, h('strong', {}, 'Attest vorgelegt, keine Bewertung.'))
-        : [
-            zeile('erreichte Punktzahl:', e.summe === null ? '' : `${formatKurz(e.summe)}/${formatKurz(gesamt)}`),
-            zeile('Prozentzahl:', e.prozent === null ? '' : `${formatZahl(e.prozent, 1)} %`),
-            zeile(istPunktsystem(d) ? 'Notenpunkte:' : 'Note:', e.note === null ? '' : (istPunktsystem(d) ? String(e.note).padStart(2, '0') : NOTEN_WORTE[e.note])),
-          ],
-      ka.korrekturdatum ? h('p', { class: 'protokoll-zeile' }, h('strong', {}, 'Korrekturdatum: '), datumDeutsch(ka.korrekturdatum)) : null,
-      h('div', { class: 'unterschriften' },
-        (d.unterschriften || []).filter((t) => String(t).trim()).map((t) => h('div', { class: 'linie' }, t)),
-      ),
+      (dr.kopfLinks || dr.kopfRechts) && h('div', { class: 'protokoll-kopfbilder' },
+        h('div', {}, dr.kopfLinks ? h('img', { src: dr.kopfLinks, alt: '' }) : ''),
+        h('div', { class: 'rechts' }, dr.kopfRechts ? h('img', { src: dr.kopfRechts, alt: '' }) : '')),
+      h('table', { class: 'protokoll-tabelle kopf' }, h('tbody', {},
+        h('tr', {},
+          h('td', {}, h('strong', {}, 'Name: '), anzeigename(s)),
+          h('td', {}, h('strong', {}, 'Klasse: '), d.kopf.klasse || ''),
+          h('td', {}, h('strong', {}, 'Datum: '), datumDeutsch(ka.datum))))),
+      band(fachZeile(d.kopf) || `${d.kopf.fachLabel || 'Lernfeld'}:`, true),
+      band(`Thematische Schwerpunkte der Klassenarbeit Nr. ${nr}:`),
+      kasten(ka.schwerpunkte, '7rem'),
+      band('Sonstiges'),
+      kasten(roh?.sonstiges, '3.5rem'),
+      h('table', { class: 'protokoll-tabelle ergebnis' }, h('tbody', {},
+        h('tr', {}, werte.map(([t]) => h('td', {}, h('strong', {}, t)))),
+        h('tr', {}, werte.map(([, v]) => h('td', { class: 'mitte' }, v))))),
+      h('table', { class: 'protokoll-tabelle unterschrift' }, h('tbody', {},
+        h('tr', {}, zeilen.map((t) => h('td', {}, h('span', { class: 'klein' }, t)))),
+        // Das Korrekturdatum steht im Feld der Zeile, die danach fragt, statt handschriftlich.
+        h('tr', {}, zeilen.map((t) => h('td', { class: 'feld' },
+          ka.korrekturdatum && /korrekturdatum/i.test(t) ? datumDeutsch(ka.korrekturdatum) : ' '))))),
     );
   }
 

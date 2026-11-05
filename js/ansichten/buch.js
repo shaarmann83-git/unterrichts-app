@@ -11,7 +11,8 @@ import {
   excelImportieren,
   dateiSchliessen,
 } from '../aktionen.js';
-import { dateiOeffnen, herunterladen } from '../speicher.js';
+import { dateiOeffnen, herunterladen, dateiWaehlen } from '../speicher.js';
+import { kopfbildAus } from '../foto.js';
 import { ausDateitext, istVerschluesselt } from '../krypto.js';
 import { passwortFrage } from '../ui.js';
 import { alleAlsExcel } from '../excel.js';
@@ -75,6 +76,29 @@ export async function klasseAusAndererDateiUebernehmen() {
   K.aenderung();
   K.neuZeichnen();
   toast('Klasse übernommen.');
+}
+
+/** Kopfbilder für den Ausdruck wählen, ansehen und entfernen. */
+function kopfbilderReihe(buch) {
+  const dr = (buch.einstellungen.druck ||= { kopfLinks: '', kopfRechts: '' });
+  const feld = (schluessel, text) => {
+    const bild = dr[schluessel]
+      ? h('img', { src: dr[schluessel], alt: '', style: 'max-height:60px;max-width:180px;vertical-align:middle' })
+      : h('span', { class: 'klein' }, 'kein Bild');
+    return h('div', { class: 'knopfreihe' },
+      h('span', {}, `${text}: `), bild,
+      h('button', { type: 'button', class: 'knopf klein', onclick: async () => {
+        const datei = await dateiWaehlen('image/*');
+        if (!datei) return;
+        const url = await kopfbildAus(datei);
+        if (!url) return;
+        dr[schluessel] = url;
+        K.aenderung();
+        K.neuZeichnen();
+      } }, dr[schluessel] ? 'Bild ersetzen' : 'Bild wählen'),
+      dr[schluessel] && h('button', { type: 'button', class: 'knopf klein gefahr', onclick: () => { dr[schluessel] = ''; K.aenderung(); K.neuZeichnen(); } }, 'Entfernen'));
+  };
+  return h('div', {}, feld('kopfLinks', 'Links'), feld('kopfRechts', 'Rechts'));
 }
 
 export function zeigeBuch() {
@@ -175,6 +199,9 @@ export function zeigeBuch() {
       } }, 'Alles als Excel exportieren'),
     ),
     h('p', { class: 'klein' }, 'Excel-Export enthält keine Fotos. Die Sicherung ist eine vollständige Notendatei.'),
+    h('h2', {}, 'Kopfbilder für den Ausdruck'),
+    h('p', { class: 'klein' }, 'Diese Bilder stehen oben auf dem Protokoll zur Klassenarbeit, links und rechts. Nutzen Sie dafür Ihr Schullogo oder ein Foto. Die Bilder werden auf höchstens 600 × 180 Punkte verkleinert und in der Notendatei gespeichert.'),
+    kopfbilderReihe(buch),
     h('h2', {}, 'Passwort'),
     passwortZeile,
     h('div', { class: 'knopfreihe' },

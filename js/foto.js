@@ -71,6 +71,30 @@ function bildLaden(datei) {
 }
 
 /** Datei wählen (oder Kamera) und zuschneiden. Gibt ein JPEG-data-URL zurück oder null. */
+/**
+ * Kopfbild für den Ausdruck: Seitenverhältnis bleibt, Breite höchstens `maxBreite`.
+ * Liefert ein data-URL (PNG, damit Logos mit klaren Kanten sauber bleiben).
+ */
+export async function kopfbildAus(datei, maxBreite = 600, maxHoehe = 180) {
+  let bild;
+  try {
+    bild = await bildLaden(datei);
+  } catch (e) {
+    await meldung('Bild nicht möglich', e.message);
+    return null;
+  }
+  const f = Math.min(1, maxBreite / bild.naturalWidth, maxHoehe / bild.naturalHeight);
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(bild.naturalWidth * f));
+  c.height = Math.max(1, Math.round(bild.naturalHeight * f));
+  const g = c.getContext('2d');
+  g.drawImage(bild, 0, 0, c.width, c.height);
+  const png = c.toDataURL('image/png');
+  // Fotos werden als JPEG kleiner; das kleinere von beiden nehmen.
+  const jpg = c.toDataURL('image/jpeg', 0.85);
+  return jpg.length < png.length ? jpg : png;
+}
+
 // Zuletzt geöffnetes Bild dieser Sitzung. Bei Gruppenfotos muss dieselbe Datei
 // sonst für jede Person erneut ausgewählt werden. Wird beim Schließen der Datei verworfen.
 let letztesBild = null;

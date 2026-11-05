@@ -227,6 +227,20 @@ export const UNTERSCHRIFTEN_STANDARD = [
   'Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)',
 ];
 
+/** Zusatzzeile, die nur bei Personen mit Ausbildungsbetrieb gedruckt wird. */
+export const UNTERSCHRIFT_MIT_BETRIEB = 'Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)';
+/** Zusatzzeile, die nur bei Personen ohne Ausbildungsbetrieb gedruckt wird. */
+export const UNTERSCHRIFT_OHNE_BETRIEB = 'Unterschrift Erziehungsberechtigte(r) (bei Minderjährigen)';
+
+/** Unterschriftszeilen für eine bestimmte Person: feste Zeilen plus passende Zusatzzeile. */
+export function unterschriftenFuer(klasse, person) {
+  const fest = (klasse.unterschriften || []).map((t) => String(t).trim()).filter(Boolean);
+  const hatBetrieb = !!String(person?.betrieb?.name || '').trim();
+  const zusatz = hatBetrieb ? klasse.unterschriftMitBetrieb : klasse.unterschriftOhneBetrieb;
+  const z = String(zusatz || '').trim();
+  return z ? [...fest, z] : fest;
+}
+
 /**
  * Zeile „<Bezeichnung> <Nr>: <Text>“ für Ausdruck und Übersichten.
  * `fachLabel` ist frei, z. B. „Lernfeld“ oder „Fach“; ohne Nummer entfällt sie.
@@ -243,7 +257,9 @@ export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', sch
   return {
     id: neueId(),
     kopf: { klasse, lernfeldNr, lernfeldBez, schuljahr, fachLabel },
-    unterschriften: [...UNTERSCHRIFTEN_STANDARD],
+    unterschriften: [UNTERSCHRIFTEN_STANDARD[0]],
+    unterschriftMitBetrieb: UNTERSCHRIFT_MIT_BETRIEB,
+    unterschriftOhneBetrieb: UNTERSCHRIFT_OHNE_BETRIEB,
     // Notenschlüssel je Klasse, damit Berufsschule (Noten) und berufliches Gymnasium (Punkte) nebeneinander möglich sind.
     notensystem: 'noten', // 'noten' = 1 bis 6, 'punkte' = 0 bis 15
     notengrenzen: [...NOTENGRENZEN_STANDARD],
@@ -275,7 +291,12 @@ export function neuesBuch(ersteKlasse = null, schuljahr = '') {
     dokumentId: neueId(),
     gespeichertAm: '',
     schuljahr: schuljahr || '',
-    einstellungen: { untisOrdnerAutomatisch: false, untisDateien: [], sport: sportStandard(), stundenplan: { zuordnung: {}, letzterImport: '' } },
+    einstellungen: {
+      untisOrdnerAutomatisch: false, untisDateien: [], sport: sportStandard(),
+      stundenplan: { zuordnung: {}, letzterImport: '' },
+      // Kopfbilder für den Ausdruck (z. B. Schulfoto links, Logo rechts). Von der Nutzerin hochgeladen.
+      druck: { kopfLinks: '', kopfRechts: '' },
+    },
     klassen: ersteKlasse ? [ersteKlasse] : [],
   };
 }
@@ -287,6 +308,16 @@ export function pruefeKlasse(k) {
   for (const f of ['klasse', 'lernfeldNr', 'lernfeldBez', 'schuljahr']) k.kopf[f] ??= '';
   k.kopf.fachLabel ||= 'Lernfeld';
   if (!Array.isArray(k.unterschriften)) k.unterschriften = [...UNTERSCHRIFTEN_STANDARD];
+  if (k.unterschriftMitBetrieb === undefined && k.unterschriftOhneBetrieb === undefined
+    && k.unterschriften.length === 2 && k.unterschriften[1] === UNTERSCHRIFTEN_STANDARD[1]) {
+    // Unveränderte Vorgabe: feste Ausbilder-Zeile wird zur Zusatzzeile, damit sie nur bei
+    // Personen mit Ausbildungsbetrieb erscheint. Von Hand geänderte Zeilen bleiben unberührt.
+    k.unterschriften = [k.unterschriften[0]];
+    k.unterschriftMitBetrieb = UNTERSCHRIFT_MIT_BETRIEB;
+    k.unterschriftOhneBetrieb = UNTERSCHRIFT_OHNE_BETRIEB;
+  }
+  k.unterschriftMitBetrieb ??= '';
+  k.unterschriftOhneBetrieb ??= '';
   k.notensystem ||= 'noten';
   if (!Array.isArray(k.notengrenzen) || k.notengrenzen.length !== 5) k.notengrenzen = [...NOTENGRENZEN_STANDARD];
   if (!Array.isArray(k.punktegrenzen) || k.punktegrenzen.length !== 15) k.punktegrenzen = [...PUNKTEGRENZEN_STANDARD];

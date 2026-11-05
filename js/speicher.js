@@ -231,6 +231,18 @@ export async function ordnerHandleLoeschen(name) {
 }
 
 /** Mehrere Dateien wählen (z. B. beide Untis-Berichte). Gibt [{text: ArrayBuffer, name}] zurück, leer bei Abbruch. */
+/** Eine Datei auswählen und als File liefern (null bei Abbruch). */
+export function dateiWaehlen(accept) {
+  return new Promise((resolve) => {
+    const eingabe = document.createElement('input');
+    eingabe.type = 'file';
+    eingabe.accept = accept;
+    eingabe.addEventListener('change', () => resolve(eingabe.files[0] || null));
+    eingabe.addEventListener('cancel', () => resolve(null));
+    eingabe.click();
+  });
+}
+
 export function dateienAlsBytes(accept) {
   return new Promise((resolve, reject) => {
     const eingabe = document.createElement('input');

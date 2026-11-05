@@ -1,6 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, fuege, inhaltDialog, avatar, spaltenDialog, meldung, toast, auswahlMitFreitext } from '../ui.js';
-import { neuerSchueler, aktiveSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD, UNTERSCHRIFT_VORLAGEN, BEZEICHNUNGEN } from '../modell.js';
+import { neuerSchueler, aktiveSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD, UNTERSCHRIFT_VORLAGEN, BEZEICHNUNGEN, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB } from '../modell.js';
 import { istVolljaehrig, zahlLesen, NOTENGRENZEN_STANDARD, PUNKTEGRENZEN_STANDARD } from '../rechnen.js';
 import { passwortSetzen, passwortEntfernen, speichern, passwortFuerFotosSicherstellen } from '../aktionen.js';
 import { kannDirektSpeichern, dateiAlsBytes } from '../speicher.js';
@@ -412,7 +412,7 @@ export function zeigeGrunddaten() {
         h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.punktegrenzen = [...PUNKTEGRENZEN_STANDARD]; K.aenderung(); K.neuZeichnen(); } }, 'Standard wiederherstellen')),
     ),
     d.fachtyp !== 'sport' && h('h2', {}, 'Unterschriftszeilen im Ausdruck'),
-    d.fachtyp !== 'sport' && h('p', { class: 'klein' }, 'Diese Zeilen stehen unter dem Protokoll zur Klassenarbeit. Leere Zeilen werden nicht gedruckt. Beispiel für Schüler:innen ohne Ausbildung: „Unterschrift Erziehungsberechtigte(r) (unter 18)“.'),
+    d.fachtyp !== 'sport' && h('p', { class: 'klein' }, 'Diese Zeilen stehen unter dem Protokoll zur Klassenarbeit. Leere Zeilen werden nicht gedruckt. Die beiden Zusatzzeilen weiter unten erscheinen je nachdem, ob bei der Person ein Ausbildungsbetrieb eingetragen ist.'),
     d.fachtyp !== 'sport' && h('div', { class: 'formular' },
       (d.unterschriften || []).map((t, i) => {
         const feld = h('input', { type: 'text', value: t, 'aria-label': `Unterschriftszeile ${i + 1}`, oninput: (e) => { d.unterschriften[i] = e.target.value; K.aenderung(); } });
@@ -426,6 +426,16 @@ export function zeigeGrunddaten() {
         } }, [h('option', { value: '' }, 'Vorlage wählen …'), ...UNTERSCHRIFT_VORLAGEN.map((v) => h('option', { value: v }, v))]);
         return h('label', { class: 'breit' }, `Zeile ${i + 1}`, h('div', { class: 'zeile-mit-vorlage' }, feld, vorlage));
       }),
+      h('label', { class: 'breit' }, 'Zusatzzeile nur mit Ausbildungsbetrieb',
+        h('div', { class: 'zeile-mit-vorlage' },
+          h('input', { type: 'text', value: d.unterschriftMitBetrieb || '', placeholder: 'leer lassen = keine Zusatzzeile', 'aria-label': 'Zusatzzeile mit Ausbildungsbetrieb',
+            oninput: (e) => { d.unterschriftMitBetrieb = e.target.value; K.aenderung(); } }),
+          h('button', { type: 'button', class: 'knopf klein', onclick: (e) => { const i = e.target.closest('div').querySelector('input'); i.value = UNTERSCHRIFT_MIT_BETRIEB; d.unterschriftMitBetrieb = i.value; K.aenderung(); } }, 'Vorschlag'))),
+      h('label', { class: 'breit' }, 'Zusatzzeile nur ohne Ausbildungsbetrieb',
+        h('div', { class: 'zeile-mit-vorlage' },
+          h('input', { type: 'text', value: d.unterschriftOhneBetrieb || '', placeholder: 'leer lassen = keine Zusatzzeile', 'aria-label': 'Zusatzzeile ohne Ausbildungsbetrieb',
+            oninput: (e) => { d.unterschriftOhneBetrieb = e.target.value; K.aenderung(); } }),
+          h('button', { type: 'button', class: 'knopf klein', onclick: (e) => { const i = e.target.closest('div').querySelector('input'); i.value = UNTERSCHRIFT_OHNE_BETRIEB; d.unterschriftOhneBetrieb = i.value; K.aenderung(); } }, 'Vorschlag'))),
       h('div', { class: 'knopfreihe' },
         h('button', { type: 'button', class: 'knopf klein', onclick: () => { (d.unterschriften ||= []).push(''); K.aenderung(); K.neuZeichnen(); } }, '+ Zeile'),
         (d.unterschriften || []).length > 0 && h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.unterschriften.pop(); K.aenderung(); K.neuZeichnen(); } }, 'Letzte Zeile entfernen'),

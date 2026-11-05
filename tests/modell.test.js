@@ -4,6 +4,7 @@ import {
   neueKlasse, neuesBuch, pruefeBuch, pruefeKlasse, klasseKopieren, aktiveSchueler, archivierteSchueler, fachZeile, UNTERSCHRIFTEN_STANDARD,
   neuerTermin, neueDaltonAufgabe, buchHatFotos, dateiname, FORMAT_VERSION,
   neueKlassenarbeit, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht,
+  unterschriftenFuer, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB,
 } from '../js/modell.js';
 import { ausDateitext, inDateitext } from '../js/krypto.js';
 import { gesamtPerson, ergebnisKA, notenspiegel } from '../js/rechnen.js';
@@ -130,7 +131,7 @@ test('Leeres Notenbuch: Dateiname nach Schuljahr, Klassen später im Notenbuch',
 test('Bezeichnung und Unterschriftszeilen je Klasse frei wählbar', () => {
   const lf = neueKlasse({ klasse: 'WKM1-2', lernfeldNr: '2', lernfeldBez: 'Arbeitsraum', schuljahr: '2026/27' });
   assert.equal(fachZeile(lf.kopf), 'Lernfeld 2: Arbeitsraum');
-  assert.deepEqual(lf.unterschriften, UNTERSCHRIFTEN_STANDARD);
+  assert.deepEqual(lf.unterschriften, [UNTERSCHRIFTEN_STANDARD[0]]);
 
   const pol = neueKlasse({ klasse: 'BRC13GA01', fachLabel: 'Fach', lernfeldBez: 'Politik', schuljahr: '2026/27' });
   assert.equal(fachZeile(pol.kopf), 'Fach: Politik');
@@ -146,7 +147,19 @@ test('Bezeichnung und Unterschriftszeilen je Klasse frei wählbar', () => {
   const alt = { id: 'a', kopf: { klasse: 'Alt', lernfeldNr: '3', lernfeldBez: 'Test', schuljahr: '2025/26' } };
   const ergaenzt = pruefeKlasse(alt);
   assert.equal(ergaenzt.kopf.fachLabel, 'Lernfeld');
-  assert.deepEqual(ergaenzt.unterschriften, UNTERSCHRIFTEN_STANDARD);
+  assert.deepEqual(ergaenzt.unterschriften, [UNTERSCHRIFTEN_STANDARD[0]]);
+
+  // Ältere Klasse mit unveränderter Vorgabe: die Ausbilder-Zeile wird zur Zusatzzeile.
+  const alt2 = { id: 'b', kopf: {}, unterschriften: [...UNTERSCHRIFTEN_STANDARD] };
+  const um = pruefeKlasse(alt2);
+  assert.deepEqual(um.unterschriften, [UNTERSCHRIFTEN_STANDARD[0]]);
+  assert.equal(um.unterschriftMitBetrieb, UNTERSCHRIFT_MIT_BETRIEB);
+  assert.equal(um.unterschriftOhneBetrieb, UNTERSCHRIFT_OHNE_BETRIEB);
+
+  // Von Hand geänderte Zeilen bleiben unberührt.
+  const eigen = pruefeKlasse({ id: 'c', kopf: {}, unterschriften: ['Eigene Zeile'] });
+  assert.deepEqual(eigen.unterschriften, ['Eigene Zeile']);
+  assert.equal(eigen.unterschriftMitBetrieb, '');
 });
 
 test('Teilaufgaben: Teile je Aufgabe, Beschriftungen und Zwischensummen', () => {
@@ -187,4 +200,24 @@ test('Teilaufgaben: Teile je Aufgabe, Beschriftungen und Zwischensummen', () => 
   assert.deepEqual(k.teile, [2, 1, 1]);
   assert.equal(k.teilaufgaben, true);
   assert.equal(k.bezeichnungen, undefined);
+});
+
+test('Unterschriftszeilen je nach Ausbildungsbetrieb', () => {
+  const k = neueKlasse({ klasse: 'WKM1-2' });
+  k.unterschriften = ['Korrekturdatum und Unterschrift der Lehrkraft'];
+  k.unterschriftMitBetrieb = UNTERSCHRIFT_MIT_BETRIEB;
+  k.unterschriftOhneBetrieb = UNTERSCHRIFT_OHNE_BETRIEB;
+
+  const mit = { id: 'a', betrieb: { name: 'Muster GmbH' } };
+  const ohne = { id: 'b', betrieb: { name: '' } };
+  assert.deepEqual(unterschriftenFuer(k, mit), ['Korrekturdatum und Unterschrift der Lehrkraft', UNTERSCHRIFT_MIT_BETRIEB]);
+  assert.deepEqual(unterschriftenFuer(k, ohne), ['Korrekturdatum und Unterschrift der Lehrkraft', UNTERSCHRIFT_OHNE_BETRIEB]);
+
+  // Leere Zusatzzeile bedeutet: keine Zusatzzeile.
+  k.unterschriftOhneBetrieb = '';
+  assert.deepEqual(unterschriftenFuer(k, ohne), ['Korrekturdatum und Unterschrift der Lehrkraft']);
+
+  // Leere feste Zeilen werden weggelassen.
+  k.unterschriften = ['', '  ', 'Lehrkraft'];
+  assert.deepEqual(unterschriftenFuer(k, ohne), ['Lehrkraft']);
 });
