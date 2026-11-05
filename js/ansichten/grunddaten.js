@@ -1,6 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, fuege, inhaltDialog, avatar, spaltenDialog, meldung, toast } from '../ui.js';
-import { neuerSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD } from '../modell.js';
+import { neuerSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD, UNTERSCHRIFT_VORLAGEN } from '../modell.js';
 import { istVolljaehrig, zahlLesen, NOTENGRENZEN_STANDARD, PUNKTEGRENZEN_STANDARD } from '../rechnen.js';
 import { passwortSetzen, passwortEntfernen, speichern, passwortFuerFotosSicherstellen } from '../aktionen.js';
 import { kannDirektSpeichern, dateiAlsBytes } from '../speicher.js';
@@ -393,8 +393,18 @@ export function zeigeGrunddaten() {
     d.fachtyp !== 'sport' && h('h2', {}, 'Unterschriftszeilen im Ausdruck'),
     d.fachtyp !== 'sport' && h('p', { class: 'klein' }, 'Diese Zeilen stehen unter dem Protokoll zur Klassenarbeit. Leere Zeilen werden nicht gedruckt. Beispiel für Schüler:innen ohne Ausbildung: „Unterschrift Erziehungsberechtigte(r) (unter 18)“.'),
     d.fachtyp !== 'sport' && h('div', { class: 'formular' },
-      (d.unterschriften || []).map((t, i) => h('label', { class: 'breit' }, `Zeile ${i + 1}`,
-        h('input', { type: 'text', value: t, 'aria-label': `Unterschriftszeile ${i + 1}`, oninput: (e) => { d.unterschriften[i] = e.target.value; K.aenderung(); } }))),
+      (d.unterschriften || []).map((t, i) => {
+        const feld = h('input', { type: 'text', value: t, 'aria-label': `Unterschriftszeile ${i + 1}`, oninput: (e) => { d.unterschriften[i] = e.target.value; K.aenderung(); } });
+        // Vorlage wählen füllt das Textfeld; danach lässt es sich weiter ändern.
+        const vorlage = h('select', { 'aria-label': `Vorlage für Zeile ${i + 1}`, onchange: (e) => {
+          if (!e.target.value) return;
+          feld.value = e.target.value;
+          d.unterschriften[i] = e.target.value;
+          K.aenderung();
+          e.target.value = '';
+        } }, [h('option', { value: '' }, 'Vorlage wählen …'), ...UNTERSCHRIFT_VORLAGEN.map((v) => h('option', { value: v }, v))]);
+        return h('label', { class: 'breit' }, `Zeile ${i + 1}`, h('div', { class: 'zeile-mit-vorlage' }, feld, vorlage));
+      }),
       h('div', { class: 'knopfreihe' },
         h('button', { type: 'button', class: 'knopf klein', onclick: () => { (d.unterschriften ||= []).push(''); K.aenderung(); K.neuZeichnen(); } }, '+ Zeile'),
         (d.unterschriften || []).length > 0 && h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.unterschriften.pop(); K.aenderung(); K.neuZeichnen(); } }, 'Letzte Zeile entfernen'),

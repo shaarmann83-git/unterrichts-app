@@ -255,3 +255,5 @@ input.bemerkung { min-width: 12rem; }
 .teile-reihe { align-items: center; flex-wrap: wrap; gap: 0.4rem; }
 .teile-feld { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.85em; }
 .teile-feld input { width: 3.2em; }
+.zeile-mit-vorlage { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+.zeile-mit-vorlage input { flex: 1 1 18rem; min-width: 12rem; }

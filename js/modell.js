@@ -207,6 +207,16 @@ export function neueListe(name, art) {
 }
 
 /** Neue, leere Klasse. */
+/** Auswahlbare Vorlagen für die Unterschriftszeilen. Freier Text bleibt immer möglich. */
+export const UNTERSCHRIFT_VORLAGEN = [
+  'Korrekturdatum und Unterschrift der Lehrkraft',
+  'Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)',
+  'Unterschrift Erziehungsberechtigte(r) (bei Minderjährigen)',
+  'Unterschrift Ausbildungsbetrieb',
+  'Unterschrift der Schülerin/des Schülers',
+  'Datum und Unterschrift, zur Kenntnis genommen',
+];
+
 /** Standardtexte der Unterschriftszeilen im Protokoll (SPEC 4). Je Klasse änderbar. */
 export const UNTERSCHRIFTEN_STANDARD = [
   'Korrekturdatum und Unterschrift der Lehrkraft',
