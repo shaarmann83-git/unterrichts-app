@@ -91,35 +91,68 @@ export function neueKlassenarbeit(aufgabenAnzahl = STANDARD_AUFGABEN) {
     schwerpunkte: '',
     gewicht: 1,
     aufgaben: Array.from({ length: aufgabenAnzahl }, () => null),
-    // Spaltenbeschriftungen, z. B. '1a', '1b', '1c', '2'. Gleiche führende Nummer = eine Aufgabe.
-    bezeichnungen: Array.from({ length: aufgabenAnzahl }, (_, i) => String(i + 1)),
+    // false: eine Spalte je Aufgabe. true: Teilaufgaben mit Summe je Aufgabe.
+    teilaufgaben: false,
+    // Anzahl der Teile je Aufgabe; die Summe entspricht immer der Zahl der Spalten.
+    teile: Array.from({ length: aufgabenAnzahl }, () => 1),
     ergebnisse: {},
     teilnahme: {},
   };
 }
 
-/** Gruppenschlüssel einer Spalte: die führende Nummer („1a“ -> „1“), sonst die Beschriftung selbst. */
-export function aufgabenGruppeSchluessel(bezeichnung) {
-  const t = String(bezeichnung ?? '').trim();
-  const m = t.match(/^(\d+)/);
-  return m ? m[1] : t;
-}
+const BUCHSTABEN = 'abcdefghijklmnopqrstuvwxyz';
 
 /**
  * Spalten einer Klassenarbeit zu Aufgaben zusammenfassen.
- * Rückgabe: [{ schluessel, indizes: [Spaltennummern], geteilt }] in der Reihenfolge der Spalten.
- * `geteilt` ist wahr, wenn die Aufgabe aus mehreren Teilaufgaben besteht.
+ * Rückgabe: [{ nr, schluessel, indizes, geteilt, namen }] in der Reihenfolge der Spalten.
+ * `geteilt` ist wahr, wenn die Aufgabe aus mehreren Teilaufgaben besteht; dann heißen die
+ * Spalten 1a, 1b, 1c, sonst einfach 1.
  */
 export function aufgabenGruppen(ka) {
+  const teile = aufgabenTeile(ka);
   const gruppen = [];
-  (ka.aufgaben || []).forEach((_, i) => {
-    const s = aufgabenGruppeSchluessel(ka.bezeichnungen?.[i] ?? String(i + 1));
-    const letzte = gruppen[gruppen.length - 1];
-    // Nur unmittelbar aufeinanderfolgende Spalten gehören zusammen.
-    if (letzte && letzte.schluessel === s) letzte.indizes.push(i);
-    else gruppen.push({ schluessel: s, indizes: [i] });
+  let i = 0;
+  teile.forEach((anzahl, g) => {
+    const indizes = [];
+    for (let k = 0; k < anzahl; k++) indizes.push(i++);
+    const nr = g + 1;
+    const geteilt = anzahl > 1;
+    gruppen.push({
+      nr,
+      schluessel: String(nr),
+      indizes,
+      geteilt,
+      namen: indizes.map((_, k) => (geteilt ? `${nr}${BUCHSTABEN[k] || k + 1}` : String(nr))),
+    });
   });
-  return gruppen.map((g) => ({ ...g, geteilt: g.indizes.length > 1 }));
+  return gruppen;
+}
+
+/** Teile je Aufgabe, immer passend zur Spaltenzahl. */
+export function aufgabenTeile(ka) {
+  const spalten = (ka.aufgaben || []).length;
+  const teile = Array.isArray(ka.teile) ? ka.teile.map((n) => Math.max(1, Math.round(Number(n) || 1))) : [];
+  const summe = teile.reduce((a, b) => a + b, 0);
+  if (summe === spalten && teile.length > 0) return teile;
+  if (summe < spalten) return [...teile, ...Array.from({ length: spalten - summe }, () => 1)];
+  // Zu viele Teile: von hinten kürzen, bis es passt.
+  const gekuerzt = [];
+  let rest = spalten;
+  for (const n of teile) {
+    if (rest <= 0) break;
+    gekuerzt.push(Math.min(n, rest));
+    rest -= Math.min(n, rest);
+  }
+  return gekuerzt.length ? gekuerzt : Array.from({ length: spalten }, () => 1);
+}
+
+/** Beschriftung einer Spalte, z. B. '1a' oder '2'. */
+export function spaltenName(ka, index) {
+  for (const g of aufgabenGruppen(ka)) {
+    const k = g.indizes.indexOf(index);
+    if (k >= 0) return g.namen[k];
+  }
+  return String(index + 1);
 }
 
 /** Summe der Höchstpunkte einer Aufgabe (Gruppe). */
@@ -325,10 +358,22 @@ export function pruefeKlasse(k) {
     ka.uhrzeitVon ??= '';
     ka.uhrzeitBis ??= '';
     ka.aufgaben ||= [];
-    if (!Array.isArray(ka.bezeichnungen)) ka.bezeichnungen = [];
-    // Fehlende oder überzählige Beschriftungen an die Aufgabenzahl angleichen.
-    ka.bezeichnungen.length = ka.aufgaben.length;
-    for (let i = 0; i < ka.aufgaben.length; i++) ka.bezeichnungen[i] ||= String(i + 1);
+    ka.teilaufgaben = !!ka.teilaufgaben;
+    // Ältere Dateien mit getippten Beschriftungen (1a, 1b, …) in Teile je Aufgabe umwandeln.
+    if (!Array.isArray(ka.teile) && Array.isArray(ka.bezeichnungen)) {
+      const teile = [];
+      let letzte = null;
+      ka.bezeichnungen.slice(0, ka.aufgaben.length).forEach((b, i) => {
+        const m = String(b ?? i + 1).trim().match(/^(\d+)/);
+        const s = m ? m[1] : String(b ?? i + 1);
+        if (s === letzte) teile[teile.length - 1] += 1;
+        else { teile.push(1); letzte = s; }
+      });
+      ka.teile = teile;
+      if (teile.some((n) => n > 1)) ka.teilaufgaben = true;
+    }
+    delete ka.bezeichnungen;
+    ka.teile = aufgabenTeile(ka);
     ka.ergebnisse ||= {};
     ka.teilnahme ||= {};
   }

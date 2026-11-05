@@ -1,6 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog } from '../ui.js';
-import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, gruppeHoechst, gruppeErreicht } from '../modell.js';
+import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht } from '../modell.js';
 import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege } from '../nachschreiben.js';
 import { untisListeLaden } from './fehlzeiten.js';
 import { eintraegeAb } from '../stundenplan.js';
@@ -58,7 +58,7 @@ export function zeigeKlassenarbeit(params) {
     gesamtAnzeige.textContent = formatKurz(gesamtpunkte(ka));
   });
 
-  const aufgabenAnzahl = h('span', {}, String(ka.aufgaben.length));
+  const aufgabenAnzahl = h('span', {}, String(aufgabenTeile(ka).length));
   const kopfFormular = h(
     'div',
     { class: 'formular' },
@@ -102,11 +102,55 @@ export function zeigeKlassenarbeit(params) {
     ),
   );
 
+  // Zwei Betriebsarten: eine Spalte je Aufgabe, oder Teilaufgaben mit Summe je Aufgabe.
+  const artWahl = h('select', { id: 'ka-aufgabenart', 'aria-label': 'Aufgaben erfassen', onchange: (ev) => {
+    ka.teilaufgaben = ev.target.value === 'teile';
+    if (!ka.teilaufgaben) ka.teile = ka.aufgaben.map(() => 1);
+    K.aenderung();
+    render();
+  } }, [['gesamt', 'Nur Gesamtpunkte je Aufgabe'], ['teile', 'Teilaufgaben mit Summe je Aufgabe']]
+    .map(([w, t]) => h('option', { value: w, selected: (ka.teilaufgaben ? 'teile' : 'gesamt') === w }, t)));
+
+  // Im Teilaufgaben-Modus: je Aufgabe die Zahl der Teile.
+  function teileFelder() {
+    if (!ka.teilaufgaben) return null;
+    const teile = aufgabenTeile(ka);
+    return h('div', { class: 'knopfreihe teile-reihe' },
+      h('span', { class: 'klein' }, 'Teile je Aufgabe:'),
+      teile.map((anzahl, g) => h('label', { class: 'teile-feld' }, `${g + 1}`, h('input', {
+        type: 'number', min: '1', max: '26', step: '1', class: 'punkte',
+        'aria-label': `Teile von Aufgabe ${g + 1}`,
+        value: String(anzahl),
+        onchange: (ev) => {
+          const neu = Math.max(1, Math.min(26, Math.round(Number(ev.target.value) || 1)));
+          const alt = teile[g];
+          if (neu === alt) return;
+          // Spalten der Aufgabe anpassen; Punkte der wegfallenden Spalten entfernen.
+          const start = teile.slice(0, g).reduce((a, b) => a + b, 0);
+          if (neu > alt) {
+            ka.aufgaben.splice(start + alt, 0, ...Array.from({ length: neu - alt }, () => null));
+            for (const e of Object.values(ka.ergebnisse)) e.punkte.splice(start + alt, 0, ...Array.from({ length: neu - alt }, () => null));
+          } else {
+            ka.aufgaben.splice(start + neu, alt - neu);
+            for (const e of Object.values(ka.ergebnisse)) e.punkte.splice(start + neu, alt - neu);
+          }
+          const t = [...teile];
+          t[g] = neu;
+          ka.teile = t;
+          K.aenderung();
+          render();
+        },
+      }))),
+      h('button', { type: 'button', class: 'knopf klein', onclick: () => { ka.aufgaben.push(null); ka.teile = [...aufgabenTeile(ka), 1]; K.aenderung(); render(); } }, '+ Aufgabe'),
+    );
+  }
+
   const aufgabenKnoepfe = h(
     'div',
     { class: 'knopfreihe' },
     h('span', {}, 'Aufgaben: ', aufgabenAnzahl, ' · Gesamtpunktzahl: ', gesamtAnzeige),
-    h('button', { type: 'button', class: 'knopf', onclick: () => { ka.aufgaben.push(null); ka.bezeichnungen.push(String(ka.aufgaben.length)); K.aenderung(); render(); } }, '+ Aufgabe'),
+    h('label', {}, 'Erfassen: ', artWahl),
+    h('button', { type: 'button', class: 'knopf', onclick: () => { ka.aufgaben.push(null); ka.teile = [...aufgabenTeile(ka).slice(0, -1), 1]; ka.teile = aufgabenTeile(ka); K.aenderung(); render(); } }, '+ Aufgabe'),
     h(
       'button',
       {
@@ -116,9 +160,9 @@ export function zeigeKlassenarbeit(params) {
         onclick: async () => {
           const letzte = ka.aufgaben.length - 1;
           const belegt = Object.values(ka.ergebnisse).some((e) => e.punkte?.[letzte] !== null && e.punkte?.[letzte] !== undefined && e.punkte?.[letzte] !== '');
-          if (belegt && !(await bestaetigen('Aufgabe entfernen', `Zu Aufgabe ${ka.bezeichnungen[letzte] || letzte + 1} sind schon Punkte eingetragen. Sie werden gelöscht.`, 'Entfernen', true))) return;
+          if (belegt && !(await bestaetigen('Aufgabe entfernen', `Zu Aufgabe ${spaltenName(ka, letzte)} sind schon Punkte eingetragen. Sie werden gelöscht.`, 'Entfernen', true))) return;
           ka.aufgaben.pop();
-          ka.bezeichnungen.pop();
+          ka.teile = aufgabenTeile(ka);
           for (const e of Object.values(ka.ergebnisse)) e.punkte.length = Math.min(e.punkte.length, ka.aufgaben.length);
           K.aenderung();
           render();
@@ -150,9 +194,10 @@ export function zeigeKlassenarbeit(params) {
     ),
   );
 
+  const teileBereich = h('div');
   const arbeitsflaeche = h('div', { class: 'arbeitsflaeche' });
   const spiegel = h('div', { class: 'notenspiegel' });
-  wurzel.append(kopfFormular, aufgabenKnoepfe, arbeitsflaeche, h('h2', {}, 'Notenspiegel'), spiegel);
+  wurzel.append(kopfFormular, aufgabenKnoepfe, teileBereich, arbeitsflaeche, h('h2', {}, 'Notenspiegel'), spiegel);
 
   async function nachgeschriebenFragen(s, e) {
     const t = ka.teilnahme[s.id];
@@ -181,7 +226,7 @@ export function zeigeKlassenarbeit(params) {
         inputmode: 'decimal',
         autocomplete: 'off',
         value: e.punkte[i] === null || e.punkte[i] === undefined ? '' : String(e.punkte[i]).replace('.', ','),
-        'aria-label': `${anzeigename(s)} Aufgabe ${ka.bezeichnungen?.[i] || i + 1}`,
+        'aria-label': `${anzeigename(s)} Aufgabe ${spaltenName(ka, i)}`,
         'data-sp': `a${i}`,
         class: 'punkte',
         oninput: (ev) => {
@@ -268,15 +313,8 @@ export function zeigeKlassenarbeit(params) {
       h('th', {}, 'Nr.'),
       h('th', { class: 'links' }, 'Name'),
       gruppen.flatMap((g) => [
-        ...g.indizes.map((i) => h('th', {}, h('input', {
-          type: 'text',
-          class: 'punkte aufgabe-name',
-          'aria-label': `Beschriftung Spalte ${i + 1}`,
-          value: ka.bezeichnungen[i] ?? String(i + 1),
-          oninput: (ev) => { ka.bezeichnungen[i] = ev.target.value; K.aenderung(); },
-          onchange: () => render(),
-        }))),
-        g.geteilt ? h('th', { class: 'gruppensumme', title: `Summe Aufgabe ${g.schluessel}` }, `∑ ${g.schluessel}`) : null,
+        ...g.indizes.map((_, k) => h('th', {}, g.geteilt ? g.namen[k] : `Aufg. ${g.nr}`)),
+        g.geteilt ? h('th', { class: 'gruppensumme', title: `Summe Aufgabe ${g.nr}` }, `∑ ${g.nr}`) : null,
       ]),
       ['∑', '%', 'Note', 'Attest', 'Teilnahme', 'Sonstiges'].map((t) => h('th', {}, t)),
     );
@@ -285,7 +323,7 @@ export function zeigeKlassenarbeit(params) {
         type: 'text',
         inputmode: 'decimal',
         class: 'punkte hoechst',
-        'aria-label': `Höchstpunktzahl Aufgabe ${ka.bezeichnungen?.[i] || i + 1}`,
+        'aria-label': `Höchstpunktzahl Aufgabe ${spaltenName(ka, i)}`,
         'data-sp': `a${i}`,
         value: max === null || max === undefined ? '' : String(max).replace('.', ','),
         oninput: (ev) => {
@@ -379,7 +417,7 @@ export function zeigeKlassenarbeit(params) {
         'div',
         { class: 'einzel-aufgaben' },
         ka.aufgaben.map((max, i) =>
-          h('label', {}, `Aufgabe ${ka.bezeichnungen[i] || i + 1} (max. ${max === null ? '?' : String(max).replace('.', ',')})`, c.punkteFelder[i]),
+          h('label', {}, `Aufgabe ${spaltenName(ka, i)} (max. ${max === null ? '?' : String(max).replace('.', ',')})`, c.punkteFelder[i]),
         ),
       ),
       h(
@@ -414,7 +452,10 @@ export function zeigeKlassenarbeit(params) {
     updater.length = 0;
     updater.push(() => { gesamtAnzeige.textContent = formatKurz(gesamtpunkte(ka)); });
     updater.push(spiegelZeichnen);
-    aufgabenAnzahl.textContent = String(ka.aufgaben.length);
+    aufgabenAnzahl.textContent = String(aufgabenTeile(ka).length);
+    leeren(teileBereich);
+    const tf = teileFelder();
+    if (tf) teileBereich.append(tf);
     leeren(arbeitsflaeche);
     const personen = aktiveSchueler(d);
     if (personen.length === 0) {

@@ -383,4 +383,9 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - **Unterschriftszeilen je Klasse frei** (Grunddaten). Standard sind die beiden bisherigen Zeilen; leere Zeilen werden nicht gedruckt. Beispiel für Vollzeitklassen: „Unterschrift Erziehungsberechtigte(r) (unter 18)“.
 - **Eigene Listen** (Strich-, Abhak-, Betragsliste) lassen sich über „Drucken / PDF speichern“ ausgeben.
 - **Offen:** Der Excel-Import erwartet weiterhin genau die Vorlage V4. Für andere Vorlagen fehlt eine freie Spaltenzuordnung.
-- **Teilaufgaben mit Zwischensumme.** Jede Spalte einer Klassenarbeit hat eine frei änderbare Beschriftung (Vorgabe 1, 2, 3 …). Spalten mit gleicher führender Nummer, die unmittelbar nebeneinander stehen, bilden eine Aufgabe, z. B. 1a, 1b, 1c. Für solche Aufgaben erscheint eine Σ-Spalte mit der Summe der Höchstpunkte und der erreichten Punkte. Die Gesamtpunktzahl bleibt die Summe aller Spalten, die Prozentrechnung ändert sich nicht. Prüffall: Höchstpunkte 5, 4, 6, 4, 13 ergeben für Aufgabe 1 fünfzehn Punkte und gesamt 32; Eingaben 4, 4, 3, 2, 10 ergeben für Aufgabe 1 elf Punkte, gesamt 23, also 71,8 % und Note 3.
+- **Teilaufgaben, zwei Betriebsarten je Klassenarbeit** (Auswahl „Erfassen“ über der Tabelle):
+  - *Nur Gesamtpunkte je Aufgabe* (Vorgabe): eine Spalte je Aufgabe, Überschriften „Aufg. 1“, „Aufg. 2“ …, keine Zwischensummen.
+  - *Teilaufgaben mit Summe je Aufgabe*: je Aufgabe ist die Zahl der Teile einstellbar (1 bis 26). Aufgaben mit mehreren Teilen bekommen die Spalten 1a, 1b, 1c und eine Σ-Spalte mit der Summe der Höchstpunkte und der erreichten Punkte. Aufgaben mit einem Teil bleiben eine einzelne Spalte ohne Σ.
+  - Beschriftungen werden immer erzeugt, nicht getippt. Gesamtpunktzahl und Prozentrechnung ändern sich in keiner der beiden Arten.
+  - Beim Zurückschalten auf „Nur Gesamtpunkte“ bleiben alle Spalten und Punkte erhalten; aus den Teilaufgaben werden einzelne Aufgaben.
+  - Prüffall: Teile 3, 1, 1 mit Höchstpunkten 5, 4, 6, 4, 13 ergeben für Aufgabe 1 fünfzehn Punkte und gesamt 32. Eingaben 4, 4, 3, 2, 10 ergeben für Aufgabe 1 elf Punkte, gesamt 23, also 71,8 % und Note 3.

@@ -18,7 +18,7 @@ function vollesBuch({ mitFoto = false } = {}) {
   a.bereiche.duales = true;
   p.betrieb = { name: 'Firma Eins', ansprechperson: 'Frau Muster', telefon: '0123', email: 'a@b.de', notiz: 'n' };
   a.klassenarbeiten[0].aufgaben = [10, 10];
-  a.klassenarbeiten[0].bezeichnungen = ['1', '2'];
+  a.klassenarbeiten[0].teile = [1, 1];
   a.klassenarbeiten[0].datum = '2025-10-15';
   a.klassenarbeiten[0].ergebnisse[p.id] = { punkte: [8, 7], attest: false, sonstiges: 'Gut' };
   a.klassenarbeiten[0].teilnahme[q.id] = { status: 'attest-offen', nachschreibtermin: '2025-11-05' };
