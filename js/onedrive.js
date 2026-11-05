@@ -167,6 +167,15 @@ function skriptLaden(src) {
 }
 
 /**
+ * Adresse, auf die Microsoft nach der Anmeldung zurückleitet. Immer mit index.html, egal ob die App über
+ * die Ordneradresse (Handy-Verknüpfung) oder über index.html (PC) gestartet wurde. So genügt ein Eintrag in Entra.
+ */
+export function weiterleitungsAdresse(loc = globalThis.location) {
+  const pfad = loc.pathname.endsWith('/') ? `${loc.pathname}index.html` : loc.pathname;
+  return loc.origin + pfad;
+}
+
+/**
  * Meldet mit dem dienstlichen Konto an (Popup) und liefert eine Funktion, die Zugriffstokens holt.
  * `einstellung`: { clientId, tenantId }. Nichts davon ist im Code fest verdrahtet.
  */
@@ -174,7 +183,7 @@ export async function anmelden({ clientId, tenantId, still = false }) {
   if (!clientId || !tenantId) throw new Error('Bitte zuerst Client-ID und Tenant-ID in den Einstellungen eintragen.');
   await skriptLaden('lib/msal-browser.min.js');
   const app = new globalThis.msal.PublicClientApplication({
-    auth: { clientId, authority: `https://login.microsoftonline.com/${tenantId}`, redirectUri: location.origin + location.pathname },
+    auth: { clientId, authority: `https://login.microsoftonline.com/${tenantId}`, redirectUri: weiterleitungsAdresse() },
     // localStorage: die Anmeldung übersteht das Schließen von Browser oder App (sessionStorage ging dabei verloren)
     cache: { cacheLocation: 'localStorage' },
   });

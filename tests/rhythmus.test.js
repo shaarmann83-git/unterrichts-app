@@ -123,3 +123,10 @@ test('Pausenspalten: Ferien, Feiertag und ausgefallene Stunde zwischen Unterrich
   k4.stundenplan = [eintrag('2027-05-10'), eintrag('2027-05-24')]; // Montage: Pfingstmontag 17.5.
   assert.equal(pausenSpalten(k4, ['2027-05-10', '2027-05-24']).get(1).some((x) => x.text === 'Pfingstmontag'), true);
 });
+
+import { weiterleitungsAdresse } from '../js/onedrive.js';
+test('Weiterleitungsadresse der Anmeldung ist immer die mit index.html', () => {
+  const o = 'https://shaarmann83-git.github.io';
+  assert.equal(weiterleitungsAdresse({ origin: o, pathname: '/unterrichts-app/' }), `${o}/unterrichts-app/index.html`);
+  assert.equal(weiterleitungsAdresse({ origin: o, pathname: '/unterrichts-app/index.html' }), `${o}/unterrichts-app/index.html`);
+});
