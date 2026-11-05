@@ -76,9 +76,12 @@ export function zeigeDruck() {
     return h(
       'article',
       { class: 'druckseite protokoll' },
-      (dr.kopfLinks || dr.kopfRechts) && h('div', { class: 'protokoll-kopfbilder' },
-        h('div', {}, dr.kopfLinks ? h('img', { src: dr.kopfLinks, alt: '' }) : ''),
-        h('div', { class: 'rechts' }, dr.kopfRechts ? h('img', { src: dr.kopfRechts, alt: '' }) : '')),
+      // Ein einzelnes Bild wird über die ganze Breite gezeigt, zwei Bilder links und rechts.
+      (dr.kopfLinks || dr.kopfRechts) && (dr.kopfLinks && dr.kopfRechts
+        ? h('div', { class: 'protokoll-kopfbilder' },
+          h('div', {}, h('img', { src: dr.kopfLinks, alt: '' })),
+          h('div', { class: 'rechts' }, h('img', { src: dr.kopfRechts, alt: '' })))
+        : h('div', { class: 'protokoll-kopfbild-voll' }, h('img', { src: dr.kopfLinks || dr.kopfRechts, alt: '' }))),
       h('table', { class: 'protokoll-tabelle kopf' }, h('colgroup', {}, h('col', { style: 'width:40%' }), h('col', { style: 'width:30%' }), h('col', { style: 'width:30%' })), h('tbody', {},
         h('tr', {},
           h('td', {}, h('strong', {}, 'Name: '), anzeigename(s)),

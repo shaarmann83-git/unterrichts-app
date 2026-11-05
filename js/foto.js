@@ -75,7 +75,7 @@ function bildLaden(datei) {
  * Kopfbild für den Ausdruck: Seitenverhältnis bleibt, Breite höchstens `maxBreite`.
  * Liefert ein data-URL (PNG, damit Logos mit klaren Kanten sauber bleiben).
  */
-export async function kopfbildAus(datei, maxBreite = 600, maxHoehe = 180) {
+export async function kopfbildAus(datei, maxBreite = 1200, maxHoehe = 260) {
   let bild;
   try {
     bild = await bildLaden(datei);

@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { zeichenVon, zeichenSetzen, termineVon } from '../js/ansichten/anwesenheit-lf.js';
 import {
   neueKlasse, neuesBuch, pruefeBuch, pruefeKlasse, klasseKopieren, aktiveSchueler, archivierteSchueler, fachZeile, UNTERSCHRIFTEN_STANDARD,
   neuerTermin, neueDaltonAufgabe, buchHatFotos, dateiname, FORMAT_VERSION,
   neueKlassenarbeit, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht,
-  unterschriftenFuer, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB,
+  unterschriftenFuer, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB, neuerSchueler,
 } from '../js/modell.js';
 import { ausDateitext, inDateitext } from '../js/krypto.js';
 import { gesamtPerson, ergebnisKA, notenspiegel } from '../js/rechnen.js';
@@ -220,4 +221,38 @@ test('Unterschriftszeilen je nach Ausbildungsbetrieb', () => {
   // Leere feste Zeilen werden weggelassen.
   k.unterschriften = ['', '  ', 'Lehrkraft'];
   assert.deepEqual(unterschriftenFuer(k, ohne), ['Lehrkraft']);
+});
+
+test('Anwesenheitsliste der Lernfeldklassen: Zeichen setzen und lesen', () => {
+  const k = neueKlasse({ klasse: 'WKM1-2' });
+  const s = neuerSchueler();
+  k.schueler.push(s);
+  const datum = '2026-11-05';
+
+  // Leer, solange nichts eingetragen ist.
+  assert.equal(zeichenVon(k, s.id, datum).zeichen, '');
+
+  // Entschuldigt setzen legt eine eigene Fehlzeit an.
+  zeichenSetzen(k, s.id, datum, 'E');
+  assert.equal(k.fehlzeiten.length, 1);
+  assert.equal(k.fehlzeiten[0].status, 'entschuldigt');
+  assert.equal(k.fehlzeiten[0].stundeEintrag, true);
+  assert.deepEqual(zeichenVon(k, s.id, datum), { zeichen: 'E', eigen: true, fremd: false });
+
+  // Umsetzen ändert den vorhandenen Eintrag, legt keinen zweiten an.
+  zeichenSetzen(k, s.id, datum, 'A');
+  assert.equal(k.fehlzeiten.length, 1);
+  assert.equal(zeichenVon(k, s.id, datum).zeichen, 'A');
+
+  // „anwesend“ entfernt den Eintrag wieder.
+  zeichenSetzen(k, s.id, datum, '.');
+  assert.equal(k.fehlzeiten.length, 0);
+
+  // Einträge aus Untis werden angezeigt, gelten aber als fremd.
+  k.fehlzeiten.push({ id: 'x', schuelerId: s.id, datum, datumBis: '', status: 'nicht', quelle: 'untis-b', zaehltNicht: false });
+  assert.deepEqual(zeichenVon(k, s.id, datum), { zeichen: 'U', eigen: false, fremd: true });
+
+  // Termine kommen aus den Stunden der sonstigen Leistung, nach Datum sortiert.
+  k.sonstige.push(neuerTermin('2026-11-10'), neuerTermin('2026-11-03'));
+  assert.deepEqual(termineVon(k).map((t) => t.datum), ['2026-11-03', '2026-11-10']);
 });

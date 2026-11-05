@@ -412,4 +412,15 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - **Sport**: zusätzlich zum Knopf „Alle übrigen anwesend“ gibt es „Alle anwesend“, der nach Rückfrage bei allen „anwesend“ setzt. Danach werden nur noch Abweichungen geändert.
 - **Dalton**: „Allen zuweisen“ bietet nur noch „abgegeben“, „nicht abgegeben“ und „leeren“. „Nicht abgegeben“ ergibt über die Zuordnung die Note 6; auf „entschuldigt“ lässt sich einzeln umstellen.
 - **Unterschriftszeilen** enthalten den Vermerk „(bei nicht mehr ausreichender Leistung!)“ jetzt auch bei den Erziehungsberechtigten. Der Vermerk steht im Ausdruck in einer zweiten, kleineren Zeile.
-- **Offen:** eigene Anwesenheitsliste je Stunde für Lernfeld-, Fach-, Kurs- und Lerngebietsklassen (wie im Sport: Anwesenheit und Stunde erfassen).
+### 12.3 Anwesenheitsliste für Lernfeld-, Fach-, Kurs- und Lerngebietsklassen
+
+- Eigener Reiter **„Anwesenheit“** vor den Klassenarbeiten, Aufbau wie im Sport: Personen als Zeilen, Stunden als Spalten.
+- Die Spalten sind dieselben Stunden wie unter „Sonstige Leistung“. Eine Stunde, die hier angelegt wird, steht auch dort, und umgekehrt.
+- Ein Klick auf eine Zelle wechselt der Reihe nach: anwesend (nichts eingetragen), E entschuldigt, A mit Attest, U nicht entschuldigt, O offen.
+- „Anwesend“ wird nicht gespeichert, es bedeutet schlicht, dass keine Fehlzeit vorliegt.
+- Je Spalte setzt ein Knopf nach Rückfrage alle Personen auf anwesend.
+- Fehlzeiten aus Untis werden grau hinterlegt angezeigt und sind hier nicht änderbar; dafür ist der Reiter „Fehlzeiten“ zuständig. Eigene Einträge haben Vorrang.
+- Die letzte Spalte zählt die Tage mit Fehlzeit.
+- Die Einträge sind dieselben Fehlzeiten wie überall sonst, sie schleifen also nach 12.1 auf Klassenarbeiten und sonstige Leistung durch.
+
+- **Kopfbilder**: Ist nur ein Bild hinterlegt, wird es über die ganze Breite gezeigt. Erst ein zweites Bild teilt den Kopf in links und rechts.

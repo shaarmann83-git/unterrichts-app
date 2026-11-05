@@ -11,5 +11,6 @@ import './sport-nachstunde.js';
 import './sport-pruefung.js';
 import './sport-reihen.js';
 import './sport-gesamt.js';
+import './anwesenheit-lf.js';
 import './besprechung.js';
 import './stundenplan.js';

@@ -98,7 +98,7 @@ function kopfbilderReihe(buch) {
       } }, dr[schluessel] ? 'Bild ersetzen' : 'Bild wählen'),
       dr[schluessel] && h('button', { type: 'button', class: 'knopf klein gefahr', onclick: () => { dr[schluessel] = ''; K.aenderung(); K.neuZeichnen(); } }, 'Entfernen'));
   };
-  return h('div', {}, feld('kopfLinks', 'Links'), feld('kopfRechts', 'Rechts'));
+  return h('div', {}, feld('kopfLinks', 'Erstes Bild (oder ganze Breite)'), feld('kopfRechts', 'Zweites Bild (rechts, optional)'));
 }
 
 export function zeigeBuch() {
@@ -200,7 +200,7 @@ export function zeigeBuch() {
     ),
     h('p', { class: 'klein' }, 'Excel-Export enthält keine Fotos. Die Sicherung ist eine vollständige Notendatei.'),
     h('h2', {}, 'Kopfbilder für den Ausdruck'),
-    h('p', { class: 'klein' }, 'Diese Bilder stehen oben auf dem Protokoll zur Klassenarbeit, links und rechts. Nutzen Sie dafür Ihr Schullogo oder ein Foto. Die Bilder werden auf höchstens 600 × 180 Punkte verkleinert und in der Notendatei gespeichert.'),
+    h('p', { class: 'klein' }, 'Diese Bilder stehen oben auf dem Protokoll zur Klassenarbeit. Haben Sie den Kopf als ein einziges Bild, genügt das erste Feld; es wird dann über die ganze Breite gezeigt. Zwei Bilder erscheinen links und rechts. Die Bilder werden verkleinert und in der Notendatei gespeichert.'),
     kopfbilderReihe(buch),
     h('h2', {}, 'Passwort'),
     passwortZeile,
