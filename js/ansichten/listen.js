@@ -45,8 +45,10 @@ export function zeigeListen() {
   }
   const personen = aktiveSchueler(d);
   wurzel.append(
-    h('div', { class: 'knopfreihe' },
+    h('h2', { class: 'nur-druck' }, `${l.name} · ${LISTEN_ARTEN[l.art]} · ${d.kopf.klasse || ''}`),
+    h('div', { class: 'knopfreihe nicht-drucken' },
       h('span', {}, `${LISTEN_ARTEN[l.art]}: `, h('strong', {}, l.name)),
+      h('button', { type: 'button', class: 'knopf', onclick: () => window.print() }, 'Drucken / PDF speichern'),
       h('button', { type: 'button', class: 'knopf', onclick: async () => {
         const n = h('input', { type: 'text', value: l.name });
         if (await inhaltDialog('Liste umbenennen', [h('label', {}, 'Name', n)], [{ text: 'Abbrechen', wert: false, abbruch: true }, { text: 'Speichern', wert: true, klasse: 'knopf primaer' }]) && n.value.trim()) { l.name = n.value.trim(); K.aenderung(); K.neuZeichnen(); }

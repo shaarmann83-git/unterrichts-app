@@ -238,7 +238,8 @@ input.bemerkung { min-width: 12rem; }
 @media print {
   body { background: #fff; color: #000; }
   .kopfleiste, .druck-steuerung, .toast, h1, .druck-seite > p, #navigation { display: none !important; }
-  body:not([data-ansicht="druck"]):not([data-ansicht="nachschreiben"]) main { display: none; }
+  body:not([data-ansicht="druck"]):not([data-ansicht="nachschreiben"]):not([data-ansicht="listen"]) main { display: none; }
+  body[data-ansicht="listen"] main button, body[data-ansicht="listen"] .reiter { display: none !important; }
   .nicht-drucken, .schutz-hinweis, .hinweisleiste { display: none !important; }
   .nur-druck { display: inline !important; }
   .nachschreibtermin { display: none; }
