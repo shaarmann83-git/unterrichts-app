@@ -43,7 +43,7 @@ export function zeigeAnwesenheit() {
   function zellenInhalt(btn, t, s, sps) {
     const e = d.sport.anwesenheit[t.id]?.[s.id];
     const z = e?.z || '';
-    btn.className = `zelle ${zeichenFarbe(z, sps.get(t.id) || 0)}`;
+    btn.className = `zelle ${zeichenFarbe(z, sps.get(t.id) || 0)}${z === '.' ? ' punkt' : ''}`;
     btn.textContent = z ? `${z}${z === 'V' && e.min ? e.min : ''}${e.stern ? '*' : ''}` : '';
     btn.title = [z && `${ZEICHEN[z]?.text || ''}`, e?.text].filter(Boolean).join(' · ');
     btn.setAttribute('aria-label', `${anzeigename(s)} ${datumDeutsch(t.datum)}: ${z || 'leer'}`);
@@ -111,13 +111,13 @@ export function zeigeAnwesenheit() {
     const kopf2 = h('tr', {}, termine.map((t) => h('th', { class: istPruefungstag(t, ein) ? 'pruef-tag' : 'pruef-leer', title: t.vermerk || '' }, istPruefungstag(t, ein) ? (t.vermerk && t.vermerk.length <= 3 ? t.vermerk : 'T') : '')));
     const kopf3 = h('tr', {}, termine.map((t) => h('th', { class: 'datum-kopf' },
       h('button', { type: 'button', class: 'datum-knopf', 'data-termin': t.id, title: `Termin bearbeiten${t.vermerk ? ': ' + t.vermerk : ''}`, onclick: async () => { await terminDialog(d, t); zeichnen(); } }, datumKurz(t.datum)),
-      h('button', { type: 'button', class: 'alle-da', 'data-termin': t.id, title: 'Alle übrigen anwesend (leere Zellen erhalten einen Punkt)', 'aria-label': `Alle übrigen anwesend am ${datumDeutsch(t.datum)}`, onclick: () => {
+      h('button', { type: 'button', class: 'alle-da', 'data-termin': t.id, title: 'Alle noch leeren Zellen dieses Tages auf anwesend setzen', 'aria-label': `Alle übrigen anwesend am ${datumDeutsch(t.datum)}`, onclick: () => {
         let n = 0;
         for (const p of personen) if (!anwesenheitZeichen(d, t.id, p.id)) { (d.sport.anwesenheit[t.id] ||= {})[p.id] = { z: '.', quelle: 'hand' }; n += 1; }
         if (n) K.aenderung();
         zeichnen();
         toast(n ? `${n} Zelle(n) auf „.“ gesetzt.` : 'Keine leeren Zellen.');
-      } }, '✓'))));
+      } }, 'Alle da'))));
     const tbody = h('tbody');
     personen.forEach((p, i) => {
       let offen = 0;

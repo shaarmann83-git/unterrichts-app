@@ -424,3 +424,9 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - Die Einträge sind dieselben Fehlzeiten wie überall sonst, sie schleifen also nach 12.1 auf Klassenarbeiten und sonstige Leistung durch.
 
 - **Kopfbilder**: Ist nur ein Bild hinterlegt, wird es über die ganze Breite gezeigt. Erst ein zweites Bild teilt den Kopf in links und rechts.
+
+
+### 12.4 Nachtrag
+- Anwesenheitsliste der Lernfeldklassen: Spalten sind alle Unterrichtstage aus dem importierten Stundenplan (ausgefallene ausgenommen) plus die Tage der sL-Stunden.
+- Sport-Raster: je Tag ein beschrifteter Knopf „Alle da“; der Punkt für anwesend wird groß und fett gezeigt.
+- „Notendatei öffnen“ ohne Dateityp-Filter (Android/iOS), damit .noten wählbar ist.

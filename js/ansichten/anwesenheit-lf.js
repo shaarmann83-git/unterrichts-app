@@ -63,11 +63,20 @@ export function zeichenSetzen(klasse, schuelerId, datum, zeichen) {
   });
 }
 
-/** Termine der Liste: die Stunden der sonstigen Leistung, nach Datum sortiert. */
+/**
+ * Spalten der Liste: alle Unterrichtstage der Klasse, nach Datum sortiert.
+ * Quellen sind der Stundenplan (wie im Sport) und die angelegten Stunden der sonstigen Leistung.
+ * Mehrere Stunden am selben Tag ergeben eine Spalte, weil Fehlzeiten tagesweise geführt werden.
+ */
 export function termineVon(klasse) {
-  return [...(klasse.sonstige || [])]
-    .filter((t) => t.datum)
-    .sort((a, b) => a.datum.localeCompare(b.datum));
+  const tage = new Map();
+  for (const e of klasse.stundenplan || []) {
+    if (e.status === 'ok' && e.datum) tage.set(e.datum, { datum: e.datum, quelle: 'stundenplan' });
+  }
+  for (const t of klasse.sonstige || []) {
+    if (t.datum) tage.set(t.datum, { datum: t.datum, quelle: 'stunde', name: t.name || '' });
+  }
+  return [...tage.values()].sort((a, b) => a.datum.localeCompare(b.datum));
 }
 
 function zeigeAnwesenheitLf() {
@@ -94,13 +103,13 @@ function zeigeAnwesenheitLf() {
           toast('Stunde für heute angelegt.');
         },
       }, '+ Stunde (heute)'),
-      h('span', { class: 'klein' }, 'Ein Klick wechselt der Reihe nach: anwesend, entschuldigt, mit Attest, nicht entschuldigt, offen.')));
+      h('span', { class: 'klein' }, `${termine.length} Unterrichtstag(e). Ein Klick wechselt der Reihe nach: anwesend, entschuldigt, mit Attest, nicht entschuldigt, offen.`)));
 
     if (personen.length === 0) {
       return inhalt.append(h('p', { class: 'hinweis' }, 'Bitte zuerst unter „Grunddaten“ Schüler:innen eintragen.'));
     }
     if (termine.length === 0) {
-      return inhalt.append(h('p', { class: 'hinweis' }, 'Noch keine Stunden. Legen Sie oben eine Stunde an oder tragen Sie unter „Sonstige Leistung“ eine ein. Die Stunden sind für beide Ansichten dieselben.'));
+      return inhalt.append(h('p', { class: 'hinweis' }, 'Noch keine Unterrichtstage. Laden Sie unter „Stundenplan“ den Plan aus Untis, dann erscheinen alle Termine dieser Klasse. Oder legen Sie oben eine einzelne Stunde an.'));
     }
 
     const kopf = h('tr', {}, h('th', { class: 'links' }, 'Name'),
@@ -125,6 +134,7 @@ function zeigeAnwesenheitLf() {
           feld.textContent = z.zeichen || '·';
           feld.classList.toggle('leer', !z.zeichen);
           feld.classList.toggle('fremd', z.fremd);
+          feld.classList.toggle('punkt', z.zeichen === '.');
           feld.title = `${anzeigename(s)}, ${datumDeutsch(t.datum)}: ${z.zeichen ? ANWESENHEIT_ZEICHEN[z.zeichen]?.text : 'nichts eingetragen'}`
             + (z.fremd ? ` (aus ${FZ_QUELLE[fremdEintraege(d, s.id, t.datum)[0]?.quelle] || 'Import'}, nicht änderbar)` : '');
           feld.setAttribute('aria-label', feld.title);

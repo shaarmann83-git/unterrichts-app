@@ -252,7 +252,13 @@ test('Anwesenheitsliste der Lernfeldklassen: Zeichen setzen und lesen', () => {
   k.fehlzeiten.push({ id: 'x', schuelerId: s.id, datum, datumBis: '', status: 'nicht', quelle: 'untis-b', zaehltNicht: false });
   assert.deepEqual(zeichenVon(k, s.id, datum), { zeichen: 'U', eigen: false, fremd: true });
 
-  // Termine kommen aus den Stunden der sonstigen Leistung, nach Datum sortiert.
+  // Spalten kommen aus dem Stundenplan und aus den angelegten Stunden, nach Datum sortiert.
   k.sonstige.push(neuerTermin('2026-11-10'), neuerTermin('2026-11-03'));
-  assert.deepEqual(termineVon(k).map((t) => t.datum), ['2026-11-03', '2026-11-10']);
+  k.stundenplan = [
+    { datum: '2026-11-03', status: 'ok' },   // selber Tag wie eine Stunde: nur eine Spalte
+    { datum: '2026-10-27', status: 'ok' },
+    { datum: '2026-11-17', status: 'ok' },
+    { datum: '2026-11-24', status: 'ausgefallen' }, // ausgefallene Stunden zählen nicht
+  ];
+  assert.deepEqual(termineVon(k).map((t) => t.datum), ['2026-10-27', '2026-11-03', '2026-11-10', '2026-11-17']);
 });

@@ -142,7 +142,8 @@ export async function dateiOeffnen() {
       throw e;
     }
   }
-  return dateiPerUpload('.noten,.json,application/json', (d) => d.text());
+  // Ohne Typfilter: Android und iOS blenden Dateien mit unbekannter Endung (.noten) sonst als nicht wählbar aus.
+  return dateiPerUpload('', (d) => d.text());
 }
 
 export async function dateiAlsBytes(endungen) {
@@ -153,7 +154,7 @@ function dateiPerUpload(accept, lesen) {
   return new Promise((resolve, reject) => {
     const eingabe = document.createElement('input');
     eingabe.type = 'file';
-    eingabe.accept = accept;
+    if (accept) eingabe.accept = accept;
     eingabe.addEventListener('change', async () => {
       const datei = eingabe.files[0];
       if (!datei) return resolve(null);
