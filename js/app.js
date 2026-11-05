@@ -23,6 +23,9 @@ ansichtRegistrieren('sl', { text: 'Sonstige Leistung', bauen: zeigeSonstige, kla
 ansichtRegistrieren('gesamt', { text: 'Gesamtübersicht', bauen: zeigeGesamt, klasse: true, reihe: 8, nurWenn: lernfeld });
 ansichtRegistrieren('druck', { text: 'Drucken', bauen: zeigeDruck, klasse: true, reihe: 10 });
 
+/** Steht in der Adresse die Antwort einer Microsoft-Anmeldung? */
+export const istAnmeldeAntwort = (hash = location.hash) => /^#(code|error|id_token|access_token|state)=/.test(hash);
+
 let aktuell = null; // {el, update}
 let autosaveTimer = null;
 
@@ -114,6 +117,8 @@ function statusZeichnen() {
 }
 
 function zeigeAnsicht() {
+  // Antwort der Microsoft-Anmeldung (#code=…): Adresse nicht anfassen, sonst findet MSAL die Antwort nicht mehr
+  if (istAnmeldeAntwort()) return;
   const [bereich, ...rest] = pfad();
   const def = ANSICHTEN[bereich];
   if (!def) {
