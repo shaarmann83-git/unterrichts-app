@@ -13,6 +13,7 @@ import {
   herunterladen,
 } from './speicher.js';
 import { importiereVorlage } from './excel.js';
+import { letztesBildVergessen } from './foto.js';
 import { h, meldung, bestaetigen, passwortFrage, auswahl, inhaltDialog, toast } from './ui.js';
 
 export function setzeDokument(buch, { passwort = '', handle = null, name = '', geaendert = false, ziel = 'buch', klasseId = null, pruefen = true } = {}) {
@@ -237,6 +238,7 @@ async function verwerfenErlaubt() {
 }
 
 export async function dateiSchliessen() {
+  letztesBildVergessen();
   if (!K.buch) return;
   if (!(await verwerfenErlaubt())) return;
   if (einstellungen().keineDatenBehalten) await arbeitskopieLoeschen(K.buch.dokumentId).catch(() => {});

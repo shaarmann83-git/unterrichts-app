@@ -38,7 +38,7 @@ export function deckt(ka, f) {
 
 const RANG = { 'attest-offen': 3, 'entschuldigung-offen': 2, 'ohne-attest': 1 };
 
-function vorschlagAusStatus(status, quelle) {
+export function vorschlagAusStatus(status, quelle) {
   if (status === 'attest') return 'attest-offen';
   // Format A kennt kein Attest: „entschuldigt“ heißt dort nur „Attest unbekannt“, also noch keine Entscheidung.
   if (status === 'entschuldigt' && quelle === 'untis-a') return 'entschuldigung-offen';
@@ -49,6 +49,33 @@ function vorschlagAusStatus(status, quelle) {
 /** Fehlzeiten einer Person, die den Termin der Klassenarbeit abdecken (ohne Einträge, die nicht zählen). */
 export function fehlzeitenAmTermin(klasse, ka, schuelerId) {
   return klasse.fehlzeiten.filter((f) => f.schuelerId === schuelerId && !f.zaehltNicht && deckt(ka, f));
+}
+
+/**
+ * Wirksamer Teilnahme-Status einer Person bei einer Klassenarbeit.
+ * Von Hand gesetzte Werte haben Vorrang. Sonst ergibt er sich aus den Fehlzeiten und
+ * ändert sich automatisch mit, wenn sich dort der Status ändert (SPEC 12.1).
+ * Rückgabe: { status, abgeleitet, fz } – `abgeleitet` ist wahr, wenn er aus den Fehlzeiten stammt.
+ */
+export function teilnahmeStatus(klasse, ka, schuelerId) {
+  const t = klasse.klassenarbeiten ? ka.teilnahme?.[schuelerId] : ka.teilnahme?.[schuelerId];
+  if (t?.manuell && t.status) return { status: t.status, abgeleitet: false, fz: null };
+  const treffer = fehlzeitenAmTermin(klasse, ka, schuelerId);
+  let beste = null;
+  for (const f of treffer) {
+    const v = vorschlagAusStatus(f.status, f.quelle);
+    if (!beste || RANG[v] > RANG[beste.v]) beste = { v, f };
+  }
+  if (beste) return { status: beste.v, abgeleitet: true, fz: beste.f };
+  if (t?.status) return { status: t.status, abgeleitet: false, fz: null };
+  return { status: 'mitgeschrieben', abgeleitet: false, fz: null };
+}
+
+/** Fehlzeiten einer Person an einem Datum (ohne Einträge, die nicht zählen). */
+export function fehlzeitenAmDatum(klasse, schuelerId, datum) {
+  if (!datum) return [];
+  return klasse.fehlzeiten.filter((f) => f.schuelerId === schuelerId && !f.zaehltNicht
+    && deckt({ datum, uhrzeitVon: '', uhrzeitBis: '' }, f));
 }
 
 function hatPunkte(ka, schuelerId) {
@@ -98,14 +125,15 @@ export function nachschreibListe(buch) {
     klasse.klassenarbeiten.forEach((ka, i) => {
       for (const person of aktiveSchueler(klasse)) {
         const t = ka.teilnahme?.[person.id];
-        if (!t) continue;
+        const wirksam = teilnahmeStatus(klasse, ka, person.id);
+        if (wirksam.status === 'mitgeschrieben' || wirksam.status === 'nicht-in-klasse') continue;
         const zeile = {
-          klasse, ka, kaNr: i + 1, person, name: anzeigename(person), termin: t.nachschreibtermin || '', status: t.status,
+          klasse, ka, kaNr: i + 1, person, name: anzeigename(person), termin: t?.nachschreibtermin || '', status: wirksam.status,
           art: 'Klassenarbeit', bezeichnung: `KA ${i + 1}`, datum: ka.datum,
           setTermin: (v) => { ka.teilnahme[person.id] = { ...ka.teilnahme[person.id], nachschreibtermin: v }; },
         };
-        if (t.status === 'attest-offen' && !hatPunkte(ka, person.id)) offen.push(zeile);
-        else if ((t.status === 'ohne-attest' || t.status === 'entschuldigung-offen') && !hatPunkte(ka, person.id)) entscheidung.push(zeile);
+        if (wirksam.status === 'attest-offen' && !hatPunkte(ka, person.id)) offen.push(zeile);
+        else if ((wirksam.status === 'ohne-attest' || wirksam.status === 'entschuldigung-offen') && !hatPunkte(ka, person.id)) entscheidung.push(zeile);
       }
     });
     // Sport: Nachprüfung (entschuldigtes Fehlen an allen Prüfungstagen einer Reihe, noch kein Prüfungswert; SPEC 9.4)

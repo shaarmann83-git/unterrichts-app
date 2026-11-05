@@ -71,6 +71,24 @@ function bildLaden(datei) {
 }
 
 /** Datei wählen (oder Kamera) und zuschneiden. Gibt ein JPEG-data-URL zurück oder null. */
+// Zuletzt geöffnetes Bild dieser Sitzung. Bei Gruppenfotos muss dieselbe Datei
+// sonst für jede Person erneut ausgewählt werden. Wird beim Schließen der Datei verworfen.
+let letztesBild = null;
+
+/** Gibt es ein Bild aus einem vorherigen Zuschnitt dieser Sitzung? */
+export const letztesBildVorhanden = () => !!letztesBild;
+
+/** Verwirft das gemerkte Bild (beim Schließen einer Notendatei). */
+export function letztesBildVergessen() {
+  letztesBild = null;
+}
+
+/** Zuschnitt aus dem zuletzt verwendeten Bild, ohne erneute Dateiauswahl. */
+export async function fotoAusLetztem() {
+  if (!letztesBild) return null;
+  return ausschnittWaehlen(letztesBild);
+}
+
 export async function fotoErstellen(datei) {
   let bild;
   try {
@@ -79,6 +97,11 @@ export async function fotoErstellen(datei) {
     await meldung('Foto nicht möglich', e.message);
     return null;
   }
+  letztesBild = bild;
+  return ausschnittWaehlen(bild);
+}
+
+async function ausschnittWaehlen(bild) {
   const b = bild.naturalWidth;
   const hh = bild.naturalHeight;
   const vorschau = document.createElement('canvas');
@@ -90,8 +113,9 @@ export async function fotoErstellen(datei) {
     return { el, label: h('label', {}, beschriftung, el) };
   };
   // Voreinstellung: das ganze Bild ist sichtbar, nichts wird abgeschnitten.
+  // Der große Zoombereich ist für Gruppenfotos nötig, aus denen ein Gesicht geschnitten wird.
   const start = ganzBildZoom(b, hh);
-  const zoom = regler('Zoom', 0.3, 4, start, 0.05);
+  const zoom = regler('Zoom', 0.3, 20, start, 0.05);
   const xs = regler('Ausschnitt links/rechts', -1, 1, 0, 0.05);
   const ys = regler('Ausschnitt oben/unten', -1, 1, 0, 0.05);
   const zeichnen = () => {
@@ -102,12 +126,48 @@ export async function fotoErstellen(datei) {
     g.drawImage(bild, a.sx, a.sy, a.seite, a.seite, 0, 0, 256, 256);
   };
   for (const r of [zoom, xs, ys]) r.el.addEventListener('input', zeichnen);
+
+  // Ausschnitt mit der Maus oder dem Finger verschieben und mit dem Mausrad zoomen.
+  vorschau.classList.add('ziehbar');
+  let zieht = null;
+  const schieben = (dx, dy) => {
+    const a = zuschnitt(b, hh, Number(zoom.el.value), 0, 0);
+    const spielX = Math.abs((b - a.seite) / 2);
+    const spielY = Math.abs((hh - a.seite) / 2);
+    const proPixel = a.seite / 256;
+    if (spielX > 0) xs.el.value = String(Math.min(1, Math.max(-1, Number(xs.el.value) - (dx * proPixel) / spielX)));
+    if (spielY > 0) ys.el.value = String(Math.min(1, Math.max(-1, Number(ys.el.value) - (dy * proPixel) / spielY)));
+    zeichnen();
+  };
+  vorschau.addEventListener('pointerdown', (ev) => {
+    zieht = { x: ev.clientX, y: ev.clientY };
+    vorschau.setPointerCapture(ev.pointerId);
+  });
+  vorschau.addEventListener('pointermove', (ev) => {
+    if (!zieht) return;
+    schieben(ev.clientX - zieht.x, ev.clientY - zieht.y);
+    zieht = { x: ev.clientX, y: ev.clientY };
+  });
+  const loslassen = (ev) => {
+    zieht = null;
+    try { vorschau.releasePointerCapture(ev.pointerId); } catch { /* schon freigegeben */ }
+  };
+  vorschau.addEventListener('pointerup', loslassen);
+  vorschau.addEventListener('pointercancel', loslassen);
+  vorschau.addEventListener('wheel', (ev) => {
+    ev.preventDefault();
+    const neu = Number(zoom.el.value) * (ev.deltaY < 0 ? 1.1 : 1 / 1.1);
+    zoom.el.value = String(Math.min(20, Math.max(0.3, neu)));
+    zeichnen();
+  }, { passive: false });
   zeichnen();
   const setzen = (z) => { zoom.el.value = String(z); xs.el.value = '0'; ys.el.value = '0'; zeichnen(); };
   const knoepfe = h('div', { class: 'knopfreihe' },
     h('button', { type: 'button', class: 'knopf klein', onclick: () => setzen(start) }, 'Ganzes Bild'),
     h('button', { type: 'button', class: 'knopf klein', onclick: () => setzen(1) }, 'Quadrat füllen'));
-  const ok = await inhaltDialog('Bildausschnitt wählen', [vorschau, knoepfe, zoom.label, xs.label, ys.label], [
+  const ok = await inhaltDialog('Bildausschnitt wählen', [
+    h('p', { class: 'klein' }, 'Bei einem Gruppenfoto: hineinzoomen und das Bild mit der Maus oder dem Finger verschieben, bis das Gesicht im Quadrat liegt.'),
+    vorschau, knoepfe, zoom.label, xs.label, ys.label], [
     { text: 'Abbrechen', wert: false, abbruch: true },
     { text: 'Foto übernehmen', wert: true, klasse: 'knopf primaer' },
   ]);

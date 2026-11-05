@@ -6,7 +6,8 @@ import { prozentSLKlasse, gesamtPerson, formatZahl, zahlLesen, istPunktsystem } 
 // Eingabebereich der sonstigen Leistung: Noten 1 bis 6 oder Notenpunkte 0 bis 15.
 const slMin = (d) => (istPunktsystem(d) ? 0 : 1);
 const slMax = (d) => (istPunktsystem(d) ? 15 : 6);
-import { FZ_STATUS } from '../fehlzeiten.js';
+import { FZ_STATUS, FZ_QUELLE } from '../fehlzeiten.js';
+import { fehlzeitenAmDatum } from '../nachschreiben.js';
 import { sichtbareListen, strichHinzu, strichZurueck, strichSumme, abhakSetzen, abhakErledigt } from '../listen.js';
 import { neueId } from '../modell.js';
 import { eintraegeAm } from '../stundenplan.js';
@@ -43,7 +44,15 @@ function extras(d, termin, s) {
     const f = d.fehlzeiten.find((x) => x.schuelerId === s.id && x.quelle === 'manuell' && x.datum === datum && x.stundeEintrag);
     if (f) { f.status = e.target.value; K.aenderung(); }
   } }, Object.entries(FZ_STATUS).map(([w, t]) => h('option', { value: w, selected: (fz?.status || 'offen') === w }, t)));
-  const teile = [h('label', { class: 'inline klein' }, 'Fehlstd.: ', std, ' ', statusWahl)];
+  // Hinweis, wenn für diesen Tag eine Fehlzeit vorliegt (auch aus Untis). Ändert sich dort etwas,
+  // ändert sich der Hinweis automatisch mit.
+  const alle = fehlzeitenAmDatum(d, s.id, datum);
+  const fremd = alle.filter((f) => !f.stundeEintrag);
+  const marke = fremd.length > 0
+    ? h('span', { class: 'klein fehlertext', title: fremd.map((f) => `${FZ_STATUS[f.status] || f.status} (${FZ_QUELLE[f.quelle] || f.quelle})`).join(', ') },
+      `gefehlt: ${FZ_STATUS[fremd[0].status] || fremd[0].status}`)
+    : null;
+  const teile = [marke, h('label', { class: 'inline klein' }, 'Fehlstd.: ', std, ' ', statusWahl)].filter(Boolean);
   for (const l of sichtbareListen(d)) {
     if (l.art === 'strich') {
       const zahl = h('span', { class: 'summe-klein' }, String(strichSumme(l, s.id)));

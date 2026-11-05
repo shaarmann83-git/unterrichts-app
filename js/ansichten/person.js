@@ -3,7 +3,7 @@ import { K } from '../kontext.js';
 import { h, bestaetigen, avatar, meldung, toast, leeren } from '../ui.js';
 import { aktiveSchueler, anzeigename, datumDeutsch, heuteIso } from '../modell.js';
 import { ergebnisKA, gesamtpunkte, gesamtPerson, formatZahl, formatKurz, NOTEN_WORTE, prozentSL, bewertungText } from '../rechnen.js';
-import { fotoErstellen } from '../foto.js';
+import { fotoErstellen, fotoAusLetztem, letztesBildVorhanden } from '../foto.js';
 import { passwortSetzen } from '../aktionen.js';
 import { ansichtRegistrieren } from '../registry.js';
 import { sportPersonAbschnitt } from './sport-person.js';
@@ -71,6 +71,15 @@ function fotoAbschnitt(d, s) {
       h('div', { class: 'knopfreihe' },
         h('button', { type: 'button', class: 'knopf', disabled: !s.fotoEinwilligung, id: 'foto-kamera', onclick: () => kameraEingabe.click() }, 'Foto aufnehmen'),
         h('button', { type: 'button', class: 'knopf', disabled: !s.fotoEinwilligung, id: 'foto-datei', onclick: () => dateiEingabe.click() }, 'Datei wählen'),
+        letztesBildVorhanden() && h('button', { type: 'button', class: 'knopf', disabled: !s.fotoEinwilligung, id: 'foto-wieder',
+          title: 'Dasselbe Bild wie zuletzt, nur ein anderer Ausschnitt. Praktisch bei Gruppenfotos.',
+          onclick: async () => {
+            const url = await fotoAusLetztem();
+            if (!url) return;
+            s.foto = { daten: url };
+            K.aenderung();
+            K.neuZeichnen();
+          } }, 'Gleiches Bild, anderer Ausschnitt'),
         s.foto && h('button', { type: 'button', class: 'knopf gefahr', id: 'foto-loeschen', onclick: async () => {
           if (await bestaetigen('Foto löschen', 'Das Foto wird aus dem Notenbuch gelöscht.', 'Löschen', true)) {
             s.foto = null;

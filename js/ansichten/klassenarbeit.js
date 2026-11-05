@@ -1,7 +1,7 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog } from '../ui.js';
 import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht } from '../modell.js';
-import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege } from '../nachschreiben.js';
+import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege, teilnahmeStatus } from '../nachschreiben.js';
 import { untisListeLaden } from './fehlzeiten.js';
 import { eintraegeAb } from '../stundenplan.js';
 import { vorschlaegeDialog } from './untis-dialog.js';
@@ -215,6 +215,9 @@ export function zeigeKlassenarbeit(params) {
     K.neuZeichnen();
   }
 
+  /** Wirksamer Teilnahme-Status: Handauswahl vor Ableitung aus den Fehlzeiten. */
+  const statusVon = (s) => teilnahmeStatus(d, ka, s.id);
+
   /** Hat die Person schon Punkte eingetragen? */
   const hatEintrag = (e) => (e.punkte || []).some((p) => p !== null && p !== undefined && p !== '');
 
@@ -265,30 +268,33 @@ export function zeigeKlassenarbeit(params) {
         K.aenderung();
       },
     });
+    const wirksam = statusVon(s);
     const teilnahme = h('select', {
       class: 'teilnahme',
       'aria-label': `${anzeigename(s)} Teilnahme`,
       onchange: (ev) => {
-        ka.teilnahme[s.id] = { ...(ka.teilnahme[s.id] || {}), status: ev.target.value };
+        ka.teilnahme[s.id] = { ...(ka.teilnahme[s.id] || {}), status: ev.target.value, manuell: true };
         if (ev.target.value === 'nachgeschrieben' && !ka.teilnahme[s.id].nachgeschriebenAm) ka.teilnahme[s.id].nachgeschriebenAm = heuteIso();
         K.aenderung();
         K.neuZeichnen();
       },
-    }, Object.entries(TEILNAHME).map(([w, t]) => h('option', { value: w, selected: (ka.teilnahme[s.id]?.status || 'mitgeschrieben') === w }, t)));
-    const nachDatum = ka.teilnahme[s.id]?.status === 'nachgeschrieben'
+    }, Object.entries(TEILNAHME).map(([w, t]) => h('option', { value: w, selected: wirksam.status === w }, t)));
+    const nachDatum = wirksam.status === 'nachgeschrieben'
       ? h('input', { type: 'date', class: 'nachgeschrieben', 'aria-label': `${anzeigename(s)} nachgeschrieben am`, value: ka.teilnahme[s.id].nachgeschriebenAm || '', onchange: (ev) => { ka.teilnahme[s.id].nachgeschriebenAm = ev.target.value; K.aenderung(); } })
       : null;
     // Hinweis laut Untis (nie automatisch gesetzt): Attest anbieten, nicht entschuldigt melden
     const hinweis = h('span', { class: 'untis-hinweis' });
     const treffer = fehlzeitenAmTermin(d, ka, s.id);
-    if (treffer.some((f) => f.status === 'attest') && !e.attest && ka.teilnahme[s.id]?.status !== 'attest-offen' && ka.teilnahme[s.id]?.status !== 'nachgeschrieben') {
+    if (treffer.some((f) => f.status === 'attest') && !e.attest && wirksam.status !== 'attest-offen' && wirksam.status !== 'nachgeschrieben') {
       hinweis.append(h('button', { type: 'button', class: 'knopf klein', title: 'Laut Untis entschuldigt mit Attest. Feld „Attest“ setzen?', onclick: () => { e.attest = true; K.aenderung(); K.neuZeichnen(); } }, 'Attest laut Untis: setzen'));
     } else if (treffer.some((f) => f.status === 'nicht')) {
       hinweis.append(h('span', { class: 'klein fehlertext', title: 'Laut Untis am Termin nicht entschuldigt' }, 'nicht entschuldigt (Untis)'));
     }
+    if (wirksam.abgeleitet) {
+      hinweis.append(h('span', { class: 'klein', title: 'Ergibt sich aus den Fehlzeiten und ändert sich dort automatisch mit. Eine eigene Auswahl hat Vorrang.' }, 'aus Fehlzeiten'));
+    }
     // Unentschuldigtes Fehlen von Hand werten: alle Aufgaben auf 0, das ergibt 0 % und die schlechteste Note.
-    const status = ka.teilnahme[s.id]?.status;
-    const ohneEntschuldigung = status === 'ohne-attest' || status === 'entschuldigung-offen';
+    const ohneEntschuldigung = wirksam.status === 'ohne-attest' || wirksam.status === 'entschuldigung-offen';
     if (ohneEntschuldigung && !e.attest && !hatEintrag(e)) {
       hinweis.append(h('button', { type: 'button', class: 'knopf klein', title: 'Alle Aufgaben auf 0 Punkte setzen', onclick: async () => {
         if (!(await bestaetigen('Mit 0 Punkten werten', `${anzeigename(s)} bekommt in allen Aufgaben 0 Punkte, also 0 %. Das lässt sich wieder ändern.`, 'Mit 0 werten'))) return;

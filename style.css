@@ -263,3 +263,5 @@ input.bemerkung { min-width: 12rem; }
 .versteckt { display: none !important; }
 .wahl-mit-text { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
 .wahl-mit-text input { flex: 1 1 10rem; min-width: 8rem; }
+.foto-vorschau.ziehbar { cursor: grab; touch-action: none; }
+.foto-vorschau.ziehbar:active { cursor: grabbing; }

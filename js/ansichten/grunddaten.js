@@ -1,6 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, fuege, inhaltDialog, avatar, spaltenDialog, meldung, toast, auswahlMitFreitext } from '../ui.js';
-import { neuerSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD, UNTERSCHRIFT_VORLAGEN, BEZEICHNUNGEN } from '../modell.js';
+import { neuerSchueler, aktiveSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD, UNTERSCHRIFT_VORLAGEN, BEZEICHNUNGEN } from '../modell.js';
 import { istVolljaehrig, zahlLesen, NOTENGRENZEN_STANDARD, PUNKTEGRENZEN_STANDARD } from '../rechnen.js';
 import { passwortSetzen, passwortEntfernen, speichern, passwortFuerFotosSicherstellen } from '../aktionen.js';
 import { kannDirektSpeichern, dateiAlsBytes } from '../speicher.js';
@@ -148,6 +148,14 @@ export function zeigeGrunddaten() {
             }
           }
           d.bereiche.fotos = true;
+          // Die Einwilligung wird im Vorfeld geklärt. Beim Einschalten einmal für alle eintragen,
+          // statt sie bei jeder Person einzeln anzuklicken.
+          const ohne = aktiveSchueler(d).filter((s) => !s.fotoEinwilligung);
+          if (ohne.length > 0 && await bestaetigen('Einwilligung eintragen',
+            `Liegt die Einwilligung für alle ${ohne.length} Personen dieser Klasse vor? Dann trage ich sie mit dem heutigen Datum ein. Wer kein Foto möchte, bekommt einfach keines.`,
+            'Ja, für alle eintragen')) {
+            for (const s of ohne) s.fotoEinwilligung = { datum: heuteIso() };
+          }
         } else if (d.schueler.some((s) => s.foto)) {
           const ja = await bestaetigen('Fotos ausschalten', 'Alle Fotos und Einwilligungen dieser Klasse werden gelöscht.', 'Fotos löschen', true);
           if (!ja) {
@@ -170,6 +178,14 @@ export function zeigeGrunddaten() {
       d.fachtyp !== 'sport' && d.dalton.modus === 'einrechnen' && h('label', {}, 'Anteil an der sonstigen Leistung in %', anteil),
       h('label', { class: 'schalter' }, duales, ' Duales System (Ausbildungsbetrieb je Person)'),
       h('label', { class: 'schalter' }, fotos, ' Fotos'),
+      d.bereiche.fotos && h('button', { type: 'button', class: 'knopf klein', title: 'Nützlich nach dem Import einer Schülerliste', onclick: async () => {
+        const ohne = aktiveSchueler(d).filter((s) => !s.fotoEinwilligung);
+        if (ohne.length === 0) return meldung('Nichts zu tun', 'Bei allen Personen dieser Klasse ist die Einwilligung bereits eingetragen.');
+        if (!(await bestaetigen('Einwilligung eintragen', `Bei ${ohne.length} Person(en) fehlt die Einwilligung. Mit dem heutigen Datum eintragen?`, 'Eintragen'))) return;
+        for (const s of ohne) s.fotoEinwilligung = { datum: heuteIso() };
+        K.aenderung();
+        K.neuZeichnen();
+      } }, 'Einwilligung für alle eintragen'),
     );
   }
   bereicheZeichnen();

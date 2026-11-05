@@ -6,9 +6,9 @@ import {
   formatErkennen, zeilenAusA, zeilenAusB, importPlanen, importAnwenden, personenZuordnen,
   untisFaecher, aufKlassenVerteilen, zeilenMitZuordnung, pruefsumme, zeitstempelAusName,
 } from '../js/untis.js';
-import { teilnahmeVorschlaege, vorschlagUebernehmen, nachschreibListe, deckt } from '../js/nachschreiben.js';
+import { teilnahmeVorschlaege, vorschlagUebernehmen, nachschreibListe, deckt, teilnahmeStatus } from '../js/nachschreiben.js';
 import { fehlzeitenSummen } from '../js/fehlzeiten.js';
-import { neueKlasse, neuesBuch, neueKlassenarbeit } from '../js/modell.js';
+import { neueKlasse, neuesBuch, neueKlassenarbeit, neuerSchueler } from '../js/modell.js';
 
 xlsxLaden();
 
@@ -395,4 +395,39 @@ test('Nur A: „entschuldigt“ ohne Attest-Angabe wird nicht als „ohne Attest
   const v = teilnahmeVorschlaege(k);
   assert.equal(v.length, 1);
   assert.equal(v[0].vorschlag, 'entschuldigung-offen');
+});
+
+test('Fehlzeiten schleifen auf die Klassenarbeit durch; Handauswahl hat Vorrang', () => {
+  const k = neueKlasse({ klasse: 'WKM1-2', schuljahr: '2026/27' });
+  const s = neuerSchueler();
+  s.name = 'Muster'; s.vorname = 'Erika';
+  k.schueler.push(s);
+  const ka = neueKlassenarbeit(2);
+  ka.datum = '2026-11-10';
+  k.klassenarbeiten.push(ka);
+
+  // Ohne Fehlzeit: mitgeschrieben.
+  assert.deepEqual(teilnahmeStatus(k, ka, s.id).status, 'mitgeschrieben');
+
+  // Fehlzeit mit Attest wird übernommen.
+  const f = { id: 'f1', schuelerId: s.id, datum: '2026-11-10', datumBis: '', status: 'attest', quelle: 'untis-b', zaehltNicht: false };
+  k.fehlzeiten.push(f);
+  let w = teilnahmeStatus(k, ka, s.id);
+  assert.equal(w.status, 'attest-offen');
+  assert.equal(w.abgeleitet, true);
+
+  // Ändert sich der Status der Fehlzeit, ändert sich die Teilnahme automatisch mit.
+  f.status = 'nicht';
+  assert.equal(teilnahmeStatus(k, ka, s.id).status, 'ohne-attest');
+
+  // Eine Auswahl von Hand bleibt bestehen.
+  ka.teilnahme[s.id] = { status: 'nachgeschrieben', manuell: true };
+  const v = teilnahmeStatus(k, ka, s.id);
+  assert.equal(v.status, 'nachgeschrieben');
+  assert.equal(v.abgeleitet, false);
+
+  // Fehlzeiten, die nicht zählen, werden übergangen.
+  delete ka.teilnahme[s.id];
+  f.zaehltNicht = true;
+  assert.equal(teilnahmeStatus(k, ka, s.id).status, 'mitgeschrieben');
 });
