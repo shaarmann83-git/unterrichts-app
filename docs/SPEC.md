@@ -370,3 +370,16 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 ### 10.5 Tests
 - Erfundene `.ics`-Dateien: Zeitzone Europe/Berlin über die Sommerzeit-Umstellung (25.10.2026), Doppelstunde zusammenfassen, ausgefallene Stunde, gefaltete Zeilen, Zuordnungsdialog, erneuter Import mit geändertem und entfallenem Termin (leer vs. mit Einträgen), Startvorschlag „jetzt“.
 - Keine echten Stundenpläne ins Repository legen (`*.ics` in `.gitignore` ergänzen).
+
+## 11 Notensysteme und Beschriftungen (universeller Einsatz)
+
+- **Notengrenzen je Klasse einstellbar** (Grunddaten). Werte sind Untergrenzen in Prozent für die Noten 1 bis 5; darunter gilt 6. Voreinstellung bleibt der Schlüssel der Excel-Vorlage: 91,5 / 80,5 / 66,5 / 49,5 / 29,5.
+- **Notensystem je Klasse:** `noten` (1 bis 6, IHK-Schema für die sonstige Leistung) oder `punkte` (Notenpunkte 0 bis 15).
+- **Punkteschlüssel je Klasse einstellbar.** Voreinstellung ist das Bewertungsschema BG 11, 12 und 13 der BBS Lingen Wirtschaft (Stand 2017): 15 Punkte ab 95 %, dann 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 33, 27, 20; darunter 0 Punkte. Die Intervalle der Vorlage werden als Untergrenzen gelesen (94,5 % ergibt 14 Punkte).
+- **Der Rechenweg ändert sich nicht.** Gerechnet wird durchgehend über Prozent; erst am Ende wird der Prozentwert in eine Note oder in Notenpunkte umgesetzt. Prüffall: 15 von 20 Punkten sind 75 %, nach IHK Note 3, nach BG-Schema 11 Punkte.
+- **Sonstige Leistung im Punktsystem:** Eingabe als Punktwert 0 bis 15. Die Umrechnung in Prozent ist die Mitte des zugehörigen Intervalls, analog zum IHK-Schema (AVERAGEIF). Beispiel: 11 Punkte gelten von 75 bis 79 %, also 77 %.
+- **Notenspiegel** zeigt im Punktsystem die Stufen 15 bis 0 statt der Noten 1 bis 6.
+- **Beschriftung je Klasse frei:** Statt „Lernfeld“ kann „Fach“ oder ein eigener Text stehen (Grunddaten, Feld „Bezeichnung“). Wirkt in Ausdruck, Gesamtübersicht und Klassenübersicht.
+- **Unterschriftszeilen je Klasse frei** (Grunddaten). Standard sind die beiden bisherigen Zeilen; leere Zeilen werden nicht gedruckt. Beispiel für Vollzeitklassen: „Unterschrift Erziehungsberechtigte(r) (unter 18)“.
+- **Eigene Listen** (Strich-, Abhak-, Betragsliste) lassen sich über „Drucken / PDF speichern“ ausgeben.
+- **Offen:** Der Excel-Import erwartet weiterhin genau die Vorlage V4. Für andere Vorlagen fehlt eine freie Spaltenzuordnung.
