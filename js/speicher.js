@@ -132,7 +132,9 @@ const DATEITYP = {
 
 /** Datei öffnen. Gibt {text, name, handle} zurück oder null bei Abbruch. */
 export async function dateiOeffnen() {
-  if (typeof globalThis.showOpenFilePicker === 'function') {
+  // Android: der eigene Dateidialog blendet Dateien mit unbekannter Endung (.noten) aus. Dort immer das einfache Auswahlfeld ohne Filter.
+  const android = /Android/i.test(globalThis.navigator?.userAgent || '');
+  if (!android && typeof globalThis.showOpenFilePicker === 'function') {
     try {
       const [handle] = await showOpenFilePicker({ types: [DATEITYP], multiple: false });
       const datei = await handle.getFile();
