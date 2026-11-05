@@ -439,3 +439,8 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 
 ### 12.6 OneDrive-Anmeldung
 - Die Anmeldung wird im localStorage gehalten und beim Öffnen einer synchronisierten Datei still erneuert. Nur wenn das nicht geht, fragt die App einmal nach der Anmeldung.
+
+### 12.7 Anwesenheitslisten identisch
+- Sport ist die Grundlage. Die Liste der Lernfeld-, Fach-, Kurs- und Lerngebietsklassen sieht aus und bedient sich genauso: Zeichen-Auswahl beim Antippen, Tastatur, „Alle da“, Monatsbalken, Punkt für anwesend. Zeichen: . V | E A B P U (die sportbezogenen sps, k, ke, ka, ku entfallen).
+- Gespeichert in `klasse.anwesenheitLf`. Fehlzeichen (E A B P U |) legen zusätzlich eine Fehlzeit an (B und P als entschuldigt mit Grund „betrieblich/privat befreit“). Untis-Einträge bleiben fremd und nur lesbar.
+- Ferien, Feiertage (Niedersachsen) und in Untis ausgefallene Stunden erscheinen in beiden Listen als graue Spalten zwischen den Unterrichtstagen. Feiertage und Brückentage nur an Wochentagen, an denen die Klasse Unterricht hat.

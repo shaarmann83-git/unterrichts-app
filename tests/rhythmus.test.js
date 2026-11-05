@@ -73,3 +73,53 @@ test('ohne Daten oder unbekanntes Schuljahr wird nichts erzeugt', () => {
   b.stundenplan = [eintrag('2031-10-07')];
   assert.match(rhythmusAuffuellen(b).grund, /Ferientermine/);
 });
+
+import { zeichenVon, zeichenSetzen } from '../js/ansichten/anwesenheit-lf.js';
+import { neuerSchueler } from '../js/modell.js';
+import { pausenSpalten } from '../js/rhythmus.js';
+
+test('Anwesenheit Lernfeld wie im Sport: ., V mit Minuten, Fehlzeichen mit Fehlzeit, Befreiung', () => {
+  const k = neueKlasse({ klasse: 'W', schuljahr: '2026/27' });
+  const s = neuerSchueler();
+  k.schueler.push(s);
+  const d = '2026-11-03';
+  zeichenSetzen(k, s.id, d, '.');
+  assert.equal(zeichenVon(k, s.id, d).zeichen, '.');
+  assert.equal(k.fehlzeiten.length, 0);
+  zeichenSetzen(k, s.id, d, 'V', { min: 7, text: 'Bus' });
+  assert.deepEqual(zeichenVon(k, s.id, d), { zeichen: 'V', eigen: true, fremd: false, min: 7, text: 'Bus' });
+  assert.equal(k.fehlzeiten.length, 0);
+  zeichenSetzen(k, s.id, d, '|');
+  assert.equal(k.fehlzeiten[0].status, 'offen');
+  zeichenSetzen(k, s.id, d, 'B');
+  assert.equal(k.fehlzeiten.length, 1);
+  assert.equal(k.fehlzeiten[0].status, 'entschuldigt');
+  assert.equal(k.fehlzeiten[0].grund, 'betrieblich befreit');
+  assert.equal(zeichenVon(k, s.id, d).zeichen, 'B');
+  zeichenSetzen(k, s.id, d, '');
+  assert.equal(k.fehlzeiten.length, 0);
+  assert.equal(zeichenVon(k, s.id, d).zeichen, '');
+  assert.deepEqual(k.anwesenheitLf, {});
+});
+
+test('Pausenspalten: Ferien, Feiertag und ausgefallene Stunde zwischen Unterrichtstagen', () => {
+  const k = neueKlasse({ klasse: 'W', schuljahr: '2026/27' });
+  k.stundenplan = [eintrag('2026-12-01'), eintrag('2027-01-12'), eintrag('2027-02-23', '08:00', '09:30', 'ausgefallen')];
+  const p = pausenSpalten(k, ['2026-12-01', '2027-01-12', '2027-03-02']);
+  assert.equal(p.get(1)[0].text, 'Weihnachtsferien');
+  assert.equal(p.get(1).length, 1, 'Weihnachten selbst liegt in den Ferien');
+  const zweite = p.get(2).map((x) => x.text);
+  assert.ok(zweite.includes('Halbjahresferien') === false || zweite.length >= 1);
+  assert.ok(zweite.includes('ausgefallen'));
+  // Feiertag an einem Unterrichtswochentag (Dienstag 03.10.2028 liegt im 2027/28; hier: Reformationstag Dienstag 2028?) -> nur mit passendem Wochentag
+  const k2 = neueKlasse({ klasse: 'W', schuljahr: '2026/27' });
+  k2.stundenplan = [eintrag('2027-05-04'), eintrag('2027-05-11')]; // Dienstage
+  const q = pausenSpalten(k2, ['2027-05-04', '2027-05-11']);
+  assert.equal(q.size, 0);
+  const k3 = neueKlasse({ klasse: 'W', schuljahr: '2026/27' });
+  k3.stundenplan = [eintrag('2027-05-13'), eintrag('2027-05-27')]; // Donnerstage; 17.5. ist Pfingstmontag (Montag): nicht sichtbar, 18.5. ist ein Dienstag
+  assert.equal(pausenSpalten(k3, ['2027-05-13', '2027-05-27']).size, 0);
+  const k4 = neueKlasse({ klasse: 'W', schuljahr: '2026/27' });
+  k4.stundenplan = [eintrag('2027-05-10'), eintrag('2027-05-24')]; // Montage: Pfingstmontag 17.5.
+  assert.equal(pausenSpalten(k4, ['2027-05-10', '2027-05-24']).get(1).some((x) => x.text === 'Pfingstmontag'), true);
+});

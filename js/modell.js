@@ -278,7 +278,7 @@ export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', sch
     stichtag: '',
     fachtyp, // 'lernfeld' | 'sport'
     sport: neueSport(),
-    stundenplan: [], // importierte Stundenplan-Einträge (iCal), nur Zeiten und Fach, keine Schülerdaten
+    stundenplan: [], anwesenheitLf: {}, // importierte Stundenplan-Einträge (iCal), nur Zeiten und Fach, keine Schülerdaten
   };
 }
 
@@ -356,6 +356,7 @@ export function pruefeKlasse(k) {
   k.stichtag ??= '';
   k.fachtyp ||= 'lernfeld';
   k.stundenplan ||= [];
+  k.anwesenheitLf ||= {}; // Anwesenheitszeichen der Lernfeld-/Fachklassen: {datum: {schuelerId: {z, min, stern, text}}}
   const sp = (k.sport ||= neueSport());
   const vorgabe = neueSport();
   for (const f of ['notensystem', 'zeitraum', 'endnoteVariante']) sp[f] ||= vorgabe[f];

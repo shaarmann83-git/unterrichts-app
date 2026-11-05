@@ -296,3 +296,8 @@ input.bemerkung { min-width: 12rem; }
 .anwesenheit-lf td .zelle.fremd { background: rgba(127, 127, 127, 0.25); }
 .protokoll-kopfbild-voll { margin-bottom: 1rem; }
 .protokoll-kopfbild-voll img { width: 100%; max-height: 130px; object-fit: contain; object-position: left; }
+
+/* Pausen in den Anwesenheitslisten: Ferien, Feiertage, ausgefallene Stunden */
+.sport-raster th.pause-kopf { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 0.7rem; font-weight: 500; padding: 0.2rem 0.1rem; width: 1.4rem; min-width: 1.4rem; max-height: 7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: rgba(127, 127, 127, 0.22); }
+.sport-raster td.pause-zelle { width: 1.4rem; min-width: 1.4rem; padding: 0; background: repeating-linear-gradient(45deg, rgba(127, 127, 127, 0.16), rgba(127, 127, 127, 0.16) 4px, rgba(127, 127, 127, 0.28) 4px, rgba(127, 127, 127, 0.28) 8px); }
+.sport-raster th.pause-ausfall { background: rgba(200, 120, 40, 0.28); }

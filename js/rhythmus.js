@@ -55,11 +55,14 @@ function ostern(jahr) {
   return tageSeit(`${jahr}-${String(monat).padStart(2, '0')}-${String(tag).padStart(2, '0')}`);
 }
 
-/** Gesetzliche Feiertage in Niedersachsen (inkl. Reformationstag) als Menge von ISO-Daten. */
+/** Gesetzliche Feiertage in Niedersachsen (inkl. Reformationstag): Map von ISO-Datum auf Name. */
 export function feiertageNI(jahr) {
   const o = ostern(jahr);
-  const fest = [`${jahr}-01-01`, `${jahr}-05-01`, `${jahr}-10-03`, `${jahr}-10-31`, `${jahr}-12-25`, `${jahr}-12-26`];
-  return new Set([...fest, isoVon(o - 2), isoVon(o + 1), isoVon(o + 39), isoVon(o + 50)]);
+  return new Map([
+    [`${jahr}-01-01`, 'Neujahr'], [`${jahr}-05-01`, 'Tag der Arbeit'], [`${jahr}-10-03`, 'Tag der Deutschen Einheit'],
+    [`${jahr}-10-31`, 'Reformationstag'], [`${jahr}-12-25`, '1. Weihnachtstag'], [`${jahr}-12-26`, '2. Weihnachtstag'],
+    [isoVon(o - 2), 'Karfreitag'], [isoVon(o + 1), 'Ostermontag'], [isoVon(o + 39), 'Christi Himmelfahrt'], [isoVon(o + 50), 'Pfingstmontag'],
+  ]);
 }
 
 export const schuljahrDaten = (schuljahr) => SCHULJAHRE_NI[String(schuljahr || '').trim()] || null;
@@ -179,4 +182,43 @@ export function rhythmusAuffuellen(klasse) {
     reiheUebernehmen(klasse);
   }
   return { neu: neue.length, entfernt, grund: '' };
+}
+
+/**
+ * Pausen zwischen den Spalten einer Anwesenheitsliste: Ferien, Feiertage und ausgefallene Stunden.
+ * `daten`: aufsteigend sortierte ISO-Daten der Unterrichtstage (Spalten).
+ * Rückgabe: Map von Spaltenindex auf die Pausen, die direkt davor stehen: [{datum, bis, text, art}].
+ * Feiertage und Brückentage erscheinen nur an Wochentagen, an denen die Klasse sonst Unterricht hat.
+ */
+export function pausenSpalten(klasse, daten) {
+  const ergebnis = new Map();
+  if (daten.length < 2) return ergebnis;
+  const sj = schuljahrDaten(klasse.kopf?.schuljahr);
+  const wochentage = new Set(daten.map(wochentagVon));
+  for (const e of klasse.stundenplan || []) if (e.status === 'ok' && e.datum) wochentage.add(wochentagVon(e.datum));
+  const ausfaelle = new Map();
+  for (const e of klasse.stundenplan || []) if (e.status === 'ausgefallen' && e.datum) ausfaelle.set(e.datum, e);
+  const spaltenTage = new Set(daten);
+  const inFerien = (datum) => sj?.ferien.find(([von, bis]) => datum >= von && datum <= bis) || null;
+  for (let i = 1; i < daten.length; i += 1) {
+    const von = daten[i - 1], bis = daten[i];
+    const liste = [];
+    for (const f of sj?.ferien || []) {
+      const [fv, fb, name] = f;
+      if (fv <= von || fv >= bis) continue;
+      const einzeln = fv === fb;
+      if (einzeln && !wochentage.has(wochentagVon(fv))) continue;
+      liste.push({ datum: fv, bis: fb, text: name, art: 'ferien' });
+    }
+    // Feiertage und Ausfälle Tag für Tag, außerhalb der Ferien
+    for (let tag = tageSeit(von) + 1; tag < tageSeit(bis); tag += 1) {
+      const datum = isoVon(tag);
+      if (spaltenTage.has(datum) || inFerien(datum) || !wochentage.has(wochentagVon(datum))) continue;
+      const feiertag = feiertageNI(Number(datum.slice(0, 4))).get(datum);
+      if (feiertag) liste.push({ datum, bis: datum, text: feiertag, art: 'feiertag' });
+      else if (ausfaelle.has(datum)) liste.push({ datum, bis: datum, text: 'ausgefallen', art: 'ausfall' });
+    }
+    if (liste.length) ergebnis.set(i, liste.sort((a, b) => a.datum.localeCompare(b.datum)));
+  }
+  return ergebnis;
 }

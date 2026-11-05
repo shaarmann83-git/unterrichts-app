@@ -1,4 +1,5 @@
 // Anwesenheit und Mitarbeit als Raster (SPEC 9.2, 9.3): Spalten = Termine, oben die Reihe als Balken.
+import { pausenSpalten } from '../rhythmus.js';
 import { K } from '../kontext.js';
 import { h, leeren, fuege, inhaltDialog, meldung, toast } from '../ui.js';
 import { anzeigename, datumDeutsch } from '../modell.js';
@@ -105,10 +106,20 @@ export function zeigeAnwesenheit() {
     }
     const sps = new Map(personen.map((p) => [p.id, spsNummern(d, p.id)]));
     const g = gruppen(termine, d);
+    // Ferien, Feiertage und ausgefallene Stunden als graue Spalten zwischen den Terminen
+    const pausen = pausenSpalten(d, termine.map((t) => t.datum));
+    const pauseTitel = (p) => `${p.text}${p.bis !== p.datum ? ` (${datumKurz(p.datum)} bis ${datumKurz(p.bis)})` : ` (${datumKurz(p.datum)})`}`;
+    let pos = 0;
     const kopf1 = h('tr', {}, h('th', { rowspan: 3 }, 'Nr.'), h('th', { rowspan: 3, class: 'links name-spalte' }, 'Name'),
-      g.map((x) => h('th', { class: 'reihe-balken', colspan: x.termine.length, title: x.name }, x.name)),
+      g.map((x) => {
+        const von = pos;
+        pos += x.termine.length;
+        let zusatz = 0;
+        for (let k = von + 1; k <= pos; k += 1) zusatz += (pausen.get(k) || []).length;
+        return h('th', { class: 'reihe-balken', colspan: x.termine.length + zusatz, title: x.name }, x.name);
+      }),
       h('th', { rowspan: 3 }, 'sps'), h('th', { rowspan: 3 }, 'offen'));
-    const kopf2 = h('tr', {}, termine.map((t) => h('th', { class: istPruefungstag(t, ein) ? 'pruef-tag' : 'pruef-leer', title: t.vermerk || '' }, istPruefungstag(t, ein) ? (t.vermerk && t.vermerk.length <= 3 ? t.vermerk : 'T') : '')));
+    const kopf2 = h('tr', {}, termine.flatMap((t, i) => [...(pausen.get(i) || []).map((p) => h('th', { rowspan: 2, class: `pause-kopf pause-${p.art}`, title: pauseTitel(p) }, p.text)), h('th', { class: istPruefungstag(t, ein) ? 'pruef-tag' : 'pruef-leer', title: t.vermerk || '' }, istPruefungstag(t, ein) ? (t.vermerk && t.vermerk.length <= 3 ? t.vermerk : 'T') : '')]));
     const kopf3 = h('tr', {}, termine.map((t) => h('th', { class: 'datum-kopf' },
       h('button', { type: 'button', class: 'datum-knopf', 'data-termin': t.id, title: `Termin bearbeiten${t.vermerk ? ': ' + t.vermerk : ''}`, onclick: async () => { await terminDialog(d, t); zeichnen(); } }, datumKurz(t.datum)),
       h('button', { type: 'button', class: 'alle-da', 'data-termin': t.id, title: 'Alle noch leeren Zellen dieses Tages auf anwesend setzen', 'aria-label': `Alle übrigen anwesend am ${datumDeutsch(t.datum)}`, onclick: () => {
@@ -122,13 +133,13 @@ export function zeigeAnwesenheit() {
     personen.forEach((p, i) => {
       let offen = 0;
       let spsGesamt = 0;
-      const zellen = termine.map((t) => {
+      const zellen = termine.flatMap((t, ti) => {
         const z = anwesenheitZeichen(d, t.id, p.id);
         if (ZEICHEN[z]?.art === 'offen') offen += 1;
         if (z === 'sps') spsGesamt += 1;
         const btn = h('button', { type: 'button', 'data-t': t.id, 'data-s': p.id, onclick: () => palette(t, p, btn), onkeydown: (ev) => taste(ev, t, p) });
         zellenInhalt(btn, t, p, sps.get(p.id));
-        return h('td', { class: 'zellen-td' }, btn);
+        return [...(pausen.get(ti) || []).map((pa) => h('td', { class: `pause-zelle pause-${pa.art}`, title: pauseTitel(pa) })), h('td', { class: 'zellen-td' }, btn)];
       });
       tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, anzeigename(p)), zellen,
         h('td', { class: `zahl ${spsGesamt >= 2 ? 'z-orange' : ''}` }, String(spsGesamt)), h('td', { class: `zahl ${offen ? 'z-violett' : ''}`, 'data-offen': p.id }, String(offen))));

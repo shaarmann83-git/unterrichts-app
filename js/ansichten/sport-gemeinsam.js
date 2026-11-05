@@ -46,14 +46,14 @@ export function zelleSetzen(d, terminId, schuelerId, wert) {
 }
 
 /** Zeichen-Palette (Tippen auf eine Zelle): große Tasten, Verspätung mit Minuten, Vermerk. */
-export function zeichenPalette(d, termin, person, aktuell = {}) {
+export function zeichenPalette(d, termin, person, aktuell = {}, zeichenListe = Object.keys(ZEICHEN)) {
   const min = h('input', { type: 'text', inputmode: 'numeric', class: 'gewicht', 'aria-label': 'Minuten', value: aktuell.min ? String(aktuell.min) : '', placeholder: 'Min.' });
   const text = h('input', { type: 'text', 'aria-label': 'Vermerk', value: aktuell.text || '', placeholder: 'Vermerk (optional)' });
   const stern = h('input', { type: 'checkbox', 'aria-label': 'Verweis auf Vermerk', checked: !!aktuell.stern });
   return inhaltDialog(`${person.vorname} ${person.name} · ${datumDeutsch(termin.datum)}`, (schliessen) => {
     const taste = (z) => h('button', { type: 'button', class: `knopf zeichen-taste ${zeichenFarbe(z)}`, 'data-zeichen': z, 'aria-label': `${z}: ${ZEICHEN[z].text}`, onclick: () => schliessen({ z, min: z === 'V' ? Number(min.value) || 0 : undefined, stern: stern.checked, text: text.value.trim() }) }, h('strong', {}, z), h('span', { class: 'klein' }, ZEICHEN[z].text));
     return [
-      h('div', { class: 'zeichen-raster' }, Object.keys(ZEICHEN).map(taste)),
+      h('div', { class: 'zeichen-raster' }, zeichenListe.map(taste)),
       h('label', { class: 'inline' }, 'Verspätung (nur bei V): ', min, ' Minuten'),
       h('label', { class: 'schalter' }, stern, ' * Verweis auf einen Vermerk'),
       h('label', {}, 'Vermerk', text),
