@@ -65,6 +65,18 @@ function dialogZeigen(titel, inhalt, knoepfe) {
     // `inhalt` darf eine Funktion sein, die den Dialog selbst schließen kann: inhalt(schliessen)
     const inhaltEl = typeof inhalt === 'function' ? inhalt(schliessen) : inhalt;
     dlg.append(h('h2', {}, titel), h('div', { class: 'dialog-inhalt' }, inhaltEl), leiste);
+    // Enter in einem Eingabefeld löst den Hauptknopf aus (z. B. Passwort bestätigen).
+    // In mehrzeiligen Feldern bleibt Enter ein Zeilenumbruch.
+    dlg.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey || e.isComposing) return;
+      const tag = e.target?.tagName;
+      if (tag !== 'INPUT' && tag !== 'SELECT') return;
+      const haupt = [...knoepfe].reverse().find((k) => !k.abbruch);
+      if (!haupt) return;
+      e.preventDefault();
+      if (haupt.vorPruefung && !haupt.vorPruefung()) return;
+      schliessen(haupt.wert);
+    });
     dlg.addEventListener('cancel', (e) => {
       e.preventDefault();
       const abbruch = knoepfe.find((k) => k.abbruch);
