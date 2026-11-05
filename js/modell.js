@@ -91,9 +91,48 @@ export function neueKlassenarbeit(aufgabenAnzahl = STANDARD_AUFGABEN) {
     schwerpunkte: '',
     gewicht: 1,
     aufgaben: Array.from({ length: aufgabenAnzahl }, () => null),
+    // Spaltenbeschriftungen, z. B. '1a', '1b', '1c', '2'. Gleiche führende Nummer = eine Aufgabe.
+    bezeichnungen: Array.from({ length: aufgabenAnzahl }, (_, i) => String(i + 1)),
     ergebnisse: {},
     teilnahme: {},
   };
+}
+
+/** Gruppenschlüssel einer Spalte: die führende Nummer („1a“ -> „1“), sonst die Beschriftung selbst. */
+export function aufgabenGruppeSchluessel(bezeichnung) {
+  const t = String(bezeichnung ?? '').trim();
+  const m = t.match(/^(\d+)/);
+  return m ? m[1] : t;
+}
+
+/**
+ * Spalten einer Klassenarbeit zu Aufgaben zusammenfassen.
+ * Rückgabe: [{ schluessel, indizes: [Spaltennummern], geteilt }] in der Reihenfolge der Spalten.
+ * `geteilt` ist wahr, wenn die Aufgabe aus mehreren Teilaufgaben besteht.
+ */
+export function aufgabenGruppen(ka) {
+  const gruppen = [];
+  (ka.aufgaben || []).forEach((_, i) => {
+    const s = aufgabenGruppeSchluessel(ka.bezeichnungen?.[i] ?? String(i + 1));
+    const letzte = gruppen[gruppen.length - 1];
+    // Nur unmittelbar aufeinanderfolgende Spalten gehören zusammen.
+    if (letzte && letzte.schluessel === s) letzte.indizes.push(i);
+    else gruppen.push({ schluessel: s, indizes: [i] });
+  });
+  return gruppen.map((g) => ({ ...g, geteilt: g.indizes.length > 1 }));
+}
+
+/** Summe der Höchstpunkte einer Aufgabe (Gruppe). */
+export function gruppeHoechst(ka, gruppe) {
+  return gruppe.indizes.reduce((s, i) => s + (Number(ka.aufgaben[i]) || 0), 0);
+}
+
+/** Summe der erreichten Punkte einer Aufgabe (Gruppe); null, wenn nichts eingetragen ist. */
+export function gruppeErreicht(ka, schuelerId, gruppe) {
+  const p = ka.ergebnisse?.[schuelerId]?.punkte || [];
+  const werte = gruppe.indizes.map((i) => p[i]).filter((v) => v !== null && v !== undefined && v !== '');
+  if (werte.length === 0) return null;
+  return werte.reduce((s, v) => s + Number(v), 0);
 }
 
 export function neuerSchueler() {
@@ -286,6 +325,10 @@ export function pruefeKlasse(k) {
     ka.uhrzeitVon ??= '';
     ka.uhrzeitBis ??= '';
     ka.aufgaben ||= [];
+    if (!Array.isArray(ka.bezeichnungen)) ka.bezeichnungen = [];
+    // Fehlende oder überzählige Beschriftungen an die Aufgabenzahl angleichen.
+    ka.bezeichnungen.length = ka.aufgaben.length;
+    for (let i = 0; i < ka.aufgaben.length; i++) ka.bezeichnungen[i] ||= String(i + 1);
     ka.ergebnisse ||= {};
     ka.teilnahme ||= {};
   }

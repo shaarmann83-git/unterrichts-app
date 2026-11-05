@@ -249,3 +249,7 @@ input.bemerkung { min-width: 12rem; }
   .druckseite:last-child { break-after: auto; }
   .druckseite.quer { page: quer; }
 }
+
+/* Teilaufgaben: Zwischensumme je Aufgabe und schmale Spaltenbeschriftung */
+.gruppensumme { background: rgba(127, 127, 127, 0.14); }
+.aufgabe-name { width: 4.5em; text-align: center; font-weight: 600; }

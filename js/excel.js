@@ -335,7 +335,7 @@ export function alleAlsExcel(buch) {
     const kaZeilen = [...kopfInfo];
     k.klassenarbeiten.forEach((ka, i) => {
       kaZeilen.push([`Klassenarbeit ${i + 1}`, 'Datum', datumDeutsch(ka.datum), 'Gewicht', ka.gewicht, 'Schwerpunkte', ka.schwerpunkte]);
-      kaZeilen.push(['Nr.', 'Name', 'Vorname', ...ka.aufgaben.map((_, j) => `Aufg. ${j + 1}`), '∑', '%', 'Note', 'Attest', 'Teilnahme', 'Sonstiges']);
+      kaZeilen.push(['Nr.', 'Name', 'Vorname', ...ka.aufgaben.map((_, j) => `Aufg. ${ka.bezeichnungen?.[j] || j + 1}`), '∑', '%', 'Note', 'Attest', 'Teilnahme', 'Sonstiges']);
       kaZeilen.push(['', 'Höchstpunkte', '', ...ka.aufgaben, gesamtpunkte(ka)]);
       personen.forEach((s, n) => {
         const e = ergebnisKA(ka, s.id, k);

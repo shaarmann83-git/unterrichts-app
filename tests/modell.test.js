@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   neueKlasse, neuesBuch, pruefeBuch, pruefeKlasse, klasseKopieren, aktiveSchueler, archivierteSchueler, fachZeile, UNTERSCHRIFTEN_STANDARD,
   neuerTermin, neueDaltonAufgabe, buchHatFotos, dateiname, FORMAT_VERSION,
+  neueKlassenarbeit, aufgabenGruppen, gruppeHoechst, gruppeErreicht,
 } from '../js/modell.js';
 import { ausDateitext, inDateitext } from '../js/krypto.js';
 import { gesamtPerson, ergebnisKA, notenspiegel } from '../js/rechnen.js';
@@ -146,4 +147,35 @@ test('Bezeichnung und Unterschriftszeilen je Klasse frei wählbar', () => {
   const ergaenzt = pruefeKlasse(alt);
   assert.equal(ergaenzt.kopf.fachLabel, 'Lernfeld');
   assert.deepEqual(ergaenzt.unterschriften, UNTERSCHRIFTEN_STANDARD);
+});
+
+test('Teilaufgaben: Gruppierung nach führender Nummer, Zwischensummen', () => {
+  const ka = neueKlassenarbeit(5);
+  ka.bezeichnungen = ['1a', '1b', '1c', '2', '3'];
+  ka.aufgaben = [5, 4, 6, 4, 13];
+  ka.ergebnisse.s1 = { punkte: [4, 4, 3, 2, 10], attest: false, sonstiges: '' };
+
+  const g = aufgabenGruppen(ka);
+  assert.deepEqual(g.map((x) => [x.schluessel, x.indizes, x.geteilt]), [
+    ['1', [0, 1, 2], true], ['2', [3], false], ['3', [4], false],
+  ]);
+  assert.equal(gruppeHoechst(ka, g[0]), 15);
+  assert.equal(gruppeErreicht(ka, 's1', g[0]), 11);
+  assert.equal(gruppeHoechst(ka, g[1]), 4);
+  assert.equal(gruppeErreicht(ka, 's1', g[1]), 2);
+
+  // Gesamtsumme bleibt die Summe aller Teile.
+  assert.equal(ka.aufgaben.reduce((a, b) => a + b, 0), 32);
+
+  // Ohne Eintrag kommt null, nicht 0.
+  assert.equal(gruppeErreicht(ka, 's2', g[0]), null);
+
+  // Nur unmittelbar benachbarte Spalten gehören zusammen.
+  const ka2 = neueKlassenarbeit(3);
+  ka2.bezeichnungen = ['1a', '2', '1b'];
+  assert.deepEqual(aufgabenGruppen(ka2).map((x) => x.schluessel), ['1', '2', '1']);
+
+  // Alte Dateien ohne Beschriftungen bekommen 1, 2, 3 …
+  const alt = { id: 'k', kopf: {}, klassenarbeiten: [{ aufgaben: [1, 2, 3] }] };
+  assert.deepEqual(pruefeKlasse(alt).klassenarbeiten[0].bezeichnungen, ['1', '2', '3']);
 });

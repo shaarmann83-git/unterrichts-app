@@ -1,6 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog } from '../ui.js';
-import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch } from '../modell.js';
+import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, gruppeHoechst, gruppeErreicht } from '../modell.js';
 import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege } from '../nachschreiben.js';
 import { untisListeLaden } from './fehlzeiten.js';
 import { eintraegeAb } from '../stundenplan.js';
@@ -106,7 +106,7 @@ export function zeigeKlassenarbeit(params) {
     'div',
     { class: 'knopfreihe' },
     h('span', {}, 'Aufgaben: ', aufgabenAnzahl, ' · Gesamtpunktzahl: ', gesamtAnzeige),
-    h('button', { type: 'button', class: 'knopf', onclick: () => { ka.aufgaben.push(null); K.aenderung(); render(); } }, '+ Aufgabe'),
+    h('button', { type: 'button', class: 'knopf', onclick: () => { ka.aufgaben.push(null); ka.bezeichnungen.push(String(ka.aufgaben.length)); K.aenderung(); render(); } }, '+ Aufgabe'),
     h(
       'button',
       {
@@ -116,8 +116,9 @@ export function zeigeKlassenarbeit(params) {
         onclick: async () => {
           const letzte = ka.aufgaben.length - 1;
           const belegt = Object.values(ka.ergebnisse).some((e) => e.punkte?.[letzte] !== null && e.punkte?.[letzte] !== undefined && e.punkte?.[letzte] !== '');
-          if (belegt && !(await bestaetigen('Aufgabe entfernen', `Zu Aufgabe ${letzte + 1} sind schon Punkte eingetragen. Sie werden gelöscht.`, 'Entfernen', true))) return;
+          if (belegt && !(await bestaetigen('Aufgabe entfernen', `Zu Aufgabe ${ka.bezeichnungen[letzte] || letzte + 1} sind schon Punkte eingetragen. Sie werden gelöscht.`, 'Entfernen', true))) return;
           ka.aufgaben.pop();
+          ka.bezeichnungen.pop();
           for (const e of Object.values(ka.ergebnisse)) e.punkte.length = Math.min(e.punkte.length, ka.aufgaben.length);
           K.aenderung();
           render();
@@ -180,7 +181,7 @@ export function zeigeKlassenarbeit(params) {
         inputmode: 'decimal',
         autocomplete: 'off',
         value: e.punkte[i] === null || e.punkte[i] === undefined ? '' : String(e.punkte[i]).replace('.', ','),
-        'aria-label': `${anzeigename(s)} Aufgabe ${i + 1}`,
+        'aria-label': `${anzeigename(s)} Aufgabe ${ka.bezeichnungen?.[i] || i + 1}`,
         'data-sp': `a${i}`,
         class: 'punkte',
         oninput: (ev) => {
@@ -236,7 +237,13 @@ export function zeigeKlassenarbeit(params) {
     } else if (treffer.some((f) => f.status === 'nicht')) {
       hinweis.append(h('span', { class: 'klein fehlertext', title: 'Laut Untis am Termin nicht entschuldigt' }, 'nicht entschuldigt (Untis)'));
     }
+    const gruppenFelder = new Map();
+    for (const g of aufgabenGruppen(ka)) if (g.geteilt) gruppenFelder.set(g.schluessel, { gruppe: g, el: h('strong', {}) });
     updater.push(() => {
+      for (const { gruppe, el } of gruppenFelder.values()) {
+        const w = gruppeErreicht(ka, s.id, gruppe);
+        el.textContent = w === null ? '' : formatKurz(w);
+      }
       const erg = ergebnisKA(ka, s.id, d);
       summe.textContent = erg.summe === null ? '' : formatKurz(erg.summe);
       prozent.textContent = erg.prozent === null ? '' : formatZahl(erg.prozent, 1);
@@ -250,16 +257,27 @@ export function zeigeKlassenarbeit(params) {
         feld.title = zuHoch ? `Erlaubt: 0 bis ${String(max).replace('.', ',')}` : '';
       });
     });
-    return { summe, prozent, note, punkteFelder, attest, sonstiges, teilnahme, nachDatum, hinweis };
+    return { summe, prozent, note, punkteFelder, gruppenFelder, attest, sonstiges, teilnahme, nachDatum, hinweis };
   }
 
   function tabelleBauen(personen) {
+    const gruppen = aufgabenGruppen(ka);
     const kopf1 = h(
       'tr',
       {},
       h('th', {}, 'Nr.'),
       h('th', { class: 'links' }, 'Name'),
-      ka.aufgaben.map((_, i) => h('th', {}, `Aufg. ${i + 1}`)),
+      gruppen.flatMap((g) => [
+        ...g.indizes.map((i) => h('th', {}, h('input', {
+          type: 'text',
+          class: 'punkte aufgabe-name',
+          'aria-label': `Beschriftung Spalte ${i + 1}`,
+          value: ka.bezeichnungen[i] ?? String(i + 1),
+          oninput: (ev) => { ka.bezeichnungen[i] = ev.target.value; K.aenderung(); },
+          onchange: () => render(),
+        }))),
+        g.geteilt ? h('th', { class: 'gruppensumme', title: `Summe Aufgabe ${g.schluessel}` }, `∑ ${g.schluessel}`) : null,
+      ]),
       ['∑', '%', 'Note', 'Attest', 'Teilnahme', 'Sonstiges'].map((t) => h('th', {}, t)),
     );
     const hoechst = ka.aufgaben.map((max, i) =>
@@ -267,7 +285,7 @@ export function zeigeKlassenarbeit(params) {
         type: 'text',
         inputmode: 'decimal',
         class: 'punkte hoechst',
-        'aria-label': `Höchstpunktzahl Aufgabe ${i + 1}`,
+        'aria-label': `Höchstpunktzahl Aufgabe ${ka.bezeichnungen?.[i] || i + 1}`,
         'data-sp': `a${i}`,
         value: max === null || max === undefined ? '' : String(max).replace('.', ','),
         oninput: (ev) => {
@@ -286,10 +304,19 @@ export function zeigeKlassenarbeit(params) {
       { class: 'hoechstzeile' },
       h('td', {}),
       h('td', { class: 'links' }, 'Höchstpunkte'),
-      hoechst.map((f) => h('td', {}, f)),
+      gruppen.flatMap((g) => [
+        ...g.indizes.map((i) => h('td', {}, hoechst[i])),
+        g.geteilt ? h('td', { class: 'gruppensumme zahl' }, hoechstSumme(g)) : null,
+      ]),
       h('td', {}, gesamtAnzeige2()),
       h('td', { colspan: 5 }),
     );
+    // Zwischensumme der Höchstpunkte: muss mitlaufen, wenn Höchstpunkte geändert werden.
+    function hoechstSumme(g) {
+      const el = h('strong', {});
+      updater.push(() => { el.textContent = formatKurz(gruppeHoechst(ka, g)); });
+      return el;
+    }
     function gesamtAnzeige2() {
       const el = h('strong', {});
       updater.push(() => {
@@ -305,7 +332,10 @@ export function zeigeKlassenarbeit(params) {
           {},
           h('td', { class: 'zahl' }, String(i + 1)),
           h('td', { class: 'links name' }, avatar(d, s), ' ', [s.name, s.vorname].filter(Boolean).join(', '), c.hinweis),
-          c.punkteFelder.map((f) => h('td', {}, f)),
+          gruppen.flatMap((g) => [
+            ...g.indizes.map((j) => h('td', {}, c.punkteFelder[j])),
+            g.geteilt ? h('td', { class: 'gruppensumme zahl' }, c.gruppenFelder.get(g.schluessel).el) : null,
+          ]),
           h('td', { class: 'zahl' }, c.summe),
           h('td', { class: 'zahl' }, c.prozent),
           h('td', { class: 'mitte' }, c.note),
@@ -349,7 +379,7 @@ export function zeigeKlassenarbeit(params) {
         'div',
         { class: 'einzel-aufgaben' },
         ka.aufgaben.map((max, i) =>
-          h('label', {}, `Aufgabe ${i + 1} (max. ${max === null ? '?' : String(max).replace('.', ',')})`, c.punkteFelder[i]),
+          h('label', {}, `Aufgabe ${ka.bezeichnungen[i] || i + 1} (max. ${max === null ? '?' : String(max).replace('.', ',')})`, c.punkteFelder[i]),
         ),
       ),
       h(
