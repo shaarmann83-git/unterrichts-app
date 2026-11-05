@@ -224,13 +224,15 @@ export const UNTERSCHRIFT_VORLAGEN = [
 /** Standardtexte der Unterschriftszeilen im Protokoll (SPEC 4). Je Klasse änderbar. */
 export const UNTERSCHRIFTEN_STANDARD = [
   'Korrekturdatum und Unterschrift der Lehrkraft',
-  'Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)',
+  'Unterschrift Ausbilderin/Ausbilder\n(bei nicht mehr ausreichender Leistung!)',
 ];
+/** Frühere Fassung ohne Zeilenumbruch; für die Umstellung älterer Dateien. */
+const UNTERSCHRIFT_ALT = 'Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)';
 
 /** Zusatzzeile, die nur bei Personen mit Ausbildungsbetrieb gedruckt wird. */
-export const UNTERSCHRIFT_MIT_BETRIEB = 'Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)';
+export const UNTERSCHRIFT_MIT_BETRIEB = 'Unterschrift Ausbilderin/Ausbilder\n(bei nicht mehr ausreichender Leistung!)';
 /** Zusatzzeile, die nur bei Personen ohne Ausbildungsbetrieb gedruckt wird. */
-export const UNTERSCHRIFT_OHNE_BETRIEB = 'Unterschrift Erziehungsberechtigte(r) (bei Minderjährigen)';
+export const UNTERSCHRIFT_OHNE_BETRIEB = 'Unterschrift Erziehungsberechtigte(r)\n(bei nicht mehr ausreichender Leistung!)';
 
 /** Unterschriftszeilen für eine bestimmte Person: feste Zeilen plus passende Zusatzzeile. */
 export function unterschriftenFuer(klasse, person) {
@@ -309,7 +311,8 @@ export function pruefeKlasse(k) {
   k.kopf.fachLabel ||= 'Lernfeld';
   if (!Array.isArray(k.unterschriften)) k.unterschriften = [...UNTERSCHRIFTEN_STANDARD];
   if (k.unterschriftMitBetrieb === undefined && k.unterschriftOhneBetrieb === undefined
-    && k.unterschriften.length === 2 && k.unterschriften[1] === UNTERSCHRIFTEN_STANDARD[1]) {
+    && k.unterschriften.length === 2
+    && (k.unterschriften[1] === UNTERSCHRIFTEN_STANDARD[1] || k.unterschriften[1] === UNTERSCHRIFT_ALT)) {
     // Unveränderte Vorgabe: feste Ausbilder-Zeile wird zur Zusatzzeile, damit sie nur bei
     // Personen mit Ausbildungsbetrieb erscheint. Von Hand geänderte Zeilen bleiben unberührt.
     k.unterschriften = [k.unterschriften[0]];

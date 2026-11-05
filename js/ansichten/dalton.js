@@ -157,7 +157,7 @@ function eingabe(d) {
     // Allen Personen auf einmal denselben Status geben.
     const alleTasten = h('div', { class: 'knopfreihe' },
       h('span', { class: 'klein' }, 'Allen zuweisen:'),
-      Object.entries(DALTON_STATUS).map(([wert, text]) =>
+      [['abgegeben', DALTON_STATUS.abgegeben], ['nicht', DALTON_STATUS.nicht]].map(([wert, text]) =>
         h('button', { type: 'button', class: 'knopf klein', title: `Allen „${text}“ geben`, onclick: async () => {
           if (!(await bestaetigen('Allen zuweisen', `Alle ${personen.length} Personen bekommen „${text}“. Bereits gesetzte Angaben werden überschrieben.`, 'Zuweisen'))) return;
           for (const s of personen) {

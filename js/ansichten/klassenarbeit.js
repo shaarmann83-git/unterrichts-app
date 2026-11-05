@@ -3,7 +3,7 @@ import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog } from '..
 import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht } from '../modell.js';
 import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege, teilnahmeStatus } from '../nachschreiben.js';
 import { untisListeLaden } from './fehlzeiten.js';
-import { eintraegeAb } from '../stundenplan.js';
+import { eintraegeUm } from '../stundenplan.js';
 import { vorschlaegeDialog } from './untis-dialog.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, formatZahl, formatKurz, zahlLesen, NOTEN_WORTE } from '../rechnen.js';
 
@@ -63,16 +63,16 @@ export function zeigeKlassenarbeit(params) {
     'div',
     { class: 'formular' },
     h('label', {}, 'Datum', h('input', { type: 'date', value: ka.datum || '', onchange: (e) => { ka.datum = e.target.value; K.aenderung(); K.neuZeichnen(); } })),
-    eintraegeAb(d, heuteIso(), 12).length > 0 && h('label', {}, 'Vorschlag aus dem Stundenplan',
+    eintraegeUm(d, heuteIso()).length > 0 && h('label', {}, 'Vorschlag aus dem Stundenplan',
       h('select', { id: 'ka-stundenplan', 'aria-label': 'Vorschlag aus dem Stundenplan', onchange: (e) => {
-        const x = eintraegeAb(d, heuteIso(), 12)[Number(e.target.value)];
+        const x = eintraegeUm(d, heuteIso())[Number(e.target.value)];
         if (!x) return;
         ka.datum = x.datum;
         ka.uhrzeitVon = x.uhrzeit;
         ka.uhrzeitBis = x.ende || '';
         K.aenderung();
         K.neuZeichnen();
-      } }, h('option', { value: '' }, '– wählen –'), eintraegeAb(d, heuteIso(), 12).map((x, i) => h('option', { value: i }, `${datumDeutsch(x.datum)} ${x.uhrzeit}${x.ende ? '–' + x.ende : ''}`)))),
+      } }, h('option', { value: '' }, '– wählen –'), eintraegeUm(d, heuteIso()).map((x, i) => h('option', { value: i }, `${datumDeutsch(x.datum)} ${x.uhrzeit}${x.ende ? '–' + x.ende : ''}${x.datum < heuteIso() ? ' (vergangen)' : ''}`)))),
     h('label', {}, 'Uhrzeit von', h('input', { type: 'time', value: ka.uhrzeitVon || '', 'aria-label': 'Uhrzeit von', onchange: (e) => { ka.uhrzeitVon = e.target.value; K.aenderung(); } })),
     h('label', {}, 'Uhrzeit bis', h('input', { type: 'time', value: ka.uhrzeitBis || '', 'aria-label': 'Uhrzeit bis', onchange: (e) => { ka.uhrzeitBis = e.target.value; K.aenderung(); } })),
     h('label', {}, 'Korrekturdatum', h('input', { type: 'date', value: ka.korrekturdatum || '', 'aria-label': 'Korrekturdatum', onchange: (e) => { ka.korrekturdatum = e.target.value; K.aenderung(); } })),

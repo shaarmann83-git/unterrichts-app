@@ -1,6 +1,6 @@
 // Schnelleingabe nach der Stunde (SPEC 9.3): Termin wählen, Anwesenheit, Mitarbeit 0–3 und Merkmale M1–M3 mit großen Tasten.
 import { K } from '../kontext.js';
-import { h, leeren, fuege, toast } from '../ui.js';
+import { h, leeren, fuege, toast, bestaetigen } from '../ui.js';
 import { anzeigename, datumDeutsch, heuteIso } from '../modell.js';
 import { ZEICHEN, termineGeordnet, spsNummern, mitarbeitZelle, anwesenheitZeichen, istPruefungstag } from '../sport.js';
 import { ansichtRegistrieren } from '../registry.js';
@@ -45,7 +45,14 @@ export function zeigeNachStunde() {
         if (n) K.aenderung();
         render();
         toast(n ? `${n} Person(en) auf „.“ gesetzt.` : 'Keine leeren Zellen.');
-      } }, 'Alle übrigen anwesend')));
+      } }, 'Alle übrigen anwesend'),
+      t && h('button', { type: 'button', class: 'knopf', id: 'alle-anwesend', title: 'Setzt bei allen „anwesend“. Danach nur noch Abweichungen ändern.', onclick: async () => {
+        if (!(await bestaetigen('Alle anwesend', `Bei allen ${personen.length} Personen wird „anwesend“ gesetzt. Bereits gesetzte Zeichen werden überschrieben.`, 'Alle anwesend'))) return;
+        for (const p of personen) (d.sport.anwesenheit[t.id] ||= {})[p.id] = { z: '.', quelle: 'hand' };
+        K.aenderung();
+        render();
+        toast('Alle auf „anwesend“ gesetzt.');
+      } }, 'Alle anwesend')));
     if (!t) return inhalt.append(h('p', { class: 'hinweis' }, 'Noch kein Termin. Mit „Neue Einheit“ legen Sie den heutigen Termin an. Reihen legen Sie unter „Reihen“ an (aus Vorlage).'));
     if (personen.length === 0) return inhalt.append(h('p', { class: 'hinweis' }, 'Bitte zuerst unter „Grunddaten“ Schüler:innen eintragen.'));
     const reihe = reiheById(d, t.reihe);

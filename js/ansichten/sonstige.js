@@ -10,7 +10,7 @@ import { FZ_STATUS, FZ_QUELLE } from '../fehlzeiten.js';
 import { fehlzeitenAmDatum } from '../nachschreiben.js';
 import { sichtbareListen, strichHinzu, strichZurueck, strichSumme, abhakSetzen, abhakErledigt } from '../listen.js';
 import { neueId } from '../modell.js';
-import { eintraegeAm } from '../stundenplan.js';
+import { eintraegeAm, eintraegeUm } from '../stundenplan.js';
 
 let aktuellerTermin = null; // ID des Termins in der Schnelleingabe
 const SCHNELLNOTEN = [1, 2, 3, 4, 5];
@@ -138,6 +138,17 @@ function heute(d) {
         'div',
         { class: 'knopfreihe' },
         h('button', { type: 'button', class: 'knopf primaer gross', onclick: neuerTerminAnlegen }, '+ Neue Stunde (heute)'),
+        eintraegeUm(d, heuteIso()).length > 0 && h('label', { class: 'inline' }, 'Aus dem Stundenplan: ',
+          h('select', { 'aria-label': 'Stunde aus dem Stundenplan anlegen', onchange: (e) => {
+            const x = eintraegeUm(d, heuteIso())[Number(e.target.value)];
+            if (!x) return;
+            const t = neuerTermin(x.datum);
+            d.sonstige.push(t);
+            aktuellerTermin = t.id;
+            K.aenderung();
+            render();
+          } }, h('option', { value: '' }, '– Stunde wählen –'),
+          eintraegeUm(d, heuteIso()).map((x, i) => h('option', { value: i }, `${datumDeutsch(x.datum)}${x.uhrzeit ? ' ' + x.uhrzeit : ''}${x.datum < heuteIso() ? ' (vergangen)' : ''}`)))),
         d.sonstige.length > 0 && h('label', { class: 'inline' }, 'Termin: ', auswahl),
       ),
     );

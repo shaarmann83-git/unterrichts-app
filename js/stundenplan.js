@@ -290,4 +290,15 @@ export function eintraegeAb(klasse, abDatum, anzahl = 12) {
   return (klasse.stundenplan || []).filter((e) => e.status === 'ok' && e.datum >= abDatum).sort((a, b) => a.startMs - b.startMs).slice(0, anzahl);
 }
 
+/**
+ * Termine rund um ein Datum: die letzten `zurueck` und die nächsten `vor`, neueste zuerst.
+ * Damit lassen sich auch vergangene Stunden des Schuljahres nachtragen (SPEC 12.2).
+ */
+export function eintraegeUm(klasse, datum, { zurueck = 40, vor = 12 } = {}) {
+  const alle = (klasse.stundenplan || []).filter((e) => e.status === 'ok').sort((a, b) => a.startMs - b.startMs);
+  const vergangen = alle.filter((e) => e.datum < datum).slice(-zurueck);
+  const kommend = alle.filter((e) => e.datum >= datum).slice(0, vor);
+  return [...kommend, ...vergangen.reverse()];
+}
+
 export const eintraegeAm = (klasse, datum) => (klasse.stundenplan || []).filter((e) => e.status === 'ok' && e.datum === datum).sort((a, b) => a.startMs - b.startMs);

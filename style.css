@@ -267,6 +267,7 @@ input.bemerkung { min-width: 12rem; }
 .foto-vorschau.ziehbar:active { cursor: grabbing; }
 
 /* Protokoll zur Klassenarbeit, Aufbau nach der Vorlage der Schule */
+.druckseite.protokoll { font-family: Calibri, Carlito, 'Segoe UI', Arial, sans-serif; }
 .protokoll-kopfbilder { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.2rem; }
 .protokoll-kopfbilder img { max-height: 90px; max-width: 100%; }
 .protokoll-kopfbilder .rechts { text-align: right; }
@@ -276,7 +277,11 @@ input.bemerkung { min-width: 12rem; }
 .protokoll-tabelle.ergebnis { margin-top: 1rem; }
 .protokoll-tabelle.ergebnis td.mitte { text-align: center; font-weight: 600; height: 1.8rem; }
 .protokoll-tabelle.unterschrift { margin-top: 0; border-top: 0; }
-.protokoll-tabelle.unterschrift td.feld { height: 3.2rem; }
+.protokoll-tabelle.unterschrift td.feld { height: 3.2rem; vertical-align: bottom; }
+.protokoll-tabelle.unterschrift td.hoch { vertical-align: top; }
+.protokoll-tabelle.unterschrift .stark { font-weight: 600; font-size: 0.78rem; }
+.protokoll-tabelle.unterschrift .klein { font-size: 0.72rem; }
+.protokoll-tabelle.ergebnis td:first-child, .protokoll-tabelle.ergebnis td:nth-child(2), .protokoll-tabelle.ergebnis td:nth-child(3) { width: 33.33%; }
 .protokoll-band { border: 1px solid #000; border-top: 0; background: #e6e6e6; text-align: center; font-weight: 600; padding: 0.35rem; font-size: 0.9rem; }
 .protokoll-band.stark { background: #c9c9c9; margin-top: 1rem; border-top: 1px solid #000; }
 .protokoll-kasten { border: 1px solid #000; border-top: 0; padding: 0.4rem 0.5rem; white-space: pre-wrap; font-size: 0.9rem; }

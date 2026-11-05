@@ -79,24 +79,27 @@ export function zeigeDruck() {
       (dr.kopfLinks || dr.kopfRechts) && h('div', { class: 'protokoll-kopfbilder' },
         h('div', {}, dr.kopfLinks ? h('img', { src: dr.kopfLinks, alt: '' }) : ''),
         h('div', { class: 'rechts' }, dr.kopfRechts ? h('img', { src: dr.kopfRechts, alt: '' }) : '')),
-      h('table', { class: 'protokoll-tabelle kopf' }, h('tbody', {},
+      h('table', { class: 'protokoll-tabelle kopf' }, h('colgroup', {}, h('col', { style: 'width:40%' }), h('col', { style: 'width:30%' }), h('col', { style: 'width:30%' })), h('tbody', {},
         h('tr', {},
           h('td', {}, h('strong', {}, 'Name: '), anzeigename(s)),
           h('td', {}, h('strong', {}, 'Klasse: '), d.kopf.klasse || ''),
           h('td', {}, h('strong', {}, 'Datum: '), datumDeutsch(ka.datum))))),
       band(fachZeile(d.kopf) || `${d.kopf.fachLabel || 'Lernfeld'}:`, true),
       band(`Thematische Schwerpunkte der Klassenarbeit Nr. ${nr}:`),
-      kasten(ka.schwerpunkte, '7rem'),
+      kasten(ka.schwerpunkte, '16rem'),
       band('Sonstiges'),
-      kasten(roh?.sonstiges, '3.5rem'),
+      kasten(roh?.sonstiges, '7rem'),
       h('table', { class: 'protokoll-tabelle ergebnis' }, h('tbody', {},
         h('tr', {}, werte.map(([t]) => h('td', {}, h('strong', {}, t)))),
         h('tr', {}, werte.map(([, v]) => h('td', { class: 'mitte' }, v))))),
-      h('table', { class: 'protokoll-tabelle unterschrift' }, h('tbody', {},
-        h('tr', {}, zeilen.map((t) => h('td', {}, h('span', { class: 'klein' }, t)))),
-        // Das Korrekturdatum steht im Feld der Zeile, die danach fragt, statt handschriftlich.
-        h('tr', {}, zeilen.map((t) => h('td', { class: 'feld' },
-          ka.korrekturdatum && /korrekturdatum/i.test(t) ? datumDeutsch(ka.korrekturdatum) : ' '))))),
+      // Unterschriften: links das Feld der Lehrkraft mit dem Korrekturdatum, rechts die
+      // Zeile je nach Ausbildung über die volle Höhe, genau wie in der Vorlage der Schule.
+      h('table', { class: 'protokoll-tabelle unterschrift' },
+        h('colgroup', {}, zeilen.map((_, i) => h('col', { style: `width:${i === 0 ? 61 : Math.round(39 / Math.max(1, zeilen.length - 1))}%` }))),
+        h('tbody', {},
+          h('tr', {}, zeilen.map((t, i) => h('td', { class: i === 0 ? '' : 'hoch', rowspan: i === 0 ? 1 : 2 },
+            t.split('\n').map((teil, k) => h('div', { class: k === 0 ? 'stark' : 'klein' }, teil))))),
+          h('tr', {}, h('td', { class: 'feld' }, ka.korrekturdatum ? datumDeutsch(ka.korrekturdatum) : ' ')))),
     );
   }
 
