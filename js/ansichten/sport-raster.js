@@ -1,7 +1,7 @@
 // Anwesenheit und Mitarbeit als Raster (SPEC 9.2, 9.3): Spalten = Termine, oben die Reihe als Balken.
 import { pausenSpalten } from '../rhythmus.js';
 import { K } from '../kontext.js';
-import { h, leeren, fuege, inhaltDialog, meldung, toast } from '../ui.js';
+import { h, leeren, fuege, inhaltDialog, meldung, toast, personLink } from '../ui.js';
 import { anzeigename, datumDeutsch } from '../modell.js';
 import {
   ZEICHEN, termineGeordnet, spsNummern, mitarbeitZelle, mitarbeitReihe, anwesenheitZeichen, istPruefungstag, ausgabe,
@@ -44,7 +44,7 @@ export function zeigeAnwesenheit() {
   function zellenInhalt(btn, t, s, sps) {
     const e = d.sport.anwesenheit[t.id]?.[s.id];
     const z = e?.z || '';
-    btn.className = `zelle ${zeichenFarbe(z, sps.get(t.id) || 0)}${z === '.' ? ' punkt' : ''}`;
+    btn.className = `zelle ${zeichenFarbe(z, sps.get(t.id) || 0)}${z === '.' ? ' punkt' : ''}${z === '|' ? ' strich' : ''}`;
     btn.textContent = z ? `${z}${z === 'V' && e.min ? e.min : ''}${e.stern ? '*' : ''}` : '';
     btn.title = [z && `${ZEICHEN[z]?.text || ''}`, e?.text].filter(Boolean).join(' · ');
     btn.setAttribute('aria-label', `${anzeigename(s)} ${datumDeutsch(t.datum)}: ${z || 'leer'}`);
@@ -141,7 +141,7 @@ export function zeigeAnwesenheit() {
         zellenInhalt(btn, t, p, sps.get(p.id));
         return [...(pausen.get(ti) || []).map((pa) => h('td', { class: `pause-zelle pause-${pa.art}`, title: pauseTitel(pa) })), h('td', { class: 'zellen-td' }, btn)];
       });
-      tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, anzeigename(p)), zellen,
+      tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, personLink(p, anzeigename(p))), zellen,
         h('td', { class: `zahl ${spsGesamt >= 2 ? 'z-orange' : ''}` }, String(spsGesamt)), h('td', { class: `zahl ${offen ? 'z-violett' : ''}`, 'data-offen': p.id }, String(offen))));
     });
     rahmen.append(h('table', { class: 'tabelle sport-raster' }, h('thead', {}, kopf1, kopf2, kopf3), tbody));
@@ -286,7 +286,7 @@ export function zeigeMitarbeit() {
           h('td', {}, h('button', { type: 'button', class: 'knopf klein', 'aria-label': `Mitarbeitsnote überschreiben ${anzeigename(p)}`, onclick: ueb }, '✎')),
         ];
       }
-      tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, anzeigename(p)), zellen, summe));
+      tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, personLink(p, anzeigename(p))), zellen, summe));
     });
     rahmen.append(h('table', { class: 'tabelle sport-raster' }, h('thead', {}, kopf), tbody));
     if (fokus) { rahmen.querySelector(`button.zelle[data-t="${fokus.t}"][data-s="${fokus.s}"]`)?.focus(); fokus = null; }

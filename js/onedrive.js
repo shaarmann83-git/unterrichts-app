@@ -175,12 +175,13 @@ export function weiterleitungsAdresse(loc = globalThis.location) {
   return loc.origin + pfad;
 }
 
-/**
- * Meldet mit dem dienstlichen Konto an (Popup) und liefert eine Funktion, die Zugriffstokens holt.
- * `einstellung`: { clientId, tenantId }. Nichts davon ist im Code fest verdrahtet.
- */
-export async function anmelden({ clientId, tenantId, still = false }) {
-  if (!clientId || !tenantId) throw new Error('Bitte zuerst Client-ID und Tenant-ID in den Einstellungen eintragen.');
+/** Handy und Tablet (auch iPadOS, das sich als Mac meldet): dort sind Anmelde-Fenster unzuverlässig, deshalb Weiterleitung. */
+export function istMobil(nav = globalThis.navigator) {
+  if (!nav) return false;
+  return /Android|iPhone|iPad|iPod/i.test(nav.userAgent || '') || (nav.platform === 'MacIntel' && (nav.maxTouchPoints || 0) > 1);
+}
+
+async function appErzeugen({ clientId, tenantId }) {
   await skriptLaden('lib/msal-browser.min.js');
   const app = new globalThis.msal.PublicClientApplication({
     auth: { clientId, authority: `https://login.microsoftonline.com/${tenantId}`, redirectUri: weiterleitungsAdresse() },
@@ -188,6 +189,24 @@ export async function anmelden({ clientId, tenantId, still = false }) {
     cache: { cacheLocation: 'localStorage' },
   });
   await app.initialize?.();
+  return app;
+}
+
+/** Läuft beim Start, wenn die Adresse eine Anmelde-Antwort enthält (Weiterleitung): schließt die Anmeldung ab. */
+export async function anmeldungAbschliessen({ clientId, tenantId }) {
+  if (!clientId || !tenantId) return null;
+  const app = await appErzeugen({ clientId, tenantId });
+  return app.handleRedirectPromise(); // leitet danach selbst auf die ursprüngliche Seite zurück
+}
+
+/**
+ * Meldet mit dem dienstlichen Konto an und liefert eine Funktion, die Zugriffstokens holt.
+ * Am Rechner mit Fenster, auf Handy und Tablet per Weiterleitung (die Seite verlässt dann kurz die App).
+ * `einstellung`: { clientId, tenantId }. Nichts davon ist im Code fest verdrahtet.
+ */
+export async function anmelden({ clientId, tenantId, still = false }) {
+  if (!clientId || !tenantId) throw new Error('Bitte zuerst Client-ID und Tenant-ID in den Einstellungen eintragen.');
+  const app = await appErzeugen({ clientId, tenantId });
   const anfrage = { scopes: [BERECHTIGUNG] };
   let konto = app.getAllAccounts()[0];
   if (still) {
@@ -195,11 +214,21 @@ export async function anmelden({ clientId, tenantId, still = false }) {
     if (!konto) throw new Error('Nicht angemeldet.');
     await app.acquireTokenSilent({ ...anfrage, account: konto });
   }
-  if (!konto) konto = (await app.loginPopup(anfrage)).account;
+  if (!konto) {
+    if (istMobil()) {
+      await app.loginRedirect(anfrage);
+      return new Promise(() => {}); // die Seite wird verlassen; nach der Rückkehr gilt die Anmeldung
+    }
+    konto = (await app.loginPopup(anfrage)).account;
+  }
   return async () => {
     try {
       return (await app.acquireTokenSilent({ ...anfrage, account: konto })).accessToken;
     } catch {
+      if (istMobil()) {
+        await app.acquireTokenRedirect({ ...anfrage, account: konto });
+        return new Promise(() => {});
+      }
       return (await app.acquireTokenPopup({ ...anfrage, account: konto })).accessToken;
     }
   };

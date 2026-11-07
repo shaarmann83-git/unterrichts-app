@@ -1,6 +1,6 @@
 // Eigene Listen je Klasse (SPEC 8.14).
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen, inhaltDialog, fuege } from '../ui.js';
+import { h, leeren, bestaetigen, inhaltDialog, fuege, personLink } from '../ui.js';
 import { aktiveSchueler, anzeigename, datumDeutsch, heuteIso } from '../modell.js';
 import {
   LISTEN_ARTEN, listeAnlegen, strichHinzu, strichZurueck, strichSumme, abhakSetzen, abhakErledigt, abhakDatum, abhakFehlend,
@@ -70,7 +70,7 @@ export function zeigeListen() {
 function strichAnsicht(d, l, personen) {
   return h('div', { class: 'tabelle-rahmen' }, h('table', { class: 'tabelle' },
     h('thead', {}, h('tr', {}, ['Nr.', 'Name', 'Striche', ''].map((t) => h('th', {}, t)))),
-    h('tbody', {}, personen.map((s, i) => h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, anzeigename(s)),
+    h('tbody', {}, personen.map((s, i) => h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, personLink(s, anzeigename(s))),
       h('td', { class: 'zahl', 'data-summe': s.id }, String(strichSumme(l, s.id))),
       h('td', {}, h('button', { type: 'button', class: 'knopf taste', 'aria-label': `${anzeigename(s)}: Strich`, onclick: () => { strichHinzu(l, s.id, heuteIso()); K.aenderung(); K.neuZeichnen(); } }, '+1'),
         h('button', { type: 'button', class: 'knopf taste', 'aria-label': `${anzeigename(s)}: Strich zurücknehmen`, onclick: () => { if (strichZurueck(l, s.id)) { K.aenderung(); K.neuZeichnen(); } } }, '−1')))))));
@@ -81,7 +81,7 @@ function abhakAnsicht(d, l, personen) {
   return h('div', {}, h('p', {}, fehlt.length ? `Es fehlt noch bei: ${fehlt.map(anzeigename).join(', ')}` : 'Bei allen erledigt.'),
     h('div', { class: 'tabelle-rahmen' }, h('table', { class: 'tabelle' },
       h('thead', {}, h('tr', {}, ['Nr.', 'Name', 'Erledigt', 'am'].map((t) => h('th', {}, t)))),
-      h('tbody', {}, personen.map((s, i) => h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, anzeigename(s)),
+      h('tbody', {}, personen.map((s, i) => h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, personLink(s, anzeigename(s))),
         h('td', { class: 'mitte' }, h('input', { type: 'checkbox', 'aria-label': `${anzeigename(s)} erledigt`, checked: abhakErledigt(l, s.id), onchange: (e) => { abhakSetzen(l, s.id, e.target.checked, heuteIso()); K.aenderung(); K.neuZeichnen(); } })),
         h('td', {}, abhakErledigt(l, s.id) ? h('input', { type: 'date', value: abhakDatum(l, s.id), 'aria-label': `${anzeigename(s)} erledigt am`, onchange: (e) => { l.eintraege[s.id][0].datum = e.target.value; K.aenderung(); } }) : '')))))));
 }
@@ -108,7 +108,7 @@ function betragAnsicht(d, l, personen) {
           K.aenderung();
           K.neuZeichnen();
         };
-        return h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, anzeigename(s)),
+        return h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, personLink(s, anzeigename(s))),
           h('td', { class: 'zahl' }, h('input', { type: 'text', inputmode: 'decimal', class: 'gewicht', 'aria-label': `${anzeigename(s)}: Sollbetrag`, value: String(betragSoll(l, s.id)).replace('.', ','), oninput: (e) => {
             const z = zahlLesen(e.target.value);
             if (z === null || Number.isNaN(z) || z < 0) { e.target.classList.add('fehler'); return; }

@@ -1,6 +1,6 @@
 // Prüfung erfassen (SPEC 9.4): Einzelversuche 0–3 als Tipp-Reihe, jede Person nacheinander, Summe wird gebildet.
 import { K } from '../kontext.js';
-import { h, leeren, fuege, avatar } from '../ui.js';
+import { h, leeren, fuege, avatar, personLink } from '../ui.js';
 import { anzeigename } from '../modell.js';
 import { teilRohwert, teilHoechstwert, pruefungReihe } from '../sport.js';
 import { ansichtRegistrieren } from '../registry.js';
@@ -72,7 +72,7 @@ export function zeigePruefung() {
         const pr = pruefungReihe(d, reihe, p.id, ein);
         return h('tr', { class: pi === cursor.p ? 'aktiv-zeile' : '' },
           h('td', { class: 'zahl' }, String(pi + 1)),
-          h('td', { class: 'links name' }, avatar(d, p), ' ', anzeigename(p)),
+          h('td', { class: 'links name' }, avatar(d, p), ' ', personLink(p, anzeigename(p))),
           Array.from({ length: versuche }, (_, vi) => h('td', { class: 'zellen-td' }, h('button', { type: 'button', class: `zelle ${pi === cursor.p && vi === cursor.v ? 'cursor' : ''} ${a[vi] === 0 ? 'z-rot' : a[vi] === 3 ? 'm-gruen' : a[vi] === 1 ? 'm-blau' : a[vi] === 2 ? 'z-normal' : 'z-grau'}`, 'data-p': pi, 'data-v': vi, 'aria-label': `${anzeigename(p)} Versuch ${vi + 1}: ${a[vi] ?? 'leer'}`, onclick: () => { cursor = { p: pi, v: vi }; render(); } }, a[vi] === null || a[vi] === undefined ? '' : String(a[vi])))),
           h('td', { class: 'zahl' }, h('input', { type: 'text', inputmode: 'numeric', class: 'summe-feld', 'aria-label': `${anzeigename(p)} Summe`, value: roh === null ? '' : String(roh), disabled: a.some((x) => typeof x === 'number'), title: a.some((x) => typeof x === 'number') ? 'Die Summe wird aus den Einzelversuchen gebildet' : 'Summe direkt eingeben (z. B. aus einer Papier-Strichliste)',
             onchange: (e) => {
@@ -136,7 +136,7 @@ export function zeigePruefung() {
       h('tbody', {}, personen.filter((p) => reihe.werte[p.id]?.ersatz).map((p, i) => {
         const e = reihe.werte[p.id].ersatz;
         const pr = pruefungReihe(d, reihe, p.id, ein);
-        return h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, anzeigename(p)),
+        return h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, personLink(p, anzeigename(p))),
           teile.map((t) => h('td', {}, h('input', { type: 'text', inputmode: 'decimal', class: 'summe-feld', 'aria-label': `${anzeigename(p)} ${t.name}`, value: typeof e.summen?.[t.id] === 'number' ? String(e.summen[t.id]).replace('.', ',') : '', onchange: (ev) => {
             const z = zahlLesen(ev.target.value);
             e.summen ||= {};

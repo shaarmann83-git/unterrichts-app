@@ -130,3 +130,12 @@ test('Weiterleitungsadresse der Anmeldung ist immer die mit index.html', () => {
   assert.equal(weiterleitungsAdresse({ origin: o, pathname: '/unterrichts-app/' }), `${o}/unterrichts-app/index.html`);
   assert.equal(weiterleitungsAdresse({ origin: o, pathname: '/unterrichts-app/index.html' }), `${o}/unterrichts-app/index.html`);
 });
+
+import { istMobil } from '../js/onedrive.js';
+test('Handy und Tablet werden erkannt, auch iPadOS (meldet sich als Mac)', () => {
+  assert.ok(istMobil({ userAgent: 'Mozilla/5.0 (Linux; Android 14; SM-S911B) Chrome/130', platform: 'Linux armv81', maxTouchPoints: 5 }));
+  assert.ok(istMobil({ userAgent: 'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) Safari', platform: 'iPad', maxTouchPoints: 5 }));
+  assert.ok(istMobil({ userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605', platform: 'MacIntel', maxTouchPoints: 5 }));
+  assert.ok(!istMobil({ userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605', platform: 'MacIntel', maxTouchPoints: 0 }));
+  assert.ok(!istMobil({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/130', platform: 'Win32', maxTouchPoints: 0 }));
+});

@@ -3,7 +3,7 @@
 // Zelle antippen für die Zeichen-Auswahl, Tastatur, „Alle da“, Ferien/Feiertage/Ausfälle als graue Spalten.
 // Die Zeichen liegen in `klasse.anwesenheitLf`. Fehlt jemand (E A B P U |), entsteht zusätzlich eine Fehlzeit,
 // die in „Fehlzeiten“ und beim Nachschreiben wirkt. Einträge aus Untis bleiben unangetastet und werden nur angezeigt.
-import { h, leeren, fuege, toast } from '../ui.js';
+import { h, leeren, fuege, toast, personLink } from '../ui.js';
 import { aktiveSchueler, anzeigename, datumDeutsch, heuteIso, neueId, neuerTermin } from '../modell.js';
 import { FZ_QUELLE } from '../fehlzeiten.js';
 import { ZEICHEN } from '../sport.js';
@@ -124,7 +124,7 @@ function zeigeAnwesenheitLf() {
 
   const zellenInhalt = (btn, t, s) => {
     const z = zeichenVon(d, s.id, t.datum);
-    btn.className = `zelle ${zeichenFarbe(z.zeichen)}${z.zeichen === '.' ? ' punkt' : ''}${z.fremd ? ' fremd' : ''}`;
+    btn.className = `zelle ${zeichenFarbe(z.zeichen)}${z.zeichen === '.' ? ' punkt' : ''}${z.zeichen === '|' ? ' strich' : ''}${z.fremd ? ' fremd' : ''}`;
     btn.textContent = z.zeichen ? `${z.zeichen}${z.zeichen === 'V' && z.min ? z.min : ''}${z.stern ? '*' : ''}` : '';
     btn.title = [z.zeichen && (ANWESENHEIT_ZEICHEN[z.zeichen]?.text || ''), z.text,
       z.fremd && `aus ${FZ_QUELLE[fremdEintraege(d, s.id, t.datum)[0]?.quelle] || 'Import'}, nicht änderbar`].filter(Boolean).join(' · ');
@@ -226,7 +226,7 @@ function zeigeAnwesenheitLf() {
         zellenInhalt(btn, sp.t, p);
         return h('td', { class: 'zellen-td' }, btn);
       });
-      tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, anzeigename(p)), zellen,
+      tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, personLink(p, anzeigename(p))), zellen,
         h('td', { class: 'zahl' }, fehlt ? String(fehlt) : ''), h('td', { class: `zahl ${offen ? 'z-violett' : ''}`, 'data-offen': p.id }, offen ? String(offen) : '')));
     });
     rahmen.append(h('table', { class: 'tabelle sport-raster anwesenheit-lf' }, h('thead', {}, kopf1, kopf2), tbody));

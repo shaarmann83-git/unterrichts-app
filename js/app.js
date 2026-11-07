@@ -1,8 +1,9 @@
 // Start der App: Navigation, Ansichtswechsel, Statusanzeige, Autosave, Sperre, Offline-Dienst.
 import { K } from './kontext.js';
-import { h, leeren } from './ui.js';
+import { h, leeren, toast } from './ui.js';
 import { speichern } from './aktionen.js';
 import { arbeitskopieSpeichern, einstellungen, einstellungSetzen } from './speicher.js';
+import { anmeldungAbschliessen } from './onedrive.js';
 import { buchTitel, buchHatFotos } from './modell.js';
 import { ANSICHTEN, ansichtRegistrieren } from './registry.js';
 import { zeigeStart } from './ansichten/start.js';
@@ -203,7 +204,18 @@ window.addEventListener('hashchange', zeigeAnsicht);
 
 export function appStarten() {
   farbschemaAnwenden();
-  zeigeAnsicht();
+  if (istAnmeldeAntwort()) {
+    // Rückkehr von der Microsoft-Anmeldung (Handy, Tablet): abschließen, MSAL leitet danach auf die Seite zurück
+    const e = einstellungen();
+    anmeldungAbschliessen({ clientId: e.onedriveClientId?.trim(), tenantId: e.onedriveTenantId?.trim() })
+      .catch(() => {})
+      .finally(() => {
+        if (istAnmeldeAntwort()) { history.replaceState(null, '', location.pathname); zeigeAnsicht(); }
+        import('./sync-ui.js').then((m) => m.onedriveStill()).then((c) => { if (c) toast('Bei OneDrive angemeldet.'); }).catch(() => {});
+      });
+  } else {
+    zeigeAnsicht();
+  }
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }

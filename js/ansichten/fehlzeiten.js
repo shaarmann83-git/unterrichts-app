@@ -1,6 +1,6 @@
 // Fehlzeiten einer Klasse (SPEC 8.6): Summen, Liste, manuelle Eingabe, Untis-Import. Gesundheitsangaben nur hier und in der Personenübersicht.
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen, inhaltDialog, fuege } from '../ui.js';
+import { h, leeren, bestaetigen, inhaltDialog, fuege, personLink } from '../ui.js';
 import { neueId, aktiveSchueler, anzeigename, datumDeutsch, heuteIso } from '../modell.js';
 import { FZ_STATUS, FZ_QUELLE, fehlzeitenSummen, fehlzeitenVon } from '../fehlzeiten.js';
 import { zahlLesen, formatKurz } from '../rechnen.js';
@@ -48,7 +48,7 @@ function eintragZeile(klasse, f, mitName) {
   const zeitraum = `${datumDeutsch(f.datum)}${f.datumBis ? ` – ${datumDeutsch(f.datumBis)}` : ''}${f.zeitVon ? ` (${f.zeitVon}–${f.zeitBis})` : ''}`;
   const umfang = f.quelle === 'untis-b' ? 'Zeitraum' : `${formatKurz(f.std || 0)} Std.${f.min ? ` ${f.min} Min.` : ''}${f.stunde ? ` (${f.stunde}. Std.)` : ''}`;
   return h('tr', { class: f.zaehltNicht ? 'zeile-grau' : '' },
-    mitName && h('td', { class: 'links name' }, s ? [s.name, s.vorname].filter(Boolean).join(', ') : '?'),
+    mitName && h('td', { class: 'links name' }, s ? personLink(s, [s.name, s.vorname].filter(Boolean).join(', ')) : '?'),
     h('td', {}, zeitraum), h('td', {}, umfang), h('td', {}, f.fach || ''),
     h('td', {}, h('select', { 'aria-label': 'Status', onchange: (e) => { f.status = e.target.value; K.aenderung(); K.neuZeichnen(); } }, Object.entries(FZ_STATUS).map(([w, t]) => h('option', { value: w, selected: f.status === w }, t)))),
     h('td', { class: 'links' }, f.grund || ''), h('td', { class: 'links' }, FZ_QUELLE[f.quelle] || ''),

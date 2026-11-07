@@ -1,5 +1,5 @@
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog } from '../ui.js';
+import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog, personLink } from '../ui.js';
 import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht } from '../modell.js';
 import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege, teilnahmeStatus } from '../nachschreiben.js';
 import { untisListeLaden } from './fehlzeiten.js';
@@ -328,13 +328,16 @@ export function zeigeKlassenarbeit(params) {
 
   function tabelleBauen(personen) {
     const gruppen = aufgabenGruppen(ka);
+    // Mit Teilaufgaben: jede Gesamtpunktzahl einer Aufgabe grau und fett, auch bei Aufgaben ohne Teilaufgaben
+    const mitTeilen = gruppen.some((g) => g.geteilt);
+    const gesamtKlasse = mitTeilen ? 'gruppensumme' : undefined;
     const kopf1 = h(
       'tr',
       {},
       h('th', {}, 'Nr.'),
-      h('th', { class: 'links' }, 'Name'),
+      h('th', { class: 'links name-spalte' }, 'Name'),
       gruppen.flatMap((g) => [
-        ...g.indizes.map((_, k) => h('th', {}, g.geteilt ? g.namen[k] : `Aufg. ${g.nr}`)),
+        ...g.indizes.map((_, k) => h('th', { class: g.geteilt ? undefined : gesamtKlasse }, g.geteilt ? g.namen[k] : `Aufg. ${g.nr}`)),
         g.geteilt ? h('th', { class: 'gruppensumme', title: `Summe Aufgabe ${g.nr}` }, `∑ ${g.nr}`) : null,
       ]),
       ['∑', '%', 'Note', 'Attest', 'Teilnahme', 'Sonstiges'].map((t) => h('th', {}, t)),
@@ -364,7 +367,7 @@ export function zeigeKlassenarbeit(params) {
       h('td', {}),
       h('td', { class: 'links' }, 'Höchstpunkte'),
       gruppen.flatMap((g) => [
-        ...g.indizes.map((i) => h('td', {}, hoechst[i])),
+        ...g.indizes.map((i) => h('td', { class: g.geteilt ? undefined : gesamtKlasse }, hoechst[i])),
         g.geteilt ? h('td', { class: 'gruppensumme zahl' }, hoechstSumme(g)) : null,
       ]),
       h('td', {}, gesamtAnzeige2()),
@@ -390,14 +393,14 @@ export function zeigeKlassenarbeit(params) {
           'tr',
           {},
           h('td', { class: 'zahl' }, String(i + 1)),
-          h('td', { class: 'links name' }, avatar(d, s), ' ', [s.name, s.vorname].filter(Boolean).join(', '), c.hinweis),
+          h('td', { class: 'links name name-spalte' }, avatar(d, s), ' ', personLink(s, [s.name, s.vorname].filter(Boolean).join(', ')), c.hinweis),
           gruppen.flatMap((g) => [
-            ...g.indizes.map((j) => h('td', {}, c.punkteFelder[j])),
+            ...g.indizes.map((j) => h('td', { class: g.geteilt ? undefined : gesamtKlasse }, c.punkteFelder[j])),
             g.geteilt ? h('td', { class: 'gruppensumme zahl' }, c.gruppenFelder.get(g.schluessel).el) : null,
           ]),
-          h('td', { class: 'zahl' }, c.summe),
+          h('td', { class: 'zahl endergebnis' }, c.summe),
           h('td', { class: 'zahl' }, c.prozent),
-          h('td', { class: 'mitte' }, c.note),
+          h('td', { class: 'mitte endergebnis' }, c.note),
           h('td', { class: 'mitte' }, c.attest),
           h('td', {}, c.teilnahme, c.nachDatum),
           h('td', {}, c.sonstiges),

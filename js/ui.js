@@ -220,6 +220,11 @@ export function enterNachUnten(tabelle) {
 // ---------- Personenbild und Spaltenzuordnung ----------
 
 /** Kleines Rundbild einer Person (nur wenn Fotos in der Klasse eingeschaltet sind und ein Foto da ist). */
+/** Name als Link zur Übersicht der Person (aktuelle Klasse). */
+export function personLink(person, text) {
+  return h('a', { class: 'personlink', href: `#/person/${person.id}`, title: 'Übersicht dieser Person öffnen' }, text);
+}
+
 export function avatar(klasse, person, art = 'klein') {
   if (!klasse?.bereiche?.fotos || !person?.foto?.daten) return null;
   return h('img', { class: `avatar ${art}`, src: person.foto.daten, alt: '', width: art === 'gross' ? 160 : 32, height: art === 'gross' ? 160 : 32 });

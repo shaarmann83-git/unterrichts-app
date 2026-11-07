@@ -444,3 +444,10 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - Sport ist die Grundlage. Die Liste der Lernfeld-, Fach-, Kurs- und Lerngebietsklassen sieht aus und bedient sich genauso: Zeichen-Auswahl beim Antippen, Tastatur, „Alle da“, Monatsbalken, Punkt für anwesend. Zeichen: . V | E A B P U (die sportbezogenen sps, k, ke, ka, ku entfallen).
 - Gespeichert in `klasse.anwesenheitLf`. Fehlzeichen (E A B P U |) legen zusätzlich eine Fehlzeit an (B und P als entschuldigt mit Grund „betrieblich/privat befreit“). Untis-Einträge bleiben fremd und nur lesbar.
 - Ferien, Feiertage (Niedersachsen) und in Untis ausgefallene Stunden erscheinen in beiden Listen als graue Spalten zwischen den Unterrichtstagen. Feiertage und Brückentage nur an Wochentagen, an denen die Klasse Unterricht hat.
+
+### 12.8 Nachtrag 11/2026 (Praxistest)
+- Zeichen in den Anwesenheitslisten: Punkt (anwesend) kleiner, Strich (| fehlt, Grund offen) als dicker Balken, Buchstaben größer.
+- Klassenarbeitsliste: ∑ und Note je Person fett. Mit Teilaufgaben ist jede Gesamtpunktzahl einer Aufgabe grau und fett, auch bei Aufgaben ohne Teilaufgaben. Ohne Teilaufgaben bleibt die Darstellung wie bisher.
+- Namen in Listen führen zur Übersicht der Person (Anwesenheit Sport und Lernfeld, Klassenarbeit, Listen, Prüfung, Fehlzeiten, Dalton, Gesamt). Nicht: Sonstige Leistung (eigene Eingabeseite), Nachschreiben (klassenübergreifend), Archiv.
+- Anmeldung bei OneDrive: auf Handy und Tablet (Android, iOS, iPadOS) per Weiterleitung statt Fenster, am Rechner weiter mit Fenster. Grund: Fenster werden dort blockiert oder verlieren die Antwort.
+- Darstellung: Sicherheitsabstände (Notch), Eingabefelder mindestens 16 px (kein Zoomen auf iOS), größere Tippflächen, Name bleibt in der Klassenarbeitstabelle beim Wischen stehen, Dialoge scrollen.
