@@ -1,5 +1,5 @@
 // Anwesenheit und Mitarbeit als Raster (SPEC 9.2, 9.3): Spalten = Termine, oben die Reihe als Balken.
-import { pausenSpalten } from '../rhythmus.js';
+import { pausenSpalten, rhythmusAuffuellen } from '../rhythmus.js';
 import { K } from '../kontext.js';
 import { h, leeren, fuege, inhaltDialog, meldung, toast, personLink } from '../ui.js';
 import { anzeigename, datumDeutsch } from '../modell.js';
@@ -155,6 +155,12 @@ export function zeigeAnwesenheit() {
     h('h1', {}, 'Anwesenheit'),
     h('div', { class: 'knopfreihe' },
       h('button', { type: 'button', class: 'knopf primaer', id: 'termin-neu', onclick: neuerTermin }, '+ Termin'),
+      h('button', { type: 'button', class: 'knopf', id: 'anw-auffuellen', title: 'Ergänzt die Unterrichtstage des Schuljahres, die Untis nicht liefert (ohne Ferien und Feiertage in Niedersachsen)', onclick: () => {
+        const r = rhythmusAuffuellen(d);
+        K.aenderung();
+        K.neuZeichnen();
+        toast(r.grund || `${r.neu} Unterrichtstag(e) ergänzt${r.entfernt ? `, ${r.entfernt} frühere Ergänzung(en) neu berechnet` : ''}.`);
+      } }, 'Schuljahr auffüllen'),
       h('span', { class: 'klein' }, 'Zelle antippen für die Zeichen-Auswahl, oder mit der Tastatur tippen: . V sps k ke ka ku | E A B P U, Entf leert, Pfeiltasten und Enter bewegen.')),
     h('div', { class: 'legende' },
       [['z-normal', '. V sps (1. Mal) anwesend'], ['z-rot', 'U, ku: 0'], ['z-orange', 'sps ab dem 2. Mal: 0'], ['z-violett', 'k, |: offen'], ['z-grau', 'E A B P ke ka, leer: zählt nicht']].map(([c, t]) => h('span', { class: `legende-punkt ${c}` }, t))),
