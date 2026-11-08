@@ -451,3 +451,13 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - Namen in Listen führen zur Übersicht der Person (Anwesenheit Sport und Lernfeld, Klassenarbeit, Listen, Prüfung, Fehlzeiten, Dalton, Gesamt). Nicht: Sonstige Leistung (eigene Eingabeseite), Nachschreiben (klassenübergreifend), Archiv.
 - Anmeldung bei OneDrive: auf Handy und Tablet (Android, iOS, iPadOS) per Weiterleitung statt Fenster, am Rechner weiter mit Fenster. Grund: Fenster werden dort blockiert oder verlieren die Antwort.
 - Darstellung: Sicherheitsabstände (Notch), Eingabefelder mindestens 16 px (kein Zoomen auf iOS), größere Tippflächen, Name bleibt in der Klassenarbeitstabelle beim Wischen stehen, Dialoge scrollen.
+
+### 12.9 Nachtrag 11/2026 (zweite Testrunde)
+
+- Klassenarbeit: erreichte Punkte mittig; Tabelle ist die Startansicht auf allen Geräten.
+- Protokoll: Schwerpunkte mittig im Kasten. „Sonstiges“ zeigt automatisch Fehlen mit oder ohne Attest, Nachschreibtermin bzw. „Nachgeschrieben am …“, danach den eigenen Text.
+- Druck: Korrekturliste blanko (mit Höchstpunkten, falls eingetragen) und ausgefüllt; Anwesenheitsliste ausgefüllt (Lernfeld und Sport).
+- Notensystem, Notenschlüssel, Punkteschlüssel und Unterschriftszeilen stehen unter Einstellungen (je Klasse wählbar, im Notenbuch gespeichert). Der Bereich „Notendatei“ der Grunddaten entfällt, er steht im Notenbuch.
+- Unterschriftszeile automatisch: Zusatzzeile nur bei schlechter als 4 (Punktsystem: unter 4 Punkte). Ausbildung (Einstellung `ausbildung`: automatisch, ja, nein; automatisch = Klassenname beginnt mit W oder G oder Ausbildungsbetrieb eingetragen): Zeile für den Ausbildungsbetrieb. Sonst: Zeile für die Erziehungsberechtigten nur bei unter 18 (Geburtstag, ohne Geburtstag gilt das Häkchen „volljährig“; Stichtag ist das Datum der Klassenarbeit).
+- Start: „Fehlzeiten importieren (Untis)“ ergänzt, „Excel-Vorlage importieren“ entfernt (bleibt im Notenbuch als „Excel-Vorlage als neue Klasse importieren“).
+- Hilfetexte: Knöpfe haben einen Hinweis beim Darüberfahren (`js/hilfe.js`). Auf Geräten ohne Maus schaltet der Knopf „Hilfe“ einen Modus ein, in dem ein Tippen den Knopf erklärt, statt ihn auszulösen.

@@ -318,18 +318,6 @@ export function zeigeGrunddaten() {
 
   zeilen();
 
-  const passwortBereich = h('div', { class: 'knopfreihe' });
-  function passwortZeichnen() {
-    leeren(passwortBereich);
-    fuege(
-      passwortBereich,
-      h('span', {}, K.passwort ? 'Passwortschutz: an (gilt ab dem nächsten Speichern)' : 'Passwortschutz: aus'),
-      h('button', { type: 'button', class: 'knopf', onclick: async () => { await passwortSetzen(); passwortZeichnen(); } }, K.passwort ? 'Passwort ändern' : 'Passwort setzen'),
-      K.passwort && h('button', { type: 'button', class: 'knopf', onclick: async () => { await passwortEntfernen(); passwortZeichnen(); } }, 'Passwort entfernen'),
-    );
-  }
-  passwortZeichnen();
-
   // Sport: Fachtyp, Notensystem, Zeitraum, Endnote (SPEC 9.1, 9.5)
   const sportFelder = () => {
     const wahl = (id, text, optionen, aktuell, bei) => h('label', {}, text, h('select', { id, 'aria-label': text, onchange: (e) => bei(e.target.value) }, optionen.map(([w, t]) => h('option', { value: w, selected: aktuell === w }, t))));
@@ -368,82 +356,10 @@ export function zeigeGrunddaten() {
       textFeld('Schuljahr', d.kopf, 'schuljahr'),
       fachtypWahl,
     ),
-    d.fachtyp !== 'sport' && h('h2', {}, 'Notensystem'),
-    d.fachtyp !== 'sport' && h('div', { class: 'formular' },
-      h('label', {}, 'Ausgabe', h('select', { id: 'notensystem', 'aria-label': 'Notensystem', onchange: (e) => { d.notensystem = e.target.value; K.aenderung(); K.neuZeichnen(); } },
-        [['noten', 'Noten 1 bis 6 (IHK-Schema)'], ['punkte', 'Notenpunkte 0 bis 15']].map(([w, t]) => h('option', { value: w, selected: (d.notensystem || 'noten') === w }, t))))),
-    d.fachtyp !== 'sport' && h('p', { class: 'klein' }, d.notensystem === 'punkte'
-      ? 'Gerechnet wird wie bisher über Prozent. Erst am Schluss wird der Prozentwert über den Punkteschlüssel in Notenpunkte umgesetzt. Die sonstige Leistung wird als Punktwert 0 bis 15 eingetragen.'
-      : 'Gerechnet wird über Prozent. Die sonstige Leistung wird als Note 1,0 bis 6,0 eingetragen und über das IHK-Schema in Prozent umgesetzt.'),
-    d.fachtyp !== 'sport' && h('h2', {}, 'Notenschlüssel'),
-    d.fachtyp !== 'sport' && h('p', { class: 'klein' }, 'Ab wie viel Prozent gilt welche Note? Die Werte sind Untergrenzen: Steht bei Note 1 der Wert 91,5, gibt es ab 91,5 % eine 1. Unter der letzten Grenze gilt die Note 6. Gilt nur für diese Klasse.'),
-    d.fachtyp !== 'sport' && h('div', { class: 'formular' },
-      [1, 2, 3, 4, 5].map((note, i) => h('label', {}, `Note ${note} ab %`,
-        h('input', {
-          type: 'text', inputmode: 'decimal', class: 'gewicht',
-          'aria-label': `Note ${note} ab Prozent`,
-          value: String(d.notengrenzen[i]).replace('.', ','),
-          oninput: (e) => {
-            const z = zahlLesen(e.target.value);
-            const ok = z !== null && !Number.isNaN(z) && z >= 0 && z <= 100;
-            e.target.classList.toggle('fehler', !ok);
-            if (ok) { d.notengrenzen[i] = z; K.aenderung(); }
-          },
-        }))),
-      h('div', { class: 'knopfreihe' },
-        h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.notengrenzen = [...NOTENGRENZEN_STANDARD]; K.aenderung(); K.neuZeichnen(); } }, 'Standard wiederherstellen')),
-    ),
-    d.fachtyp !== 'sport' && h('h2', {}, 'Punkteschlüssel (0 bis 15)'),
-    d.fachtyp !== 'sport' && h('p', { class: 'klein' }, 'Nur für Klassen mit Punktsystem. Auch hier sind die Werte Untergrenzen. Voreingestellt ist das Bewertungsschema BG 11, 12 und 13 der BBS Lingen Wirtschaft. Die Umstellung einer Klasse auf Punkte ist noch in Arbeit.'),
-    d.fachtyp !== 'sport' && h('div', { class: 'formular' },
-      [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((pkt, i) => h('label', {}, `${String(pkt).padStart(2, '0')} Punkte ab %`,
-        h('input', {
-          type: 'text', inputmode: 'decimal', class: 'gewicht',
-          'aria-label': `${pkt} Punkte ab Prozent`,
-          value: String(d.punktegrenzen[i]).replace('.', ','),
-          oninput: (e) => {
-            const z = zahlLesen(e.target.value);
-            const ok = z !== null && !Number.isNaN(z) && z >= 0 && z <= 100;
-            e.target.classList.toggle('fehler', !ok);
-            if (ok) { d.punktegrenzen[i] = z; K.aenderung(); }
-          },
-        }))),
-      h('div', { class: 'knopfreihe' },
-        h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.punktegrenzen = [...PUNKTEGRENZEN_STANDARD]; K.aenderung(); K.neuZeichnen(); } }, 'Standard wiederherstellen')),
-    ),
-    d.fachtyp !== 'sport' && h('h2', {}, 'Unterschriftszeilen im Ausdruck'),
-    d.fachtyp !== 'sport' && h('p', { class: 'klein' }, 'Diese Zeilen stehen unter dem Protokoll zur Klassenarbeit. Leere Zeilen werden nicht gedruckt. Die beiden Zusatzzeilen weiter unten erscheinen je nachdem, ob bei der Person ein Ausbildungsbetrieb eingetragen ist.'),
-    d.fachtyp !== 'sport' && h('div', { class: 'formular' },
-      (d.unterschriften || []).map((t, i) => {
-        const feld = h('input', { type: 'text', value: t, 'aria-label': `Unterschriftszeile ${i + 1}`, oninput: (e) => { d.unterschriften[i] = e.target.value; K.aenderung(); } });
-        // Vorlage wählen füllt das Textfeld; danach lässt es sich weiter ändern.
-        const vorlage = h('select', { 'aria-label': `Vorlage für Zeile ${i + 1}`, onchange: (e) => {
-          if (!e.target.value) return;
-          feld.value = e.target.value;
-          d.unterschriften[i] = e.target.value;
-          K.aenderung();
-          e.target.value = '';
-        } }, [h('option', { value: '' }, 'Vorlage wählen …'), ...UNTERSCHRIFT_VORLAGEN.map((v) => h('option', { value: v }, v))]);
-        return h('label', { class: 'breit' }, `Zeile ${i + 1}`, h('div', { class: 'zeile-mit-vorlage' }, feld, vorlage));
-      }),
-      h('label', { class: 'breit' }, 'Zusatzzeile nur mit Ausbildungsbetrieb',
-        h('div', { class: 'zeile-mit-vorlage' },
-          h('input', { type: 'text', value: d.unterschriftMitBetrieb || '', placeholder: 'leer lassen = keine Zusatzzeile', 'aria-label': 'Zusatzzeile mit Ausbildungsbetrieb',
-            oninput: (e) => { d.unterschriftMitBetrieb = e.target.value; K.aenderung(); } }),
-          h('button', { type: 'button', class: 'knopf klein', onclick: (e) => { const i = e.target.closest('div').querySelector('input'); i.value = UNTERSCHRIFT_MIT_BETRIEB; d.unterschriftMitBetrieb = i.value; K.aenderung(); } }, 'Vorschlag'))),
-      h('label', { class: 'breit' }, 'Zusatzzeile nur ohne Ausbildungsbetrieb',
-        h('div', { class: 'zeile-mit-vorlage' },
-          h('input', { type: 'text', value: d.unterschriftOhneBetrieb || '', placeholder: 'leer lassen = keine Zusatzzeile', 'aria-label': 'Zusatzzeile ohne Ausbildungsbetrieb',
-            oninput: (e) => { d.unterschriftOhneBetrieb = e.target.value; K.aenderung(); } }),
-          h('button', { type: 'button', class: 'knopf klein', onclick: (e) => { const i = e.target.closest('div').querySelector('input'); i.value = UNTERSCHRIFT_OHNE_BETRIEB; d.unterschriftOhneBetrieb = i.value; K.aenderung(); } }, 'Vorschlag'))),
-      h('div', { class: 'knopfreihe' },
-        h('button', { type: 'button', class: 'knopf klein', onclick: () => { (d.unterschriften ||= []).push(''); K.aenderung(); K.neuZeichnen(); } }, '+ Zeile'),
-        (d.unterschriften || []).length > 0 && h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.unterschriften.pop(); K.aenderung(); K.neuZeichnen(); } }, 'Letzte Zeile entfernen'),
-        h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.unterschriften = [...UNTERSCHRIFTEN_STANDARD]; K.aenderung(); K.neuZeichnen(); } }, 'Standard wiederherstellen')),
-    ),
     d.fachtyp === 'sport' && h('h2', {}, 'Sport'),
     d.fachtyp === 'sport' && sportFelder(),
     d.fachtyp === 'sport' && h('p', { class: 'klein' }, 'Reihen, Termine und die Bewertung finden Sie in den Sport-Ansichten. Prüfungsschlüssel und Tabellen gelten für alle Sport-Klassen (Einstellungen → Sport-Einstellungen).'),
+    d.fachtyp !== 'sport' && h('p', { class: 'klein' }, h('a', { href: '#/einstellungen' }, 'Notensystem, Notenschlüssel, Punkteschlüssel und Unterschriftszeilen finden Sie jetzt unter Einstellungen.')),
     d.fachtyp !== 'sport' && h('h2', {}, 'Gewichtung'),
     d.fachtyp !== 'sport' && h('div', { class: 'formular' }, h('label', {}, 'Schriftlich in % (0 bis 100)', schriftlich), h('p', {}, 'Sonstige Leistung: ', sonstige)),
     h('h2', {}, 'Bereiche dieser Klasse'),
@@ -452,22 +368,6 @@ export function zeigeGrunddaten() {
     h('div', { class: 'knopfreihe' },
       h('button', { type: 'button', class: 'knopf', id: 'liste-anlegen', onclick: async () => { const l = await listeAnlegenDialog(d); if (l) K.navigiere('listen'); } }, '+ Eigene Liste anlegen (Strich-, Abhak-, Betragsliste)'),
       d.listen.length > 0 && h('a', { class: 'knopf', href: '#/listen' }, `Eigene Listen (${d.listen.length})`)),
-    h('h2', {}, 'Notendatei'),
-    h(
-      'p',
-      { class: 'klein' },
-      kannDirektSpeichern()
-        ? 'Speichern überschreibt die geöffnete Datei direkt.'
-        : 'Dieser Browser kann nicht direkt in die Datei speichern: „Speichern“ lädt die Datei herunter. Legen Sie sie an einem geschützten Ort ab.',
-    ),
-    h(
-      'div',
-      { class: 'knopfreihe' },
-      h('button', { type: 'button', class: 'knopf primaer', onclick: () => speichern() }, 'Speichern'),
-      h('button', { type: 'button', class: 'knopf', onclick: () => speichern({ neuWaehlen: true }) }, 'Speichern unter …'),
-    ),
-    passwortBereich,
-    h('p', { class: 'warnung' }, 'Ein vergessenes Passwort kann nicht wiederhergestellt werden. Ohne Passwort ist die Datei nicht lesbar.'),
     h('h2', {}, 'Schüler:innen'),
     h(
       'div',

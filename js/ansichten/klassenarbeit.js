@@ -17,7 +17,7 @@ function ergebnisHolen(ka, s) {
 export function zeigeKlassenarbeit(params) {
   const d = K.daten;
   const wurzel = h('section', { class: 'seite' });
-  if (modus === null) modus = window.innerWidth < 700 ? 'einzel' : 'tabelle';
+  if (modus === null) modus = 'tabelle'; // Tabelle ist die Startansicht, auch auf dem Handy (übersichtlicher)
 
   const nr = Math.min(Math.max(parseInt(params[0] || '1', 10) || 1, 1), Math.max(d.klassenarbeiten.length, 1));
   const ka = d.klassenarbeiten[nr - 1];

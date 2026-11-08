@@ -1,5 +1,5 @@
 // Offline-Dienst: legt die App-Dateien beim ersten Besuch ab und liefert sie danach ohne Netz.
-const VERSION = 'noten-v3';
+const VERSION = 'noten-v4';
 const DATEIEN = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
@@ -8,6 +8,9 @@ const DATEIEN = [
   'js/modell.js', 'js/rechnen.js', 'js/speicher.js', 'js/ui.js',
   'js/ansichten/index.js', 'js/ansichten/stundenplan.js', 'js/ansichten/sport-gemeinsam.js', 'js/ansichten/sport-raster.js', 'js/ansichten/sport-nachstunde.js', 'js/ansichten/sport-pruefung.js', 'js/ansichten/sport-reihen.js', 'js/ansichten/sport-gesamt.js', 'js/ansichten/sport-druck.js', 'js/ansichten/sport-person.js', 'js/ansichten/besprechung.js', 'js/ansichten/einstellungen.js', 'js/dienste.js', 'js/sync-ui.js', 'js/ansichten/listen.js', 'js/ansichten/fehlzeiten.js', 'js/ansichten/nachschreiben.js', 'js/ansichten/untis-dialog.js', 'js/ansichten/dalton.js', 'js/ansichten/person.js', 'js/ansichten/archiv.js', 'js/ansichten/buch.js', 'js/ansichten/start.js', 'js/ansichten/grunddaten.js', 'js/ansichten/klassenarbeit.js',
   'js/ansichten/anwesenheit-lf.js',
+  'js/ansichten/anwesenheit-druck.js',
+  'js/ansichten/bewertung.js',
+  'js/hilfe.js',
   'js/rhythmus.js', 'js/ansichten/sonstige.js', 'js/ansichten/gesamt.js', 'js/ansichten/drucken.js',
 ];
 

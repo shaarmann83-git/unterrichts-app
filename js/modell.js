@@ -234,12 +234,46 @@ export const UNTERSCHRIFT_MIT_BETRIEB = 'Unterschrift Ausbilderin/Ausbilder\n(be
 /** Zusatzzeile, die nur bei Personen ohne Ausbildungsbetrieb gedruckt wird. */
 export const UNTERSCHRIFT_OHNE_BETRIEB = 'Unterschrift Erziehungsberechtigte(r)\n(bei nicht mehr ausreichender Leistung!)';
 
-/** Unterschriftszeilen für eine bestimmte Person: feste Zeilen plus passende Zusatzzeile. */
-export function unterschriftenFuer(klasse, person) {
+/**
+ * Gehört die Klasse zur Ausbildung (dual, Teilzeit)? Einstellung „ja“ oder „nein“ gilt immer.
+ * Bei „automatisch“ zählen Klassen, deren Name mit W oder G beginnt, und Personen mit eingetragenem Ausbildungsbetrieb.
+ */
+export function istAusbildungsklasse(klasse, person = null) {
+  const modus = klasse.ausbildung || 'auto';
+  if (modus === 'ja') return true;
+  if (modus === 'nein') return false;
+  if (/^\s*[WG]/i.test(String(klasse.kopf?.klasse || ''))) return true;
+  return !!String(person?.betrieb?.name || '').trim();
+}
+
+/** Ist die Person am Stichtag (JJJJ-MM-TT, sonst heute) jünger als 18? Ohne Geburtstag zählt das Häkchen „volljährig“. */
+export function istMinderjaehrig(person, stichtag = '') {
+  const g = String(person?.geburtstag || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(g)) {
+    const [j, m, t] = g.split('-').map(Number);
+    const bezug = /^\d{4}-\d{2}-\d{2}$/.test(stichtag) ? new Date(`${stichtag}T12:00:00`) : new Date();
+    return bezug < new Date(j + 18, m - 1, t);
+  }
+  return !person?.volljaehrig;
+}
+
+/**
+ * Unterschriftszeilen für eine bestimmte Person: feste Zeilen plus passende Zusatzzeile.
+ * Ohne `optionen` steht die Zusatzzeile immer (nach Ausbildungsbetrieb gewählt). Mit `optionen`
+ * steht sie nur bei schlechter als ausreichender Leistung: in der Ausbildung die Zeile für den
+ * Ausbildungsbetrieb, sonst die für die Erziehungsberechtigten, und zwar nur bei Minderjährigen.
+ */
+export function unterschriftenFuer(klasse, person, optionen = null) {
   const fest = (klasse.unterschriften || []).map((t) => String(t).trim()).filter(Boolean);
-  const hatBetrieb = !!String(person?.betrieb?.name || '').trim();
-  const zusatz = hatBetrieb ? klasse.unterschriftMitBetrieb : klasse.unterschriftOhneBetrieb;
-  const z = String(zusatz || '').trim();
+  if (!optionen) {
+    const hatBetrieb = !!String(person?.betrieb?.name || '').trim();
+    const z = String((hatBetrieb ? klasse.unterschriftMitBetrieb : klasse.unterschriftOhneBetrieb) || '').trim();
+    return z ? [...fest, z] : fest;
+  }
+  if (!optionen.schlechter) return fest;
+  const ausbildung = istAusbildungsklasse(klasse, person);
+  if (!ausbildung && !istMinderjaehrig(person, optionen.stichtag)) return fest;
+  const z = String((ausbildung ? klasse.unterschriftMitBetrieb : klasse.unterschriftOhneBetrieb) || '').trim();
   return z ? [...fest, z] : fest;
 }
 
@@ -260,6 +294,7 @@ export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', sch
     id: neueId(),
     kopf: { klasse, lernfeldNr, lernfeldBez, schuljahr, fachLabel },
     unterschriften: [UNTERSCHRIFTEN_STANDARD[0]],
+    ausbildung: 'auto', // 'auto' | 'ja' | 'nein'
     unterschriftMitBetrieb: UNTERSCHRIFT_MIT_BETRIEB,
     unterschriftOhneBetrieb: UNTERSCHRIFT_OHNE_BETRIEB,
     // Notenschlüssel je Klasse, damit Berufsschule (Noten) und berufliches Gymnasium (Punkte) nebeneinander möglich sind.
@@ -319,6 +354,7 @@ export function pruefeKlasse(k) {
     k.unterschriftMitBetrieb = UNTERSCHRIFT_MIT_BETRIEB;
     k.unterschriftOhneBetrieb = UNTERSCHRIFT_OHNE_BETRIEB;
   }
+  k.ausbildung ||= 'auto';
   k.unterschriftMitBetrieb ??= '';
   k.unterschriftOhneBetrieb ??= '';
   k.notensystem ||= 'noten';

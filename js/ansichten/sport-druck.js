@@ -4,6 +4,7 @@ import { h, leeren, fuege } from '../ui.js';
 import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, STUFEN_STANDARD } from '../modell.js';
 import { einstellungenAus, teilHoechstwert, endnotenKlasse, reihenErgebnis, punkte, ZEICHEN } from '../sport.js';
 import { standText } from '../excel.js';
+import { anwesenheitsSeiten } from './anwesenheit-druck.js';
 
 let art = 'kriterien';
 let reiheId = null;
@@ -95,6 +96,7 @@ export function zeigeSportDruck() {
     leeren(vorschau);
     const reihe = d.sport.reihen.find((r) => r.id === reiheId);
     if (art === 'notenliste') return vorschau.append(notenliste(d, personen, ein));
+    if (art === 'anwesenheit-gefuellt') return vorschau.append(...anwesenheitsSeiten(d));
     if (art === 'anwesenheit') return vorschau.append(leereListe(d, personen, 'Anwesenheitsliste'), leereListe(d, personen, 'Mitarbeit (0–3)'));
     if (!reihe) return vorschau.append(h('p', { class: 'hinweis' }, 'Noch keine Reihe.'));
     vorschau.append(art === 'bogen' ? erfassungsbogen(d, reihe, personen) : kriterienblatt(d, reihe, ein));
@@ -103,7 +105,7 @@ export function zeigeSportDruck() {
     leeren(steuerung);
     fuege(steuerung,
       h('label', {}, 'Ausdruck', h('select', { id: 'druck-art', 'aria-label': 'Was soll gedruckt werden?', onchange: (e) => { art = e.target.value; steuerungZeichnen(); vorschauZeichnen(); } },
-        [['kriterien', 'Kriterienblatt je Reihe'], ['bogen', 'Erfassungsbogen Prüfung'], ['anwesenheit', 'Leere Anwesenheits-/Mitarbeitsliste'], ['notenliste', 'Notenliste']].map(([w, t]) => h('option', { value: w, selected: art === w }, t)))),
+        [['kriterien', 'Kriterienblatt je Reihe'], ['bogen', 'Erfassungsbogen Prüfung'], ['anwesenheit-gefuellt', 'Anwesenheitsliste (ausgefüllt)'], ['anwesenheit', 'Leere Anwesenheits-/Mitarbeitsliste'], ['notenliste', 'Notenliste']].map(([w, t]) => h('option', { value: w, selected: art === w }, t)))),
       (art === 'kriterien' || art === 'bogen') && h('label', {}, 'Reihe', h('select', { id: 'druck-reihe', 'aria-label': 'Reihe', onchange: (e) => { reiheId = e.target.value; vorschauZeichnen(); } }, d.sport.reihen.map((r) => h('option', { value: r.id, selected: r.id === reiheId }, r.name)))),
       h('button', { type: 'button', class: 'knopf primaer', onclick: () => window.print() }, 'Drucken / PDF speichern'));
   }

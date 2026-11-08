@@ -2,7 +2,9 @@ import { K } from '../kontext.js';
 import { h, leeren, bestaetigen } from '../ui.js';
 import { standText } from '../excel.js';
 import { zeigeSportDruck } from './sport-druck.js';
-import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, unterschriftenFuer } from '../modell.js';
+import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, unterschriftenFuer, spaltenName } from '../modell.js';
+import { teilnahmeStatus } from '../nachschreiben.js';
+import { anwesenheitsSeiten } from './anwesenheit-druck.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE, istPunktsystem } from '../rechnen.js';
 
 let art = 'protokoll';
@@ -23,21 +25,23 @@ export function zeigeDruck() {
       { 'aria-label': 'Was soll gedruckt werden?', onchange: (e) => { art = e.target.value; steuerungZeichnen(); vorschauZeichnen(); } },
       [
         ['protokoll', 'Protokoll je Klassenarbeit und Schüler:in'],
-        ['blanko', 'Korrekturliste blanko'],
+        ['blanko', 'Korrekturliste blanko (mit Höchstpunkten)'],
+        ['korrektur', 'Korrekturliste ausgefüllt'],
+        ['anwesenheit', 'Anwesenheitsliste (ausgefüllt)'],
         ['gesamt', 'Gesamtübersicht'],
         ['spiegel', 'Notenspiegel'],
         ...(d.dalton.modus !== 'aus' ? [['dalton', 'Bewertungskriterien Dalton']] : []),
       ].map(([w, t]) => h('option', { value: w, selected: art === w }, t)),
     );
     steuerung.append(h('label', {}, 'Ausdruck', artWahl));
-    if (art === 'protokoll' || art === 'spiegel') {
+    if (art === 'protokoll' || art === 'spiegel' || art === 'blanko' || art === 'korrektur') {
       const kaWahl = h(
         'select',
         { 'aria-label': 'Klassenarbeit', onchange: (e) => { kaNr = Number(e.target.value); vorschauZeichnen(); } },
         d.klassenarbeiten.map((_, i) => h('option', { value: i + 1, selected: kaNr === i + 1 }, `Klassenarbeit ${i + 1}`)),
       );
+      steuerung.append(h('label', {}, 'Klassenarbeit', kaWahl));
       if (art === 'protokoll') {
-        steuerung.append(h('label', {}, 'Klassenarbeit', kaWahl));
         const pWahl = h(
           'select',
           { 'aria-label': 'Person', onchange: (e) => { personId = e.target.value; vorschauZeichnen(); } },
@@ -64,7 +68,17 @@ export function zeigeDruck() {
     const gesamt = gesamtpunkte(ka);
     const dr = K.buch?.einstellungen?.druck || {};
     const band = (text, stark = false) => h('div', { class: `protokoll-band${stark ? ' stark' : ''}` }, text);
-    const kasten = (text, hoch) => h('div', { class: 'protokoll-kasten', style: `min-height:${hoch}` }, text || '');
+    const kasten = (text, hoch, mittig = false) => h('div', { class: `protokoll-kasten${mittig ? ' mittig' : ''}`, style: `min-height:${hoch}` }, text || '');
+    // „Sonstiges“: zuerst, was die App weiß (Fehlen, Attest, Nachschreibtermin), danach der eigene Text der Lehrkraft
+    const datumOderLeer = (iso) => (/^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? datumDeutsch(iso) : '');
+    const tn = ka.teilnahme?.[s.id] || {};
+    const wirksam = teilnahmeStatus(d, ka, s.id).status;
+    const auto = [];
+    if (wirksam === 'attest-offen') auto.push(`Gefehlt mit Attest.${datumOderLeer(tn.nachschreibtermin) ? ` Nachschreibtermin: ${datumOderLeer(tn.nachschreibtermin)}.` : ' Nachschreibtermin folgt.'}`);
+    else if (wirksam === 'nachgeschrieben') auto.push(`Nachgeschrieben${datumOderLeer(tn.nachschreibtermin) ? ` am ${datumOderLeer(tn.nachschreibtermin)}` : ''}.`);
+    else if (wirksam === 'ohne-attest') auto.push('Gefehlt ohne Attest.');
+    else if (wirksam === 'entschuldigung-offen') auto.push('Gefehlt, Entschuldigung noch offen.');
+    const sonstigesText = [...auto, (roh?.sonstiges || '').trim()].filter(Boolean).join('\n');
     const werte = e.attest
       ? [['Bewertung', 'Attest vorgelegt, keine Bewertung.']]
       : [
@@ -72,7 +86,9 @@ export function zeigeDruck() {
           ['Prozentzahl:', e.prozent === null ? '' : `${formatZahl(e.prozent, 1)} %`],
           [istPunktsystem(d) ? 'Notenpunkte:' : 'Note:', e.note === null ? '' : (istPunktsystem(d) ? String(e.note).padStart(2, '0') : NOTEN_WORTE[e.note])],
         ];
-    const zeilen = unterschriftenFuer(d, s);
+    // Zusatzzeile nur bei schlechter als ausreichend: Note über 4,0, bei Punkten unter 4
+    const schlecht = !e.attest && e.note !== null && (istPunktsystem(d) ? e.note < 4 : e.note > 4);
+    const zeilen = unterschriftenFuer(d, s, { schlechter: schlecht, stichtag: ka.datum });
     return h(
       'article',
       { class: 'druckseite protokoll' },
@@ -89,9 +105,9 @@ export function zeigeDruck() {
           h('td', {}, h('strong', {}, 'Datum: '), datumDeutsch(ka.datum))))),
       band(fachZeile(d.kopf) || `${d.kopf.fachLabel || 'Lernfeld'}:`, true),
       band(`Thematische Schwerpunkte der Klassenarbeit Nr. ${nr}:`),
-      kasten(ka.schwerpunkte, '16rem'),
+      kasten(ka.schwerpunkte, '16rem', true),
       band('Sonstiges'),
-      kasten(roh?.sonstiges, '7rem'),
+      kasten(sonstigesText, '7rem'),
       h('table', { class: 'protokoll-tabelle ergebnis' }, h('tbody', {},
         h('tr', {}, werte.map(([t]) => h('td', {}, h('strong', {}, t)))),
         h('tr', {}, werte.map(([, v]) => h('td', { class: 'mitte' }, v))))),
@@ -106,19 +122,40 @@ export function zeigeDruck() {
     );
   }
 
-  function blanko() {
+  // Korrekturliste: leer (mit den Höchstpunkten, falls schon eingetragen) oder mit allen Punkten und Ergebnissen
+  function korrekturListe(ka, nr, gefuellt) {
     const personen = aktiveSchueler(d);
     const zeilen = personen.length ? personen : Array.from({ length: 32 }, () => ({ name: '', vorname: '' }));
+    const anzahl = ka?.aufgaben?.length || 16;
+    const hoechst = ka ? ka.aufgaben : [];
+    const hatHoechst = hoechst.some((x) => x !== null && x !== undefined && x !== '');
+    const nummer = ka ? String(nr) : '______';
+    const feld = (x) => (x === null || x === undefined || x === '' ? '' : formatKurz(Number(x)));
     return h(
       'article',
       { class: 'druckseite quer' },
       h('h2', {}, 'Korrekturliste'),
-      h('p', {}, `Klasse: ${d.kopf.klasse || ''}   ·   ${fachZeile(d.kopf)}   ·   Klassenarbeit Nr.: ______`),
+      h('p', {}, `Klasse: ${d.kopf.klasse || ''}   ·   ${fachZeile(d.kopf)}   ·   Klassenarbeit Nr.: ${nummer}${ka?.datum ? `   ·   ${datumDeutsch(ka.datum)}` : ''}`),
       h(
         'table',
         { class: 'tabelle druck-tabelle blanko' },
-        h('thead', {}, h('tr', {}, h('th', {}, 'Nr.'), h('th', { class: 'links' }, 'Name'), Array.from({ length: 16 }, (_, i) => h('th', {}, String(i + 1))), ['∑', '%', 'Note', 'Attest'].map((t) => h('th', {}, t)))),
-        h('tbody', {}, zeilen.map((s, i) => h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links' }, kurzname(s)), Array.from({ length: 20 }, () => h('td', {}))))),
+        h('thead', {},
+          h('tr', {}, h('th', {}, 'Nr.'), h('th', { class: 'links' }, 'Name'),
+            Array.from({ length: anzahl }, (_, i) => h('th', {}, ka?.aufgaben?.length ? spaltenName(ka, i) : String(i + 1))),
+            ['∑', '%', 'Note', 'Attest'].map((t) => h('th', {}, t))),
+          hatHoechst && h('tr', { class: 'hoechst-druck' }, h('td', {}), h('td', { class: 'links' }, 'Höchstpunkte'),
+            Array.from({ length: anzahl }, (_, i) => h('td', { class: 'mitte' }, feld(hoechst[i]))),
+            h('td', { class: 'mitte' }, formatKurz(gesamtpunkte(ka))), h('td', {}), h('td', {}), h('td', {}))),
+        h('tbody', {}, zeilen.map((s, i) => {
+          const e = gefuellt && s.id ? ergebnisKA(ka, s.id, d) : null;
+          const punkte = (gefuellt && s.id && ka?.ergebnisse?.[s.id]?.punkte) || [];
+          return h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links' }, kurzname(s)),
+            Array.from({ length: anzahl }, (_, k) => h('td', { class: 'mitte' }, gefuellt ? feld(punkte[k]) : '')),
+            h('td', { class: 'mitte' }, e && e.summe !== null ? formatKurz(e.summe) : ''),
+            h('td', { class: 'mitte' }, e && e.prozent !== null ? formatZahl(e.prozent, 1) : ''),
+            h('td', { class: 'mitte' }, e && e.note !== null ? (istPunktsystem(d) ? String(e.note).padStart(2, '0') : String(e.note)) : ''),
+            h('td', { class: 'mitte' }, e?.attest ? 'x' : ''));
+        })),
       ),
     );
   }
@@ -181,7 +218,11 @@ export function zeigeDruck() {
   function vorschauZeichnen() {
     leeren(vorschau);
     if (art === 'dalton') vorschau.append(daltonDruck());
-    else if (art === 'blanko') vorschau.append(blanko());
+    else if (art === 'blanko' || art === 'korrektur') {
+      const ka = d.klassenarbeiten[kaNr - 1] || d.klassenarbeiten[0];
+      if (!ka && art === 'korrektur') return vorschau.append(h('p', { class: 'hinweis' }, 'Noch keine Klassenarbeit angelegt.'));
+      vorschau.append(korrekturListe(ka, d.klassenarbeiten.indexOf(ka) + 1, art === 'korrektur'));
+    } else if (art === 'anwesenheit') vorschau.append(...anwesenheitsSeiten(d));
     else if (art === 'gesamt') vorschau.append(gesamtDruck());
     else {
       const ka = d.klassenarbeiten[kaNr - 1] || d.klassenarbeiten[0];

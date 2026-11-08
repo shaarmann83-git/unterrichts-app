@@ -6,6 +6,8 @@ import { ordnerWaehlen, ordnerEntfernen, gemerkterOrdner, ordnerErlaubnis, untis
 import { onedriveAnmelden, onedriveAbmelden, onedriveAngemeldet, syncEinschalten, syncAusschalten, ausOneDriveOeffnen } from '../sync-ui.js';
 import { syncStatusText } from '../sync.js';
 import { ansichtRegistrieren } from '../registry.js';
+import { bewertungBereich } from './bewertung.js';
+import { fachZeile } from '../modell.js';
 
 export function zeigeEinstellungen() {
   const wurzel = h('section', { class: 'seite' });
@@ -60,9 +62,24 @@ export function zeigeEinstellungen() {
   }
   odZeichnen();
 
+  // ----- Bewertung und Unterschriften je Klasse (stehen im Notenbuch, nicht nur auf diesem Gerät) -----
+  const bewertungKlassen = (K.buch?.klassen || []).filter((k) => k.fachtyp !== 'sport');
+  const bewertungKasten = h('div', { class: 'einstellung-block', id: 'bewertung-block' });
+  function bewertungZeichnen(klassenId) {
+    leeren(bewertungKasten);
+    const d = bewertungKlassen.find((k) => k.id === klassenId) || bewertungKlassen[0];
+    fuege(bewertungKasten,
+      h('h2', {}, 'Bewertung und Unterschriften je Klasse'),
+      h('p', { class: 'klein' }, 'Diese Einstellungen gehören zur gewählten Klasse und werden im Notenbuch gespeichert.'),
+      h('label', {}, 'Klasse', h('select', { id: 'bewertung-klasse', 'aria-label': 'Klasse', onchange: (ev) => bewertungZeichnen(ev.target.value) },
+        bewertungKlassen.map((k) => h('option', { value: k.id, selected: k.id === d.id }, `${k.kopf.klasse || 'Klasse'} ${fachZeile(k.kopf) ? '· ' + fachZeile(k.kopf) : ''}`)))),
+      ...bewertungBereich(d));
+  }
+  if (bewertungKlassen.length) bewertungZeichnen(K.klasseId);
+
   fuege(wurzel,
     h('h1', {}, 'Einstellungen'),
-    h('p', { class: 'klein' }, 'Diese Einstellungen gelten nur für diesen Browser auf diesem Gerät.'),
+    h('p', { class: 'klein' }, 'Die Einstellungen zu Sperre, Untis und OneDrive gelten nur für diesen Browser auf diesem Gerät.'),
     h('div', { class: 'einstellung-block' },
       h('h2', {}, 'Sperre'),
       h('label', {}, 'App nach Untätigkeit sperren (Passwort erneut eingeben). Nur wirksam, wenn die Notendatei ein Passwort hat.', sperre)),
@@ -73,6 +90,7 @@ export function zeigeEinstellungen() {
       schalter('untis-loeschen', 'Datei nach dem Import löschen (braucht Schreibrecht für den Ordner)', e.untisLoeschen, (v) => { einstellungSetzen('untisLoeschen', v); ordnerZeichnen(); }),
       K.buch && schalter('untis-auto', 'Ohne Rückfrage abgleichen und direkt die Vorschlagsliste zeigen (für dieses Notenbuch)', !!K.buch.einstellungen.untisOrdnerAutomatisch, (v) => { K.buch.einstellungen.untisOrdnerAutomatisch = v; K.aenderung(); }),
       h('p', { class: 'klein' }, 'Android: Als installierte App erscheint „Notenverwaltung“ im Teilen-Menü. Untis-Datei teilen, dann startet der Abgleich. iPad: Knopf „Untis-Liste laden“ in der Klassenarbeits- und Nachschreib-Ansicht.')),
+    bewertungKlassen.length > 0 && bewertungKasten,
     h('div', { class: 'einstellung-block' },
       h('h2', {}, 'OneDrive-Synchronisation (optional)'),
       h('p', { class: 'klein' }, 'Ohne Einrichtung arbeitet die App ausschließlich mit Dateien und sendet nichts ins Netz. Die Synchronisation lädt nur verschlüsselte Dateien in den eigenen App-Ordner Ihres dienstlichen OneDrive hoch (Ordner „Apps/<Name der App-Registrierung>“, kein Zugriff auf andere Dateien). Dafür muss die Schul-IT die App in Microsoft Entra ID registrieren (siehe README).'),

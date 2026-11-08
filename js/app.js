@@ -4,6 +4,7 @@ import { h, leeren, toast } from './ui.js';
 import { speichern } from './aktionen.js';
 import { arbeitskopieSpeichern, einstellungen, einstellungSetzen } from './speicher.js';
 import { anmeldungAbschliessen } from './onedrive.js';
+import { hilfeStarten } from './hilfe.js';
 import { buchTitel, buchHatFotos } from './modell.js';
 import { ANSICHTEN, ansichtRegistrieren } from './registry.js';
 import { zeigeStart } from './ansichten/start.js';
@@ -204,6 +205,7 @@ window.addEventListener('hashchange', zeigeAnsicht);
 
 export function appStarten() {
   farbschemaAnwenden();
+  hilfeStarten();
   if (istAnmeldeAntwort()) {
     // Rückkehr von der Microsoft-Anmeldung (Handy, Tablet): abschließen, MSAL leitet danach auf die Seite zurück
     const e = einstellungen();

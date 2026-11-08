@@ -5,7 +5,7 @@ import {
   neueKlasse, neuesBuch, pruefeBuch, pruefeKlasse, klasseKopieren, aktiveSchueler, archivierteSchueler, fachZeile, UNTERSCHRIFTEN_STANDARD,
   neuerTermin, neueDaltonAufgabe, buchHatFotos, dateiname, FORMAT_VERSION,
   neueKlassenarbeit, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht,
-  unterschriftenFuer, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB, neuerSchueler,
+  unterschriftenFuer, istAusbildungsklasse, istMinderjaehrig, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB, neuerSchueler,
 } from '../js/modell.js';
 import { ausDateitext, inDateitext } from '../js/krypto.js';
 import { gesamtPerson, ergebnisKA, notenspiegel } from '../js/rechnen.js';
@@ -261,4 +261,32 @@ test('Anwesenheitsliste der Lernfeldklassen: Zeichen setzen und lesen', () => {
     { datum: '2026-11-24', status: 'ausgefallen' }, // ausgefallene Stunden zählen nicht
   ];
   assert.deepEqual(termineVon(k).map((t) => t.datum), ['2026-10-27', '2026-11-03', '2026-11-10', '2026-11-17']);
+});
+
+test('Unterschriftszeile automatisch: Ausbildung, Minderjährige, nur bei schlechter als 4', () => {
+  const fest = 'Korrekturdatum und Unterschrift der Lehrkraft';
+  const ausb = neueKlasse({ klasse: 'WKM1-2' });
+  const schule = neueKlasse({ klasse: 'BG 11' });
+  const jung = { id: 'a', geburtstag: '2009-06-01', betrieb: { name: '' } };
+  const alt = { id: 'b', geburtstag: '2000-01-01', betrieb: { name: '' } };
+  const stich = '2026-11-05';
+  assert.equal(istAusbildungsklasse(ausb), true);
+  assert.equal(istAusbildungsklasse(schule), false);
+  assert.equal(istAusbildungsklasse(schule, { betrieb: { name: 'Muster GmbH' } }), true);
+  schule.ausbildung = 'nein';
+  assert.equal(istAusbildungsklasse(schule, { betrieb: { name: 'Muster GmbH' } }), false);
+  schule.ausbildung = 'auto';
+  // Note nicht schlechter als 4: keine Zusatzzeile
+  assert.deepEqual(unterschriftenFuer(ausb, jung, { schlechter: false, stichtag: stich }), [fest]);
+  // Ausbildung und schlechter: Zeile für den Ausbildungsbetrieb, unabhängig vom Alter
+  assert.deepEqual(unterschriftenFuer(ausb, alt, { schlechter: true, stichtag: stich }), [fest, UNTERSCHRIFT_MIT_BETRIEB]);
+  // ohne Ausbildung: Erziehungsberechtigte nur bei unter 18
+  assert.deepEqual(unterschriftenFuer(schule, jung, { schlechter: true, stichtag: stich }), [fest, UNTERSCHRIFT_OHNE_BETRIEB]);
+  assert.deepEqual(unterschriftenFuer(schule, alt, { schlechter: true, stichtag: stich }), [fest]);
+  // Geburtstag am Stichtag: 18 geworden, also nicht mehr minderjährig
+  assert.equal(istMinderjaehrig({ geburtstag: '2008-11-05' }, stich), false);
+  assert.equal(istMinderjaehrig({ geburtstag: '2008-11-06' }, stich), true);
+  // ohne Geburtstag entscheidet das Häkchen „volljährig“
+  assert.equal(istMinderjaehrig({ volljaehrig: true }, stich), false);
+  assert.equal(istMinderjaehrig({ volljaehrig: false }, stich), true);
 });
