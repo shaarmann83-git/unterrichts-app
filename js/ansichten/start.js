@@ -37,7 +37,9 @@ export function zeigeStart() {
       liste.append(
         h(
           'div',
-          { class: 'karte' },
+          { class: 'karte anklickbar', tabindex: '0', title: 'Zum Öffnen anklicken',
+            onclick: (e) => { if (!e.target.closest('button')) arbeitskopieOeffnen(k.id); },
+            onkeydown: (e) => { if (e.key === 'Enter' && e.target === e.currentTarget) arbeitskopieOeffnen(k.id); } },
           h('div', {}, h('strong', {}, k.titel), h('div', { class: 'klein' }, `${k.dateiname || 'ohne Dateiname'}${k.huelle ? ' · verschlüsselt' : ' · ungeschützt'} · Stand ${new Date(k.zeit).toLocaleString('de-DE')}${k.geaendert ? ' · nicht in Datei gespeichert' : ''}`)),
           h(
             'div',

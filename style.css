@@ -338,3 +338,6 @@ main { padding-left: max(0.6rem, env(safe-area-inset-left)); padding-right: max(
 
 /* Hilfe-Modus (Tablet, Handy) */
 body.hilfe-modus button:not(#knopf-hilfe), body.hilfe-modus a.knopf { outline: 2px dashed var(--akzent, #2563eb); outline-offset: 2px; }
+
+.karte.anklickbar { cursor: pointer; }
+.karte.anklickbar:hover, .karte.anklickbar:focus-visible { outline: 2px solid var(--akzent, #2563eb); outline-offset: 1px; }
