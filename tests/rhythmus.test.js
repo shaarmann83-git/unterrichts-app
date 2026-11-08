@@ -170,3 +170,23 @@ test('Anwesenheit: Untis-Fehlzeit zählt nur, wenn sie eine eigene Stunde betrif
   assert.equal(betrifftMeineStunde(k, { stunde: 1, std: 1 }, '2026-11-03', null), true, 'ohne Raster');
   assert.equal(betrifftMeineStunde(k, { stunde: 1, std: 1 }, '2026-11-04', raster), true, 'kein eigener Plan an dem Tag');
 });
+
+test('Anwesenheit: Untis-Zeitraum mit Uhrzeiten wird ohne Raster mit der eigenen Stunde verglichen', async () => {
+  const { betrifftMeineStunde } = await import('../js/ansichten/anwesenheit-lf.js');
+  const k = neueKlasse({ klasse: 'WAK3-1', schuljahr: '2026/27' });
+  k.stundenplan = [{ datum: '2026-11-03', uhrzeit: '09:50', ende: '11:20', status: 'ok' }];
+  const b = (von, bis) => ({ quelle: 'untis-b', datum: '2026-11-03', datumBis: '2026-11-03', zeitVon: von, zeitBis: bis });
+  assert.equal(betrifftMeineStunde(k, b('07:55', '08:40'), '2026-11-03', null), false, 'Verspätung vor meiner Stunde');
+  assert.equal(betrifftMeineStunde(k, b('12:20', '13:05'), '2026-11-03', null), false, 'nach meiner Stunde');
+  assert.equal(betrifftMeineStunde(k, b('10:00', '10:30'), '2026-11-03', null), true);
+  assert.equal(betrifftMeineStunde(k, { quelle: 'untis-b', datum: '2026-11-02', datumBis: '2026-11-04', zeitVon: '07:55', zeitBis: '08:40' }, '2026-11-03', null), true, 'mehrtägig: der Tag mittendrin zählt ganz');
+  assert.equal(betrifftMeineStunde(k, { quelle: 'untis-b', datum: '2026-11-03', datumBis: '2026-11-03' }, '2026-11-03', null), true, 'ohne Uhrzeit');
+});
+
+test('Anwesenheit: Uhrzeiten aus Excel (Tagesbruchteil) werden verstanden', async () => {
+  const { betrifftMeineStunde } = await import('../js/ansichten/anwesenheit-lf.js');
+  const k = neueKlasse({ klasse: 'WAK3-1', schuljahr: '2026/27' });
+  k.stundenplan = [{ datum: '2026-11-03', uhrzeit: '09:50', ende: '11:20', status: 'ok' }];
+  const frueh = { quelle: 'untis-b', datum: '2026-11-03', zeitVon: String(7 * 60 + 55) && String((7 * 60 + 55) / 1440), zeitBis: String((8 * 60 + 40) / 1440) };
+  assert.equal(betrifftMeineStunde(k, frueh, '2026-11-03', null), false);
+});

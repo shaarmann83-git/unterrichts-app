@@ -37,8 +37,12 @@ export function handEintrag(klasse, schuelerId, datum) {
 }
 
 const minutenVon = (hhmm) => {
-  const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})/);
-  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+  const text = String(hhmm ?? '').trim();
+  const m = text.match(/(\d{1,2}):(\d{2})/);
+  if (m) return Number(m[1]) * 60 + Number(m[2]);
+  // Excel speichert Uhrzeiten als Bruchteil eines Tages (0,3298 = 07:55)
+  const z = Number(text.replace(',', '.'));
+  return text !== '' && Number.isFinite(z) && z > 0 && z < 1 ? Math.round(z * 24 * 60) : null;
 };
 
 /**
@@ -52,15 +56,26 @@ export function betrifftMeineStunde(klasse, f, datum, raster = null) {
 
 /** Wie betrifftMeineStunde, mit Begründung in Worten (für die Anzeige). */
 export function stundeAbgleich(klasse, f, datum, raster = null) {
+  const hm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  const eigeneTag = () => (klasse.stundenplan || []).filter((e) => e.datum === datum && e.status === 'ok' && minutenVon(e.uhrzeit) !== null && minutenVon(e.ende) !== null);
+  // Untis-Zeitraum mit Uhrzeiten (Format B): direkt nach Uhrzeit vergleichen, ohne Stundenraster
+  if (f.quelle === 'untis-b' && !f.stunde && minutenVon(f.zeitVon) !== null) {
+    const bis = f.datumBis && f.datumBis >= f.datum ? f.datumBis : f.datum;
+    const von = datum === f.datum ? minutenVon(f.zeitVon) : 0;
+    const ende = datum === bis && minutenVon(f.zeitBis) !== null ? minutenVon(f.zeitBis) : 24 * 60;
+    const eigene = eigeneTag();
+    if (eigene.length === 0) return { zaehlt: true, grund: 'Für diesen Tag gibt es keine eigene Stunde im Stundenplan: der ganze Tag zählt.' };
+    const trifft = eigene.some((e) => minutenVon(e.uhrzeit) < ende && von < minutenVon(e.ende));
+    return { zaehlt: trifft, grund: `Untis-Zeitraum ${hm(von)} bis ${hm(ende)}, Ihre Stunde${eigene.length > 1 ? 'n' : ''}: ${eigene.map((e) => `${e.uhrzeit} bis ${e.ende}`).join(', ')}. ${trifft ? 'Das überschneidet sich.' : 'Das überschneidet sich nicht.'}` };
+  }
   if (!raster || !raster.start?.some((x) => x)) return { zaehlt: true, grund: 'Kein Stundenraster eingetragen (Einstellungen): der ganze Tag zählt.' };
   if (!f.stunde) return { zaehlt: true, grund: `Der Untis-Eintrag hat keine Stundennummer (${f.quelle === 'untis-b' ? 'Zeitraum' : 'ohne Angabe'}): der ganze Tag zählt.` };
   const start = minutenVon(raster.start[f.stunde - 1]);
   if (start === null) return { zaehlt: true, grund: `Für die ${f.stunde}. Stunde ist im Stundenraster keine Zeit eingetragen: der ganze Tag zählt.` };
   const dauer = Number(raster.dauer) || 45;
   const ende = start + Math.max(1, Number(f.std) || 1) * dauer;
-  const eigene = (klasse.stundenplan || []).filter((e) => e.datum === datum && e.status === 'ok' && minutenVon(e.uhrzeit) !== null && minutenVon(e.ende) !== null);
+  const eigene = eigeneTag();
   if (eigene.length === 0) return { zaehlt: true, grund: 'Für diesen Tag gibt es keine eigene Stunde im Stundenplan: der ganze Tag zählt.' };
-  const hm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
   const trifft = eigene.some((e) => minutenVon(e.uhrzeit) < ende && start < minutenVon(e.ende));
   return { zaehlt: trifft, grund: `Untis-Eintrag ${hm(start)} bis ${hm(ende)}, Ihre Stunde${eigene.length > 1 ? 'n' : ''}: ${eigene.map((e) => `${e.uhrzeit} bis ${e.ende}`).join(', ')}. ${trifft ? 'Das überschneidet sich.' : 'Das überschneidet sich nicht.'}` };
 }
