@@ -1,5 +1,5 @@
 // Offline-Dienst: legt die App-Dateien beim ersten Besuch ab und liefert sie danach ohne Netz.
-const VERSION = 'noten-v4';
+const VERSION = 'noten-v5';
 const DATEIEN = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
@@ -49,7 +49,7 @@ self.addEventListener('fetch', (e) => {
   }
   if (anfrage.method !== 'GET' || new URL(anfrage.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(anfrage)
+    fetch(anfrage, { cache: 'no-cache' })
       .then((antwort) => {
         if (antwort.ok) {
           const kopie = antwort.clone();
