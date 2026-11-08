@@ -197,6 +197,9 @@ function zeigeAnwesenheitLf() {
     toast(`Tag ${datumDeutsch(datum)} angelegt.`);
   }
 
+  // Tage, an denen eine Klassenarbeit geschrieben wurde: Nummern der Klassenarbeiten
+  const kaAn = (datum) => d.klassenarbeiten.map((ka, i) => (ka.datum === datum ? i + 1 : 0)).filter(Boolean);
+
   function zeichnen() {
     leeren(rahmen);
     const personen = aktiveSchueler(d);
@@ -226,8 +229,9 @@ function zeigeAnwesenheitLf() {
       h('th', { rowspan: 2 }, 'fehlt'), h('th', { rowspan: 2 }, 'offen'));
     const kopf2 = h('tr', {}, spalten.map((sp) => (sp.pause
       ? h('th', { class: `pause-kopf pause-${sp.pause.art}`, title: pauseTitel(sp.pause) }, sp.pause.text)
-      : h('th', { class: 'datum-kopf' },
+      : h('th', { class: `datum-kopf${kaAn(sp.t.datum).length ? ' ka-tag' : ''}`, title: kaAn(sp.t.datum).length ? `Klassenarbeit Nr. ${kaAn(sp.t.datum).join(', ')}` : null },
         h('span', { class: 'datum-knopf', title: sp.t.name || '' }, datumKurz(sp.t.datum)),
+        kaAn(sp.t.datum).length > 0 && h('span', { class: 'ka-marke' }, `KA ${kaAn(sp.t.datum).join(', ')}`),
         sp.t.quelle === 'stunde' && h('button', { type: 'button', class: 'alle-da termin-weg', 'data-weg': sp.t.datum, title: 'Diesen selbst angelegten Tag löschen', 'aria-label': `Tag ${datumDeutsch(sp.t.datum)} löschen`, onclick: () => terminLoeschen(sp.t.datum) }, '×'),
         h('button', { type: 'button', class: 'alle-da', 'data-termin': sp.t.datum, title: 'Alle noch leeren Zellen dieses Tages auf anwesend setzen', 'aria-label': `Alle übrigen anwesend am ${datumDeutsch(sp.t.datum)}`, onclick: () => {
           let n = 0;
