@@ -5,6 +5,7 @@ import { zeigeSportDruck } from './sport-druck.js';
 import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, unterschriftenFuer, spaltenName } from '../modell.js';
 import { teilnahmeStatus } from '../nachschreiben.js';
 import { anwesenheitsSeiten } from './anwesenheit-druck.js';
+import { kopfbilderReihe } from './kopfbilder.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE, istPunktsystem } from '../rechnen.js';
 
 let art = 'protokoll';
@@ -54,6 +55,12 @@ export function zeigeDruck() {
     const ka = d.klassenarbeiten[kaNr - 1] || d.klassenarbeiten[0];
     if (art === 'protokoll' && ka && !ka.korrekturdatum) {
       steuerung.append(h('p', { class: 'warnung' }, 'Kein Korrekturdatum eingetragen. Es erscheint dann nicht im Protokoll. Sie können es oben bei der Klassenarbeit nachtragen.'));
+    }
+    if (art === 'protokoll') {
+      steuerung.append(h('details', { class: 'kopfbilder' },
+        h('summary', {}, 'Kopfbilder für das Protokoll'),
+        h('p', { class: 'klein' }, 'Diese Bilder stehen oben auf dem Protokoll und gelten für das ganze Notenbuch. Haben Sie den Kopf als ein einziges Bild, genügt das erste Feld; es wird dann über die ganze Breite gezeigt.'),
+        kopfbilderReihe(K.buch, () => { steuerungZeichnen(); vorschauZeichnen(); })));
     }
     steuerung.append(h('button', { type: 'button', class: 'knopf primaer', onclick: async () => {
       if (art === 'protokoll' && ka && !ka.korrekturdatum

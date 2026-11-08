@@ -120,6 +120,7 @@ input.notizfeld { width: 100%; }
 .toast { position: fixed; left: 50%; bottom: 1rem; transform: translate(-50%, 200%); background: #222; color: #fff; padding: 0.7rem 1.1rem; border-radius: 0.6rem; transition: transform 0.25s; z-index: 50; max-width: 92vw; }
 .toast.sichtbar { transform: translate(-50%, 0); }
 .druck-steuerung { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: flex-end; margin-bottom: 0.6rem; }
+.druck-steuerung details.kopfbilder { flex-basis: 100%; }
 .druck-steuerung label { display: flex; flex-direction: column; font-size: 0.9rem; color: var(--text-leise); }
 .druck-vorschau { display: grid; gap: 1rem; }
 .druckseite { background: #fff; color: #000; border: 1px solid var(--rand); padding: 1.5rem 2rem; max-width: 210mm; }

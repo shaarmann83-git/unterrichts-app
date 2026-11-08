@@ -1,5 +1,5 @@
 // Offline-Dienst: legt die App-Dateien beim ersten Besuch ab und liefert sie danach ohne Netz.
-const VERSION = 'noten-v6';
+const VERSION = 'noten-v7';
 const DATEIEN = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
@@ -10,6 +10,7 @@ const DATEIEN = [
   'js/ansichten/anwesenheit-lf.js',
   'js/ansichten/anwesenheit-druck.js',
   'js/ansichten/bewertung.js',
+  'js/ansichten/kopfbilder.js',
   'js/hilfe.js',
   'js/rhythmus.js', 'js/ansichten/sonstige.js', 'js/ansichten/gesamt.js', 'js/ansichten/drucken.js',
 ];
