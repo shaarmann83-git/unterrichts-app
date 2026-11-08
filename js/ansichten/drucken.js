@@ -1,5 +1,5 @@
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen } from '../ui.js';
+import { h, leeren, bestaetigen, fuege } from '../ui.js';
 import { standText } from '../excel.js';
 import { zeigeSportDruck } from './sport-druck.js';
 import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, unterschriftenFuer, spaltenName } from '../modell.js';
@@ -12,7 +12,16 @@ let art = 'protokoll';
 let kaNr = 1;
 let personId = 'alle';
 
+function klassenWahl() {
+  const wurzel = h('section', { class: 'seite' });
+  fuege(wurzel, h('h1', {}, 'Drucken'), h('p', {}, 'Für welche Klasse möchten Sie drucken?'),
+    h('div', { class: 'knopfreihe' }, K.buch.klassen.map((k) => h('button', { type: 'button', class: 'knopf gross', 'data-klasse': k.id, onclick: () => { K.klasseId = k.id; K.neuZeichnen(); } },
+      [k.kopf.klasse || 'Ohne Namen', k.kopf.lernfeldNr && `LF ${k.kopf.lernfeldNr}`].filter(Boolean).join(' · ')))));
+  return { el: wurzel };
+}
+
 export function zeigeDruck() {
+  if (!K.daten) return klassenWahl();
   if (K.daten.fachtyp === 'sport') return zeigeSportDruck();
   const d = K.daten;
   const wurzel = h('section', { class: 'seite druck-seite' });

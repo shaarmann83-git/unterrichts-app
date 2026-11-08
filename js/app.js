@@ -23,7 +23,7 @@ const lernfeld = () => !K.daten || K.daten.fachtyp !== 'sport';
 ansichtRegistrieren('ka', { text: 'Klassenarbeiten', bauen: zeigeKlassenarbeit, klasse: true, reihe: 3, nurWenn: lernfeld });
 ansichtRegistrieren('sl', { text: 'Sonstige Leistung', bauen: zeigeSonstige, klasse: true, reihe: 4, nurWenn: lernfeld });
 ansichtRegistrieren('gesamt', { text: 'Gesamtübersicht', bauen: zeigeGesamt, klasse: true, reihe: 8, nurWenn: lernfeld });
-ansichtRegistrieren('druck', { text: 'Drucken', bauen: zeigeDruck, klasse: true, reihe: 10 });
+ansichtRegistrieren('druck', { text: 'Drucken', bauen: zeigeDruck, klasse: true, klassenWahlSelbst: true, reihe: 10 });
 
 /** Steht in der Adresse die Antwort einer Microsoft-Anmeldung? */
 export const istAnmeldeAntwort = (hash = location.hash) => /^#(code|error|id_token|access_token|state)=/.test(hash);
@@ -47,7 +47,7 @@ function menueZeichnen(aktiv) {
   const sortiert = Object.entries(ANSICHTEN).sort((a, b) => (a[1].reihe ?? 50) - (b[1].reihe ?? 50));
   for (const [id, def] of sortiert) {
     if (def.keinMenue || !sichtbar(def)) continue;
-    const gesperrt = id !== 'start' && !def.ohneBuch && (!K.buch || (def.klasse && !K.daten));
+    const gesperrt = id !== 'start' && !def.ohneBuch && (!K.buch || (def.klasse && !def.klassenWahlSelbst && !K.daten));
     nav.append(
       h(
         'a',
@@ -136,7 +136,7 @@ function zeigeAnsicht() {
     location.hash = K.daten.fachtyp === 'sport' ? '#/nachstunde' : '#/gesamt';
     return;
   }
-  if (def.klasse && !K.daten && K.buch) {
+  if (def.klasse && !K.daten && K.buch && !(def.klassenWahlSelbst && K.buch.klassen.length > 1)) {
     // Genau eine Klasse: gleich wählen. Sonst Kacheln.
     if (K.buch.klassen.length === 1) K.klasseId = K.buch.klassen[0].id;
     else {
