@@ -9,6 +9,9 @@ import { ansichtRegistrieren } from '../registry.js';
 import { bewertungBereich } from './bewertung.js';
 import { fachZeile } from '../modell.js';
 
+/** Stand der App (bei jeder Auslieferung mit sw.js VERSION erhöhen). */
+export const APP_STAND = 'noten-v6';
+
 export function zeigeEinstellungen() {
   const wurzel = h('section', { class: 'seite' });
   const e = einstellungen();
@@ -99,6 +102,7 @@ export function zeigeEinstellungen() {
       schalter('od-autosave', 'Nach Änderungen automatisch hochladen', e.onedriveAutosave, (v) => einstellungSetzen('onedriveAutosave', v)),
       schalter('od-eingang', 'OneDrive-Ordner „Untis-Eingang“ nach neuen Untis-Dateien prüfen', e.onedriveEingang, (v) => { einstellungSetzen('onedriveEingang', v); untisUeberwachungStarten(); }),
       odStatus, odKnoepfe),
+    h('p', { class: 'klein', id: 'app-stand' }, `App-Stand: ${APP_STAND}`),
   );
   return { el: wurzel };
 }
