@@ -1,5 +1,6 @@
 # Hinweise für Claude
 
+- Den aktuellen Arbeitsstand (Zusammenarbeit, Technik, Offenes) liest du zuerst in `docs/ARBEITSSTAND.md`.
 - Die vollständige Anforderung steht in `docs/SPEC.md`. Lies sie zuerst ganz und halte dich daran. Das IHK-Schema liegt in `docs/ihk-schema.json`.
 - Die Nutzerin ist Lehrkraft, keine Programmiererin. Erkläre Entscheidungen kurz auf Deutsch, ohne Fachjargon.
 - Niemals echte Schülerdaten committen. Testdaten nur mit erfundenen Namen.
