@@ -1,6 +1,6 @@
 // Fehlzeiten einer Klasse (SPEC 8.6): Summen, Liste, manuelle Eingabe, Untis-Import. Gesundheitsangaben nur hier und in der Personenübersicht.
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen, inhaltDialog, fuege, personLink } from '../ui.js';
+import { h, leeren, bestaetigen, inhaltDialog, fuege, personLink, toast } from '../ui.js';
 import { neueId, aktiveSchueler, anzeigename, datumDeutsch, heuteIso } from '../modell.js';
 import { FZ_STATUS, FZ_QUELLE, fehlzeitenSummen, fehlzeitenVon, meineTage, betrifftMeineStunden } from '../fehlzeiten.js';
 import { zahlLesen, formatKurz } from '../rechnen.js';
@@ -79,7 +79,16 @@ export function zeigeFehlzeiten() {
     h('h1', {}, 'Fehlzeiten'),
     h('div', { class: 'knopfreihe' },
       h('button', { type: 'button', class: 'knopf primaer', id: 'untis-laden', onclick: () => untisListeLaden(d) }, 'Untis-Liste laden'),
-      h('button', { type: 'button', class: 'knopf', onclick: async () => { if (await fehlzeitManuell(d)) K.neuZeichnen(); } }, '+ Fehlzeit manuell')),
+      h('button', { type: 'button', class: 'knopf', onclick: async () => { if (await fehlzeitManuell(d)) K.neuZeichnen(); } }, '+ Fehlzeit manuell'),
+      h('button', { type: 'button', class: 'knopf gefahr', id: 'fz-import-loeschen', title: 'Löscht alle aus Untis importierten Fehlzeiten dieser Klasse. Eigene und manuelle Einträge bleiben.', onclick: async () => {
+        const n = d.fehlzeiten.filter((f) => String(f.quelle).startsWith('untis')).length;
+        if (n === 0) return toast('Es gibt keine importierten Fehlzeiten.');
+        if (!(await bestaetigen('Importierte Fehlzeiten löschen', `${n} aus Untis importierte Einträge dieser Klasse werden gelöscht. Manuell erfasste Fehlzeiten und Ihre Zeichen in der Anwesenheit bleiben. Danach können Sie die Untis-Liste neu laden. Das lässt sich nicht rückgängig machen.`, 'Löschen', true))) return;
+        d.fehlzeiten = d.fehlzeiten.filter((f) => !String(f.quelle).startsWith('untis'));
+        K.aenderung();
+        K.neuZeichnen();
+        toast(`${n} importierte Fehlzeiten gelöscht.`);
+      } }, 'Importierte Fehlzeiten löschen')),
     h('label', { class: 'schalter' },
       h('input', { type: 'checkbox', id: 'fz-nur-meine', checked: filtern, disabled: !filterMoeglich, onchange: (e) => { nurMeine = e.target.checked; K.neuZeichnen(); } }),
       ' Nur Tage mit meinem Unterricht in dieser Klasse (für Fachlehrkräfte)'),
