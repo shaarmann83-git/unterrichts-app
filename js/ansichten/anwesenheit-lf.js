@@ -47,13 +47,22 @@ const minutenVon = (hhmm) => {
  * Ohne Raster, ohne Stundennummer oder ohne eigene Stunde mit Uhrzeit zählt der Eintrag immer.
  */
 export function betrifftMeineStunde(klasse, f, datum, raster = null) {
-  const start = raster && f.stunde ? minutenVon(raster.start?.[f.stunde - 1]) : null;
-  if (start === null) return true;
+  return stundeAbgleich(klasse, f, datum, raster).zaehlt;
+}
+
+/** Wie betrifftMeineStunde, mit Begründung in Worten (für die Anzeige). */
+export function stundeAbgleich(klasse, f, datum, raster = null) {
+  if (!raster || !raster.start?.some((x) => x)) return { zaehlt: true, grund: 'Kein Stundenraster eingetragen (Einstellungen): der ganze Tag zählt.' };
+  if (!f.stunde) return { zaehlt: true, grund: `Der Untis-Eintrag hat keine Stundennummer (${f.quelle === 'untis-b' ? 'Zeitraum' : 'ohne Angabe'}): der ganze Tag zählt.` };
+  const start = minutenVon(raster.start[f.stunde - 1]);
+  if (start === null) return { zaehlt: true, grund: `Für die ${f.stunde}. Stunde ist im Stundenraster keine Zeit eingetragen: der ganze Tag zählt.` };
   const dauer = Number(raster.dauer) || 45;
   const ende = start + Math.max(1, Number(f.std) || 1) * dauer;
   const eigene = (klasse.stundenplan || []).filter((e) => e.datum === datum && e.status === 'ok' && minutenVon(e.uhrzeit) !== null && minutenVon(e.ende) !== null);
-  if (eigene.length === 0) return true;
-  return eigene.some((e) => minutenVon(e.uhrzeit) < ende && start < minutenVon(e.ende));
+  if (eigene.length === 0) return { zaehlt: true, grund: 'Für diesen Tag gibt es keine eigene Stunde im Stundenplan: der ganze Tag zählt.' };
+  const hm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  const trifft = eigene.some((e) => minutenVon(e.uhrzeit) < ende && start < minutenVon(e.ende));
+  return { zaehlt: trifft, grund: `Untis-Eintrag ${hm(start)} bis ${hm(ende)}, Ihre Stunde${eigene.length > 1 ? 'n' : ''}: ${eigene.map((e) => `${e.uhrzeit} bis ${e.ende}`).join(', ')}. ${trifft ? 'Das überschneidet sich.' : 'Das überschneidet sich nicht.'}` };
 }
 
 /** Fehlzeiten anderer Herkunft (Untis) an diesem Datum, die eine eigene Stunde betreffen. */
@@ -165,7 +174,7 @@ function zeigeAnwesenheitLf() {
     if (jetzt.fremd) {
       const f = fremdEintraege(d, s.id, t.datum)[0];
       const was = `${FZ_STATUS[f.status] || f.status}${f.stunde ? `, ${f.stunde}. Stunde` : ''}${f.fach ? `, ${f.fach}` : ''}${f.min && !f.std ? `, ${f.min} Min.` : ''}`;
-      const ja = await bestaetigen('Eintrag aus Untis', `Untis meldet für ${anzeigename(s)} am ${datumDeutsch(t.datum)}: ${was}. Gilt das nicht für Ihre Stunde (z. B. eine andere Stunde am selben Tag)? Dann wird die Person für Ihre Stunde als anwesend gezählt. Der Eintrag unter „Fehlzeiten“ bleibt unverändert.`, 'Für meine Stunde anwesend');
+      const ja = await bestaetigen('Eintrag aus Untis', `Untis meldet für ${anzeigename(s)} am ${datumDeutsch(t.datum)}: ${was}. ${stundeAbgleich(d, f, t.datum, K.buch?.einstellungen?.stundenraster || null).grund} Gilt das nicht für Ihre Stunde (z. B. eine andere Stunde am selben Tag)? Dann wird die Person für Ihre Stunde als anwesend gezählt. Der Eintrag unter „Fehlzeiten“ bleibt unverändert.`, 'Für meine Stunde anwesend');
       if (!ja) return;
       fokus = { t: t.datum, s: s.id };
       setze(t, s, '.', { ohneUntis: true });
