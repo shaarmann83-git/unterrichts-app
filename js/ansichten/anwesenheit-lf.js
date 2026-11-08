@@ -3,12 +3,12 @@
 // Zelle antippen für die Zeichen-Auswahl, Tastatur, „Alle da“, Ferien/Feiertage/Ausfälle als graue Spalten.
 // Die Zeichen liegen in `klasse.anwesenheitLf`. Fehlt jemand (E A B P U |), entsteht zusätzlich eine Fehlzeit,
 // die in „Fehlzeiten“ und beim Nachschreiben wirkt. Einträge aus Untis bleiben unangetastet und werden nur angezeigt.
-import { h, leeren, fuege, toast, personLink } from '../ui.js';
+import { h, leeren, fuege, toast, personLink, bestaetigen } from '../ui.js';
 import { aktiveSchueler, anzeigename, datumDeutsch, heuteIso, neueId, neuerTermin } from '../modell.js';
 import { FZ_QUELLE } from '../fehlzeiten.js';
 import { ZEICHEN } from '../sport.js';
 import { zeichenFarbe, zeichenPalette, datumKurz } from './sport-gemeinsam.js';
-import { pausenSpalten } from '../rhythmus.js';
+import { pausenSpalten, rhythmusAuffuellen } from '../rhythmus.js';
 import { ansichtRegistrieren } from '../registry.js';
 import { K } from '../kontext.js';
 
@@ -174,6 +174,29 @@ function zeigeAnwesenheitLf() {
     zeichnen();
   }
 
+  async function terminLoeschen(datum) {
+    if (d.sonstige.some((t) => t.datum === datum && Object.keys(t.eintraege || {}).length > 0)) {
+      return toast('Zu diesem Tag gibt es Einträge unter „Sonstige Leistung“. Löschen Sie den Tag dort.');
+    }
+    const ja = await bestaetigen('Tag löschen', `Der selbst angelegte Tag ${datumDeutsch(datum)} wird gelöscht, mit allen Anwesenheitseinträgen und den daraus entstandenen Fehlzeiten. Das lässt sich nicht rückgängig machen.`, 'Löschen', true);
+    if (!ja) return;
+    for (const p of aktiveSchueler(d)) zeichenSetzen(d, p.id, datum, '');
+    delete d.anwesenheitLf?.[datum];
+    d.sonstige = d.sonstige.filter((t) => t.datum !== datum);
+    K.aenderung();
+    zeichnen();
+    toast('Tag gelöscht.');
+  }
+
+  function stundeAnlegen(datum) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(datum || '')) return toast('Bitte ein Datum wählen.');
+    if (termineVon(d).some((t) => t.datum === datum)) return toast('Für diesen Tag gibt es schon eine Spalte.');
+    d.sonstige.push(neuerTermin(datum));
+    K.aenderung();
+    zeichnen();
+    toast(`Tag ${datumDeutsch(datum)} angelegt.`);
+  }
+
   function zeichnen() {
     leeren(rahmen);
     const personen = aktiveSchueler(d);
@@ -205,6 +228,7 @@ function zeigeAnwesenheitLf() {
       ? h('th', { class: `pause-kopf pause-${sp.pause.art}`, title: pauseTitel(sp.pause) }, sp.pause.text)
       : h('th', { class: 'datum-kopf' },
         h('span', { class: 'datum-knopf', title: sp.t.name || '' }, datumKurz(sp.t.datum)),
+        sp.t.quelle === 'stunde' && h('button', { type: 'button', class: 'alle-da termin-weg', 'data-weg': sp.t.datum, title: 'Diesen selbst angelegten Tag löschen', 'aria-label': `Tag ${datumDeutsch(sp.t.datum)} löschen`, onclick: () => terminLoeschen(sp.t.datum) }, '×'),
         h('button', { type: 'button', class: 'alle-da', 'data-termin': sp.t.datum, title: 'Alle noch leeren Zellen dieses Tages auf anwesend setzen', 'aria-label': `Alle übrigen anwesend am ${datumDeutsch(sp.t.datum)}`, onclick: () => {
           let n = 0;
           for (const p of personen) if (!zeichenVon(d, p.id, sp.t.datum).zeichen) { zeichenSetzen(d, p.id, sp.t.datum, '.'); n += 1; }
@@ -239,15 +263,14 @@ function zeigeAnwesenheitLf() {
   fuege(wurzel,
     h('h1', {}, 'Anwesenheit'),
     h('div', { class: 'knopfreihe' },
-      h('button', {
-        type: 'button', class: 'knopf primaer', id: 'anw-neu',
-        onclick: () => {
-          d.sonstige.push(neuerTermin(heuteIso()));
-          K.aenderung();
-          zeichnen();
-          toast('Stunde für heute angelegt.');
-        },
-      }, '+ Stunde (heute)'),
+      h('input', { type: 'date', id: 'anw-datum', value: heuteIso(), 'aria-label': 'Datum für neuen Tag' }),
+      h('button', { type: 'button', class: 'knopf primaer', id: 'anw-neu', title: 'Legt für das gewählte Datum eine Spalte an', onclick: () => stundeAnlegen(wurzel.querySelector('#anw-datum').value) }, '+ Tag anlegen'),
+      h('button', { type: 'button', class: 'knopf', id: 'anw-auffuellen', title: 'Ergänzt die Unterrichtstage des Schuljahres, die Untis nicht liefert (ohne Ferien und Feiertage in Niedersachsen)', onclick: () => {
+        const r = rhythmusAuffuellen(d);
+        K.aenderung();
+        zeichnen();
+        toast(r.grund || `${r.neu} Unterrichtstag(e) ergänzt${r.entfernt ? `, ${r.entfernt} frühere Ergänzung(en) neu berechnet` : ''}.`);
+      } }, 'Schuljahr auffüllen'),
       h('span', { class: 'klein' }, 'Zelle antippen für die Zeichen-Auswahl, oder mit der Tastatur tippen: . V | E A B P U, Entf leert, Pfeiltasten und Enter bewegen. Graue Spalten sind Ferien, Feiertage und ausgefallene Stunden.')),
     h('div', { class: 'legende' },
       [['z-normal', '. V anwesend'], ['z-rot', 'U nicht entschuldigt'], ['z-violett', '| Grund offen'], ['z-grau', 'E A B P entschuldigt, leer: nicht eingetragen']].map(([c, t]) => h('span', { class: `legende-punkt ${c}` }, t))),

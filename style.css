@@ -342,3 +342,5 @@ body.hilfe-modus button:not(#knopf-hilfe), body.hilfe-modus a.knopf { outline: 2
 
 .karte.anklickbar { cursor: pointer; }
 .karte.anklickbar:hover, .karte.anklickbar:focus-visible { outline: 2px solid var(--akzent, #2563eb); outline-offset: 1px; }
+
+.termin-weg { color: var(--gefahr, #b91c1c); }
