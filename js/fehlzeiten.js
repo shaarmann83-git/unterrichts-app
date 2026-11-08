@@ -25,10 +25,11 @@ export function werktage(von, bis) {
 }
 
 /** Summen je Person. Einträge mit zaehltNicht werden nicht summiert. */
-export function fehlzeitenSummen(klasse, schuelerId) {
+export function fehlzeitenSummen(klasse, schuelerId, nurIf = null) {
   const s = { entschuldigt: 0, attest: 0, nicht: 0, offen: 0, gesamt: 0, tage: 0, verspaetungen: 0, eintraege: 0 };
   for (const f of klasse.fehlzeiten) {
     if (f.schuelerId !== schuelerId || f.zaehltNicht) continue;
+    if (nurIf && !nurIf(f)) continue;
     s.eintraege += 1;
     const std = Number(f.std) || 0;
     const min = Number(f.min) || 0;
@@ -52,4 +53,21 @@ export function fehlzeitenVon(klasse, schuelerId) {
 
 export function aktivePersonenIds(klasse) {
   return new Set(aktiveSchueler(klasse).map((s) => s.id));
+}
+
+/** Alle Tage, an denen die Lehrkraft in dieser Klasse Unterricht hat (Stundenplan, eigene Stunden, Sport-Termine). */
+export function meineTage(klasse) {
+  const tage = new Set();
+  for (const e of klasse.stundenplan || []) if (e.status === 'ok' && e.datum) tage.add(e.datum);
+  for (const t of klasse.sonstige || []) if (t.datum) tage.add(t.datum);
+  for (const t of klasse.sport?.termine || []) if (t.datum) tage.add(t.datum);
+  return tage;
+}
+
+/** Betrifft die Fehlzeit einen Tag mit eigenem Unterricht? Eigene Einträge von Hand zählen immer. */
+export function betrifftMeineStunden(f, tage) {
+  if (f.quelle === 'manuell') return true;
+  const bis = f.datumBis && f.datumBis >= f.datum ? f.datumBis : f.datum;
+  for (const t of tage) if (t >= f.datum && t <= bis) return true;
+  return false;
 }

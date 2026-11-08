@@ -290,3 +290,22 @@ test('Unterschriftszeile automatisch: Ausbildung, Minderjährige, nur bei schlec
   assert.equal(istMinderjaehrig({ volljaehrig: true }, stich), false);
   assert.equal(istMinderjaehrig({ volljaehrig: false }, stich), true);
 });
+
+test('Fehlzeiten: nur Tage mit eigenem Unterricht', async () => {
+  const { meineTage, betrifftMeineStunden, fehlzeitenSummen } = await import('../js/fehlzeiten.js');
+  const k = neueKlasse({ klasse: 'WAK3-1' });
+  k.stundenplan.push({ datum: '2026-11-02', status: 'ok' }, { datum: '2026-11-03', status: 'ausgefallen' });
+  k.sonstige.push({ datum: '2026-11-04', eintraege: {} });
+  const tage = meineTage(k);
+  assert.deepEqual([...tage].sort(), ['2026-11-02', '2026-11-04']);
+  assert.equal(betrifftMeineStunden({ quelle: 'untis-a', datum: '2026-11-02' }, tage), true);
+  assert.equal(betrifftMeineStunden({ quelle: 'untis-a', datum: '2026-11-03' }, tage), false);
+  assert.equal(betrifftMeineStunden({ quelle: 'untis-b', datum: '2026-11-03', datumBis: '2026-11-05' }, tage), true);
+  assert.equal(betrifftMeineStunden({ quelle: 'manuell', datum: '2026-10-01' }, tage), true);
+  k.fehlzeiten.push(
+    { schuelerId: 'x', quelle: 'untis-a', datum: '2026-11-02', std: 2, status: 'offen' },
+    { schuelerId: 'x', quelle: 'untis-a', datum: '2026-11-03', std: 3, status: 'offen' },
+  );
+  assert.equal(fehlzeitenSummen(k, 'x').offen, 5);
+  assert.equal(fehlzeitenSummen(k, 'x', (f) => betrifftMeineStunden(f, tage)).offen, 2);
+});

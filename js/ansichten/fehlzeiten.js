@@ -2,7 +2,7 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, inhaltDialog, fuege, personLink } from '../ui.js';
 import { neueId, aktiveSchueler, anzeigename, datumDeutsch, heuteIso } from '../modell.js';
-import { FZ_STATUS, FZ_QUELLE, fehlzeitenSummen, fehlzeitenVon } from '../fehlzeiten.js';
+import { FZ_STATUS, FZ_QUELLE, fehlzeitenSummen, fehlzeitenVon, meineTage, betrifftMeineStunden } from '../fehlzeiten.js';
 import { zahlLesen, formatKurz } from '../rechnen.js';
 import { dateienAlsBytes } from '../speicher.js';
 import { untisAbgleichStarten } from './untis-dialog.js';
@@ -62,27 +62,43 @@ function eintragZeile(klasse, f, mitName) {
     } }, '✕')));
 }
 
+let nurMeine = true; // Voreinstellung: nur Tage mit eigenem Unterricht
+
 export function zeigeFehlzeiten() {
   const d = K.daten;
   const wurzel = h('section', { class: 'seite' });
   const personen = aktiveSchueler(d);
-  const summen = personen.map((s) => ({ s, z: fehlzeitenSummen(d, s.id) }));
+  const tage = meineTage(d);
+  const filterMoeglich = tage.size > 0;
+  const filtern = nurMeine && filterMoeglich;
+  const gilt = filtern ? (f) => betrifftMeineStunden(f, tage) : null;
+  const summen = personen.map((s) => ({ s, z: fehlzeitenSummen(d, s.id, gilt) }));
+  const alleEintraege = d.fehlzeiten.filter((f) => !gilt || gilt(f));
+  const offenGesamt = summen.reduce((n, { z }) => n + z.offen, 0);
   wurzel.append(
     h('h1', {}, 'Fehlzeiten'),
     h('div', { class: 'knopfreihe' },
       h('button', { type: 'button', class: 'knopf primaer', id: 'untis-laden', onclick: () => untisListeLaden(d) }, 'Untis-Liste laden'),
       h('button', { type: 'button', class: 'knopf', onclick: async () => { if (await fehlzeitManuell(d)) K.neuZeichnen(); } }, '+ Fehlzeit manuell')),
-    h('p', { class: 'klein' }, 'Fehlzeiten fließen nicht in Noten ein. Abwesenheitsgründe (z. B. „krank“) sind Gesundheitsangaben und erscheinen nur hier und in der Personenübersicht, nicht im Excel der Gesamtübersicht und nicht im Druck.'),
-    h('h2', {}, 'Summen je Person'),
+    h('label', { class: 'schalter' },
+      h('input', { type: 'checkbox', id: 'fz-nur-meine', checked: filtern, disabled: !filterMoeglich, onchange: (e) => { nurMeine = e.target.checked; K.neuZeichnen(); } }),
+      ' Nur Tage mit meinem Unterricht in dieser Klasse'),
+    h('p', { class: 'klein' }, filterMoeglich
+      ? `${filtern ? `Angezeigt: ${alleEintraege.length} von ${d.fehlzeiten.length} Einträgen. ` : ''}Maßgeblich sind die Tage aus Ihrem Stundenplan und Ihre eigenen Stunden. Einzelne Stunden lassen sich nicht trennen: Fehlt jemand an einem Tag mit Ihrem Unterricht, zählt der ganze Eintrag.`
+      : 'Ohne Stundenplan lässt sich nicht erkennen, welche Tage Ihr Unterricht betreffen. Es werden alle Einträge angezeigt.'),
+    h('p', { class: 'klein' }, 'Fehlzeiten fließen nicht in Noten ein. Abwesenheitsgründe (z. B. „krank“) sind Gesundheitsangaben und erscheinen nur hier und in der Personenübersicht, nicht im Ausdruck.'),
+    h('h2', {}, `Summen je Person${offenGesamt ? ` · ${formatKurz(offenGesamt)} Std. offen` : ''}`),
     h('div', { class: 'tabelle-rahmen' }, h('table', { class: 'tabelle' },
-      h('thead', {}, h('tr', {}, ['Nr.', 'Name', 'Entschuldigt', 'davon mit Attest', 'Nicht entschuldigt', 'Offen', 'Gesamt', 'Fehltage', 'Verspätungen'].map((t) => h('th', {}, t)))),
-      h('tbody', {}, summen.map(({ s, z }, i) => h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, h('a', { href: `#/person/${s.id}` }, [s.name, s.vorname].filter(Boolean).join(', ')))
-        , [z.entschuldigt, z.attest, z.nicht, z.offen, z.gesamt, z.tage, z.verspaetungen].map((v) => h('td', { class: 'zahl' }, formatKurz(v))))))
+      h('thead', {}, h('tr', {}, ['Nr.', 'Name', 'Offen', 'Nicht entschuldigt', 'Entschuldigt', 'davon mit Attest', 'Gesamt', 'Fehltage', 'Verspätungen'].map((t) => h('th', {}, t)))),
+      h('tbody', {}, summen.map(({ s, z }, i) => h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, personLink(s, [s.name, s.vorname].filter(Boolean).join(', '))),
+        h('td', { class: `zahl ${z.offen ? 'z-violett stark' : ''}`, 'data-offen': s.id }, z.offen ? formatKurz(z.offen) : ''),
+        [z.nicht, z.entschuldigt, z.attest, z.gesamt, z.tage, z.verspaetungen].map((v) => h('td', { class: 'zahl' }, v ? formatKurz(v) : '')))))
     )),
-    h('h2', {}, 'Alle Einträge'),
+    h('h2', {}, 'Alle Einträge (offene zuerst)'),
   );
-  const alle = [...d.fehlzeiten].sort((a, b) => (a.datum < b.datum ? 1 : a.datum > b.datum ? -1 : 0));
-  wurzel.append(alle.length === 0 ? h('p', { class: 'hinweis' }, 'Noch keine Fehlzeiten. Laden Sie eine Untis-Liste oder erfassen Sie eine Fehlzeit manuell.') :
+  const rang = (f) => (f.status === 'offen' ? 0 : 1);
+  const alle = [...alleEintraege].sort((a, b) => rang(a) - rang(b) || (a.datum < b.datum ? 1 : a.datum > b.datum ? -1 : 0));
+  wurzel.append(alle.length === 0 ? h('p', { class: 'hinweis' }, 'Keine Fehlzeiten. Laden Sie eine Untis-Liste oder erfassen Sie eine Fehlzeit manuell.') :
     h('div', { class: 'tabelle-rahmen' }, h('table', { class: 'tabelle' },
       h('thead', {}, h('tr', {}, ['Name', 'Datum / Zeitraum', 'Umfang', 'Fach', 'Status', 'Grund', 'Quelle', '', 'Notiz', ''].map((t) => h('th', {}, t)))),
       h('tbody', {}, alle.slice(0, 500).map((f) => eintragZeile(d, f, true))))));
