@@ -151,6 +151,8 @@ export function rhythmusAuffuellen(klasse) {
   const muster = rhythmusErkennen(klasse);
   if (muster.length === 0) return { neu: 0, entfernt, grund: 'Aus dem Stundenplan lässt sich noch kein fester Wochenrhythmus erkennen (mindestens 4 gleiche Wochen nötig).' };
 
+  // Sport wird meist nur ein Halbjahr unterrichtet: dann nur das Halbjahr auffüllen, in dem der importierte Plan beginnt
+  const nurHalbjahr = sport && klasse.sport.zeitraum !== 'jahr' ? halbjahrVon(fensterVon) : 0;
   const belegt = new Set(klasse.stundenplan.map((e) => `${e.datum}|${e.uhrzeit}`));
   const tageMitTermin = new Set(sport ? klasse.sport.termine.map((t) => t.datum) : []);
   const jetztIso = new Date().toISOString();
@@ -159,6 +161,7 @@ export function rhythmusAuffuellen(klasse) {
     const datum = isoVon(tag);
     if (datum >= fensterVon && datum <= fensterBis) continue; // dort gilt, was Untis geliefert hat
     if (unterrichtsfrei(datum, sj)) continue;
+    if (nurHalbjahr && halbjahrVon(datum) !== nurHalbjahr) continue;
     const wt = wochentagVon(datum);
     for (const m of muster) {
       if (m.wt !== wt || (wocheVon(datum) - m.ankerWoche) % m.takt !== 0) continue;

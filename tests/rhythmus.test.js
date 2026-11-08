@@ -139,3 +139,18 @@ test('Handy und Tablet werden erkannt, auch iPadOS (meldet sich als Mac)', () =>
   assert.ok(!istMobil({ userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605', platform: 'MacIntel', maxTouchPoints: 0 }));
   assert.ok(!istMobil({ userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/130', platform: 'Win32', maxTouchPoints: 0 }));
 });
+
+test('Sport: standardmäßig nur das Halbjahr des importierten Plans auffüllen, auf Wunsch das ganze Jahr', () => {
+  const bauen = (zeitraum) => {
+    const k = neueKlasse({ klasse: 'WAK3-1', schuljahr: '2026/27', fachtyp: 'sport' });
+    k.sport.zeitraum = zeitraum;
+    k.stundenplan = dienstage('2026-10-27', '2027-03-16').filter((d) => !unterrichtsfrei(d, schuljahrDaten('2026/27'))).map((d) => eintrag(d));
+    rhythmusAuffuellen(k);
+    return k.stundenplan.filter((e) => e.quelle === 'regel').map((e) => e.datum);
+  };
+  const halb = bauen('halbjahr');
+  assert.ok(halb.includes('2026-08-18'));
+  assert.ok(halb.every((d) => d < '2027-02-01'), 'nichts im 2. Halbjahr');
+  const jahr = bauen('jahr');
+  assert.ok(jahr.includes('2027-07-06'));
+});
