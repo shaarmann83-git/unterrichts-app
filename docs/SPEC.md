@@ -462,5 +462,5 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - Start: „Fehlzeiten importieren (Untis)“ ergänzt, „Excel-Vorlage importieren“ entfernt (bleibt im Notenbuch als „Excel-Vorlage als neue Klasse importieren“).
 - Hilfetexte: Knöpfe haben einen Hinweis beim Darüberfahren (`js/hilfe.js`). Auf Geräten ohne Maus schaltet der Knopf „Hilfe“ einen Modus ein, in dem ein Tippen den Knopf erklärt, statt ihn auszulösen.
 - Sport: „Schuljahr auffüllen“ ergänzt nur das Halbjahr, in dem der importierte Plan beginnt (1. Halbjahr bis 31.1., 2. ab 1.2.), solange der Zeitraum der Klasse „ein Halbjahr“ ist. Bei „ganzes Schuljahr“ wird das ganze Jahr aufgefüllt. Lernfeld-Klassen füllen immer das ganze Schuljahr auf. Der Knopf steht in der Anwesenheit (Lernfeld und Sport).
-- Fehlzeiten: Spalte „Offen“ zuerst, offene Einträge oben, Filter „Nur Tage mit meinem Unterricht“ (Tagesebene, Stundenplan und eigene Stunden).
+- Fehlzeiten: zeigt standardmäßig alles (Klassenleitung braucht alle Tage und Stunden). Spalten: Offen, Entschuldigt (fürs Zeugnis), davon mit Attest, Nicht entschuldigt. Offene Einträge oben. Optionaler Filter „Nur Tage mit meinem Unterricht“ (Tagesebene).
 - Drucken ist ohne gewählte Klasse erreichbar (Klassenwahl dort). Kopfbilder des Protokolls stehen im Reiter Drucken.

@@ -62,7 +62,7 @@ function eintragZeile(klasse, f, mitName) {
     } }, '✕')));
 }
 
-let nurMeine = true; // Voreinstellung: nur Tage mit eigenem Unterricht
+let nurMeine = false; // Voreinstellung: alle Fehlzeiten der Klasse (Klassenleitung braucht alle Tage)
 
 export function zeigeFehlzeiten() {
   const d = K.daten;
@@ -82,17 +82,17 @@ export function zeigeFehlzeiten() {
       h('button', { type: 'button', class: 'knopf', onclick: async () => { if (await fehlzeitManuell(d)) K.neuZeichnen(); } }, '+ Fehlzeit manuell')),
     h('label', { class: 'schalter' },
       h('input', { type: 'checkbox', id: 'fz-nur-meine', checked: filtern, disabled: !filterMoeglich, onchange: (e) => { nurMeine = e.target.checked; K.neuZeichnen(); } }),
-      ' Nur Tage mit meinem Unterricht in dieser Klasse'),
+      ' Nur Tage mit meinem Unterricht in dieser Klasse (für Fachlehrkräfte)'),
     h('p', { class: 'klein' }, filterMoeglich
       ? `${filtern ? `Angezeigt: ${alleEintraege.length} von ${d.fehlzeiten.length} Einträgen. ` : ''}Maßgeblich sind die Tage aus Ihrem Stundenplan und Ihre eigenen Stunden. Einzelne Stunden lassen sich nicht trennen: Fehlt jemand an einem Tag mit Ihrem Unterricht, zählt der ganze Eintrag.`
       : 'Ohne Stundenplan lässt sich nicht erkennen, welche Tage Ihr Unterricht betreffen. Es werden alle Einträge angezeigt.'),
     h('p', { class: 'klein' }, 'Fehlzeiten fließen nicht in Noten ein. Abwesenheitsgründe (z. B. „krank“) sind Gesundheitsangaben und erscheinen nur hier und in der Personenübersicht, nicht im Ausdruck.'),
     h('h2', {}, `Summen je Person${offenGesamt ? ` · ${formatKurz(offenGesamt)} Std. offen` : ''}`),
     h('div', { class: 'tabelle-rahmen' }, h('table', { class: 'tabelle' },
-      h('thead', {}, h('tr', {}, ['Nr.', 'Name', 'Offen', 'Nicht entschuldigt', 'Entschuldigt', 'davon mit Attest', 'Gesamt', 'Fehltage', 'Verspätungen'].map((t) => h('th', {}, t)))),
+      h('thead', {}, h('tr', {}, ['Nr.', 'Name', 'Offen', 'Entschuldigt', 'davon mit Attest', 'Nicht entschuldigt', 'Gesamt', 'Fehltage', 'Verspätungen'].map((t) => h('th', {}, t)))),
       h('tbody', {}, summen.map(({ s, z }, i) => h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name' }, personLink(s, [s.name, s.vorname].filter(Boolean).join(', '))),
         h('td', { class: `zahl ${z.offen ? 'z-violett stark' : ''}`, 'data-offen': s.id }, z.offen ? formatKurz(z.offen) : ''),
-        [z.nicht, z.entschuldigt, z.attest, z.gesamt, z.tage, z.verspaetungen].map((v) => h('td', { class: 'zahl' }, v ? formatKurz(v) : '')))))
+        [z.entschuldigt, z.attest, z.nicht, z.gesamt, z.tage, z.verspaetungen].map((v) => h('td', { class: 'zahl' }, v ? formatKurz(v) : '')))))
     )),
     h('h2', {}, 'Alle Einträge (offene zuerst)'),
   );
