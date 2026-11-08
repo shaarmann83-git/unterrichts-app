@@ -10,7 +10,7 @@ import { bewertungBereich } from './bewertung.js';
 import { fachZeile } from '../modell.js';
 
 /** Stand der App (bei jeder Auslieferung mit sw.js VERSION erhöhen). */
-export const APP_STAND = 'noten-v15';
+export const APP_STAND = 'noten-v16';
 
 export function zeigeEinstellungen() {
   const wurzel = h('section', { class: 'seite' });
@@ -80,6 +80,19 @@ export function zeigeEinstellungen() {
   }
   if (bewertungKlassen.length) bewertungZeichnen(K.klasseId);
 
+  // ----- Stundenraster (Abgleich der Untis-Fehlzeiten mit den eigenen Stunden) -----
+  const rasterKasten = h('div', { class: 'einstellung-block', id: 'raster-block' });
+  if (K.buch) {
+    const raster = (K.buch.einstellungen.stundenraster ||= { dauer: 45, start: Array(10).fill('') });
+    while (raster.start.length < 10) raster.start.push('');
+    fuege(rasterKasten,
+      h('h2', {}, 'Stundenraster Ihrer Schule'),
+      h('p', { class: 'klein' }, 'Untis meldet Fehlzeiten mit der Stundennummer. Mit den Beginnzeiten der Stunden vergleicht die App sie mit Ihren eigenen Stunden aus dem Stundenplan. So zählt in der Anwesenheit nur, was Ihre Stunde betrifft (z. B. nicht die Verspätung in der 1. Stunde, wenn Sie erst später unterrichten). Leer lassen: alle Untis-Einträge eines Tages zählen. Gilt für das ganze Notenbuch.'),
+      h('div', { class: 'formular' },
+        raster.start.slice(0, 10).map((w, i) => h('label', {}, `${i + 1}. Stunde ab`, h('input', { type: 'time', value: w, 'aria-label': `${i + 1}. Stunde Beginn`, oninput: (ev) => { raster.start[i] = ev.target.value; K.aenderung(); } }))),
+        h('label', {}, 'Dauer einer Stunde (Min.)', h('input', { type: 'number', min: '30', max: '120', value: String(raster.dauer || 45), 'aria-label': 'Dauer einer Stunde in Minuten', oninput: (ev) => { raster.dauer = Number(ev.target.value) || 45; K.aenderung(); } }))));
+  }
+
   fuege(wurzel,
     h('h1', {}, 'Einstellungen'),
     h('p', { class: 'klein' }, 'Die Einstellungen zu Sperre, Untis und OneDrive gelten nur für diesen Browser auf diesem Gerät.'),
@@ -94,6 +107,7 @@ export function zeigeEinstellungen() {
       K.buch && schalter('untis-auto', 'Ohne Rückfrage abgleichen und direkt die Vorschlagsliste zeigen (für dieses Notenbuch)', !!K.buch.einstellungen.untisOrdnerAutomatisch, (v) => { K.buch.einstellungen.untisOrdnerAutomatisch = v; K.aenderung(); }),
       h('p', { class: 'klein' }, 'Android: Als installierte App erscheint „Notenverwaltung“ im Teilen-Menü. Untis-Datei teilen, dann startet der Abgleich. iPad: Knopf „Untis-Liste laden“ in der Klassenarbeits- und Nachschreib-Ansicht.')),
     bewertungKlassen.length > 0 && bewertungKasten,
+    K.buch && rasterKasten,
     h('div', { class: 'einstellung-block' },
       h('h2', {}, 'OneDrive-Synchronisation (optional)'),
       h('p', { class: 'klein' }, 'Ohne Einrichtung arbeitet die App ausschließlich mit Dateien und sendet nichts ins Netz. Die Synchronisation lädt nur verschlüsselte Dateien in den eigenen App-Ordner Ihres dienstlichen OneDrive hoch (Ordner „Apps/<Name der App-Registrierung>“, kein Zugriff auf andere Dateien). Dafür muss die Schul-IT die App in Microsoft Entra ID registrieren (siehe README).'),

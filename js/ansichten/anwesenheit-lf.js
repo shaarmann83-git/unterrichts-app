@@ -5,7 +5,7 @@
 // die in „Fehlzeiten“ und beim Nachschreiben wirkt. Einträge aus Untis bleiben unangetastet und werden nur angezeigt.
 import { h, leeren, fuege, toast, personLink, bestaetigen, tabelleFixieren } from '../ui.js';
 import { aktiveSchueler, anzeigename, datumDeutsch, heuteIso, neueId, neuerTermin } from '../modell.js';
-import { FZ_QUELLE } from '../fehlzeiten.js';
+import { FZ_QUELLE, FZ_STATUS } from '../fehlzeiten.js';
 import { ZEICHEN } from '../sport.js';
 import { zeichenFarbe, zeichenPalette, datumKurz } from './sport-gemeinsam.js';
 import { pausenSpalten, rhythmusAuffuellen } from '../rhythmus.js';
@@ -36,9 +36,31 @@ export function handEintrag(klasse, schuelerId, datum) {
     && f.datum === datum && f.stundeEintrag) || null;
 }
 
-/** Fehlzeiten anderer Herkunft (Untis) an diesem Datum. */
+const minutenVon = (hhmm) => {
+  const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})/);
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+};
+
+/**
+ * Betrifft die Untis-Fehlzeit eine eigene Stunde an diesem Tag? Braucht das Stundenraster (Einstellungen):
+ * Die Stundennummer der Fehlzeit wird in eine Uhrzeit umgerechnet und mit den eigenen Stunden aus dem Stundenplan verglichen.
+ * Ohne Raster, ohne Stundennummer oder ohne eigene Stunde mit Uhrzeit zählt der Eintrag immer.
+ */
+export function betrifftMeineStunde(klasse, f, datum, raster = null) {
+  const start = raster && f.stunde ? minutenVon(raster.start?.[f.stunde - 1]) : null;
+  if (start === null) return true;
+  const dauer = Number(raster.dauer) || 45;
+  const ende = start + Math.max(1, Number(f.std) || 1) * dauer;
+  const eigene = (klasse.stundenplan || []).filter((e) => e.datum === datum && e.status === 'ok' && minutenVon(e.uhrzeit) !== null && minutenVon(e.ende) !== null);
+  if (eigene.length === 0) return true;
+  return eigene.some((e) => minutenVon(e.uhrzeit) < ende && start < minutenVon(e.ende));
+}
+
+/** Fehlzeiten anderer Herkunft (Untis) an diesem Datum, die eine eigene Stunde betreffen. */
 export function fremdEintraege(klasse, schuelerId, datum) {
-  return klasse.fehlzeiten.filter((f) => f.schuelerId === schuelerId && f.datum === datum && !f.stundeEintrag);
+  const raster = K.buch?.einstellungen?.stundenraster || null;
+  return klasse.fehlzeiten.filter((f) => f.schuelerId === schuelerId && f.datum === datum && !f.stundeEintrag
+    && betrifftMeineStunde(klasse, f, datum, raster));
 }
 
 /**
@@ -51,7 +73,7 @@ export function zeichenVon(klasse, schuelerId, datum) {
   if (marke?.z && ANWESENHEIT_ZEICHEN[marke.z]?.status) return { zeichen: marke.z, eigen: true, fremd: false, ...extra };
   const eigen = handEintrag(klasse, schuelerId, datum);
   if (eigen && !marke?.z) return { zeichen: ZEICHEN_ZU_STATUS[eigen.status] || '|', eigen: true, fremd: false };
-  const fremd = fremdEintraege(klasse, schuelerId, datum);
+  const fremd = marke?.ohneUntis ? [] : fremdEintraege(klasse, schuelerId, datum);
   if (fremd.length > 0) return { zeichen: ZEICHEN_ZU_STATUS[fremd[0].status] || '|', eigen: false, fremd: true };
   if (marke?.z) return { zeichen: marke.z, eigen: true, fremd: false, ...extra };
   return { zeichen: '', eigen: false, fremd: false };
@@ -81,6 +103,7 @@ export function zeichenSetzen(klasse, schuelerId, datum, zeichen, extra = {}) {
     ...(zeichen === 'V' && extra.min ? { min: Number(extra.min) } : {}),
     ...(extra.stern ? { stern: true } : {}),
     ...(extra.text ? { text: extra.text } : {}),
+    ...((extra.ohneUntis ?? karte[datum]?.[schuelerId]?.ohneUntis) ? { ohneUntis: true } : {}),
   };
   if (ziel.status === null) return entfernen();
   if (vorhanden) {
@@ -127,7 +150,8 @@ function zeigeAnwesenheitLf() {
     btn.className = `zelle ${zeichenFarbe(z.zeichen)}${z.zeichen === '.' ? ' punkt' : ''}${z.zeichen === '|' ? ' strich' : ''}${z.fremd ? ' fremd' : ''}`;
     btn.textContent = z.zeichen ? `${z.zeichen}${z.zeichen === 'V' && z.min ? z.min : ''}${z.stern ? '*' : ''}` : '';
     btn.title = [z.zeichen && (ANWESENHEIT_ZEICHEN[z.zeichen]?.text || ''), z.text,
-      z.fremd && `aus ${FZ_QUELLE[fremdEintraege(d, s.id, t.datum)[0]?.quelle] || 'Import'}, nicht änderbar`].filter(Boolean).join(' · ');
+      z.fremd && `aus ${FZ_QUELLE[fremdEintraege(d, s.id, t.datum)[0]?.quelle] || 'Import'}, antippen, falls es nicht Ihre Stunde betrifft`,
+      d.anwesenheitLf?.[t.datum]?.[s.id]?.ohneUntis && 'Untis-Eintrag für Ihre Stunde ignoriert'].filter(Boolean).join(' · ');
     btn.setAttribute('aria-label', `${anzeigename(s)} ${datumDeutsch(t.datum)}: ${z.zeichen || 'leer'}`);
   };
 
@@ -139,7 +163,13 @@ function zeigeAnwesenheitLf() {
   async function palette(t, s) {
     const jetzt = zeichenVon(d, s.id, t.datum);
     if (jetzt.fremd) {
-      toast('Dieser Eintrag stammt aus einem Import. Ändern Sie ihn unter „Fehlzeiten“.');
+      const f = fremdEintraege(d, s.id, t.datum)[0];
+      const was = `${FZ_STATUS[f.status] || f.status}${f.stunde ? `, ${f.stunde}. Stunde` : ''}${f.fach ? `, ${f.fach}` : ''}${f.min && !f.std ? `, ${f.min} Min.` : ''}`;
+      const ja = await bestaetigen('Eintrag aus Untis', `Untis meldet für ${anzeigename(s)} am ${datumDeutsch(t.datum)}: ${was}. Gilt das nicht für Ihre Stunde (z. B. eine andere Stunde am selben Tag)? Dann wird die Person für Ihre Stunde als anwesend gezählt. Der Eintrag unter „Fehlzeiten“ bleibt unverändert.`, 'Für meine Stunde anwesend');
+      if (!ja) return;
+      fokus = { t: t.datum, s: s.id };
+      setze(t, s, '.', { ohneUntis: true });
+      zeichnen();
       return;
     }
     const erg = await zeichenPalette(d, t, s, { z: jetzt.zeichen, min: jetzt.min, stern: jetzt.stern, text: jetzt.text }, LISTE);

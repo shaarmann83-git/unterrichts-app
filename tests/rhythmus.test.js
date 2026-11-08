@@ -154,3 +154,19 @@ test('Sport: standardmäßig nur das Halbjahr des importierten Plans auffüllen,
   const jahr = bauen('jahr');
   assert.ok(jahr.includes('2027-07-06'));
 });
+
+test('Anwesenheit: Untis-Fehlzeit zählt nur, wenn sie eine eigene Stunde betrifft', async () => {
+  const { betrifftMeineStunde } = await import('../js/ansichten/anwesenheit-lf.js');
+  const k = neueKlasse({ klasse: 'WAK3-1', schuljahr: '2026/27' });
+  // eigene Stunde 3. bis 4. Stunde: 09:50 bis 11:20
+  k.stundenplan = [{ datum: '2026-11-03', uhrzeit: '09:50', ende: '11:20', status: 'ok' }];
+  const raster = { dauer: 45, start: ['08:00', '08:50', '09:50', '10:35', '11:35', '12:20', '', '', '', ''] };
+  assert.equal(betrifftMeineStunde(k, { stunde: 1, std: 1 }, '2026-11-03', raster), false, 'Verspätung in der 1. Stunde');
+  assert.equal(betrifftMeineStunde(k, { stunde: 3, std: 1 }, '2026-11-03', raster), true);
+  assert.equal(betrifftMeineStunde(k, { stunde: 4, std: 1 }, '2026-11-03', raster), true);
+  assert.equal(betrifftMeineStunde(k, { stunde: 5, std: 1 }, '2026-11-03', raster), false, 'nach meinem Unterricht');
+  assert.equal(betrifftMeineStunde(k, { stunde: 2, std: 2 }, '2026-11-03', raster), true, 'zwei Stunden ab der 2. reichen in meine Stunde');
+  assert.equal(betrifftMeineStunde(k, { stunde: null, std: 1 }, '2026-11-03', raster), true, 'ohne Stundennummer');
+  assert.equal(betrifftMeineStunde(k, { stunde: 1, std: 1 }, '2026-11-03', null), true, 'ohne Raster');
+  assert.equal(betrifftMeineStunde(k, { stunde: 1, std: 1 }, '2026-11-04', raster), true, 'kein eigener Plan an dem Tag');
+});
