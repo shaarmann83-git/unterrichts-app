@@ -267,3 +267,24 @@ export async function spaltenDialog({ titel, kopf, felder, zuordnung, beispielZe
   }
   return ergebnis;
 }
+
+/**
+ * Kopfzeilen und die ersten beiden Spalten (Nr., Name) einer großen Tabelle beim Scrollen festhalten.
+ * Jede Kopfzeile bekommt als Abstand nach oben die Höhe der Zeilen darüber. Wird nach dem Einfügen aufgerufen.
+ */
+export function tabelleFixieren(tabelle) {
+  const ausfuehren = () => {
+    if (!tabelle.isConnected) return;
+    let oben = 0;
+    for (const zeile of tabelle.tHead?.rows || []) {
+      for (const th of zeile.cells) th.style.top = `${oben}px`;
+      oben += zeile.offsetHeight;
+    }
+    const ersteZelle = tabelle.tHead?.rows[0]?.cells[0];
+    tabelle.style.setProperty('--nr-breite', `${ersteZelle ? ersteZelle.offsetWidth : 0}px`);
+    ersteZelle?.classList.add('nr-spalte');
+    for (const zeile of tabelle.tBodies[0]?.rows || []) zeile.cells[0]?.classList.add('nr-spalte');
+  };
+  requestAnimationFrame(ausfuehren);
+  window.addEventListener('resize', ausfuehren, { once: true });
+}

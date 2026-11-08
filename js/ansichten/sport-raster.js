@@ -1,7 +1,7 @@
 // Anwesenheit und Mitarbeit als Raster (SPEC 9.2, 9.3): Spalten = Termine, oben die Reihe als Balken.
 import { pausenSpalten, rhythmusAuffuellen } from '../rhythmus.js';
 import { K } from '../kontext.js';
-import { h, leeren, fuege, inhaltDialog, meldung, toast, personLink } from '../ui.js';
+import { h, leeren, fuege, inhaltDialog, meldung, toast, personLink, tabelleFixieren } from '../ui.js';
 import { anzeigename, datumDeutsch } from '../modell.js';
 import {
   ZEICHEN, termineGeordnet, spsNummern, mitarbeitZelle, mitarbeitReihe, anwesenheitZeichen, istPruefungstag, ausgabe,
@@ -144,7 +144,7 @@ export function zeigeAnwesenheit() {
       tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, personLink(p, anzeigename(p))), zellen,
         h('td', { class: `zahl ${spsGesamt >= 2 ? 'z-orange' : ''}` }, String(spsGesamt)), h('td', { class: `zahl ${offen ? 'z-violett' : ''}`, 'data-offen': p.id }, String(offen))));
     });
-    rahmen.append(h('table', { class: 'tabelle sport-raster' }, h('thead', {}, kopf1, kopf2, kopf3), tbody));
+    { const tab = h('table', { class: 'tabelle sport-raster' }, h('thead', {}, kopf1, kopf2, kopf3), tbody); rahmen.append(tab); tabelleFixieren(tab); }
     if (fokus) {
       rahmen.querySelector(`button.zelle[data-t="${fokus.t}"][data-s="${fokus.s}"]`)?.focus();
       fokus = null;
@@ -294,7 +294,7 @@ export function zeigeMitarbeit() {
       }
       tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, personLink(p, anzeigename(p))), zellen, summe));
     });
-    rahmen.append(h('table', { class: 'tabelle sport-raster' }, h('thead', {}, kopf), tbody));
+    { const tab = h('table', { class: 'tabelle sport-raster' }, h('thead', {}, kopf), tbody); rahmen.append(tab); tabelleFixieren(tab); }
     if (fokus) { rahmen.querySelector(`button.zelle[data-t="${fokus.t}"][data-s="${fokus.s}"]`)?.focus(); fokus = null; }
   }
 

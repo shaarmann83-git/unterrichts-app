@@ -345,3 +345,12 @@ body.hilfe-modus button:not(#knopf-hilfe), body.hilfe-modus a.knopf { outline: 2
 
 .termin-weg { color: var(--gefahr, #b91c1c); }
 .tabelle td.stark { font-weight: 700; }
+
+/* Große Raster (Anwesenheit, Mitarbeit): Kopfzeilen sowie Nr. und Name bleiben beim Scrollen stehen */
+.raster thead th { position: sticky; z-index: 3; background: var(--hoechst); }
+.raster thead th.reihe-balken { background: var(--akzent); }
+.sport-raster .nr-spalte { position: sticky; left: 0; z-index: 2; background: var(--flaeche); min-width: 2.2rem; }
+.sport-raster thead th.nr-spalte { z-index: 6; background: var(--hoechst); }
+.sport-raster .name-spalte { left: var(--nr-breite, 0px); }
+.sport-raster thead th.name-spalte { z-index: 6; background: var(--hoechst); }
+.raster tbody tr:nth-child(even) .nr-spalte, .raster tbody tr:nth-child(even) .name-spalte { background: var(--zebra); }

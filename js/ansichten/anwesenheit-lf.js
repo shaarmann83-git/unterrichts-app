@@ -3,7 +3,7 @@
 // Zelle antippen für die Zeichen-Auswahl, Tastatur, „Alle da“, Ferien/Feiertage/Ausfälle als graue Spalten.
 // Die Zeichen liegen in `klasse.anwesenheitLf`. Fehlt jemand (E A B P U |), entsteht zusätzlich eine Fehlzeit,
 // die in „Fehlzeiten“ und beim Nachschreiben wirkt. Einträge aus Untis bleiben unangetastet und werden nur angezeigt.
-import { h, leeren, fuege, toast, personLink, bestaetigen } from '../ui.js';
+import { h, leeren, fuege, toast, personLink, bestaetigen, tabelleFixieren } from '../ui.js';
 import { aktiveSchueler, anzeigename, datumDeutsch, heuteIso, neueId, neuerTermin } from '../modell.js';
 import { FZ_QUELLE } from '../fehlzeiten.js';
 import { ZEICHEN } from '../sport.js';
@@ -253,7 +253,7 @@ function zeigeAnwesenheitLf() {
       tbody.append(h('tr', {}, h('td', { class: 'zahl' }, String(i + 1)), h('td', { class: 'links name name-spalte' }, personLink(p, anzeigename(p))), zellen,
         h('td', { class: 'zahl' }, fehlt ? String(fehlt) : ''), h('td', { class: `zahl ${offen ? 'z-violett' : ''}`, 'data-offen': p.id }, offen ? String(offen) : '')));
     });
-    rahmen.append(h('table', { class: 'tabelle sport-raster anwesenheit-lf' }, h('thead', {}, kopf1, kopf2), tbody));
+    { const tab = h('table', { class: 'tabelle sport-raster anwesenheit-lf' }, h('thead', {}, kopf1, kopf2), tbody); rahmen.append(tab); tabelleFixieren(tab); }
     if (fokus) {
       rahmen.querySelector(`button.zelle[data-t="${fokus.t}"][data-s="${fokus.s}"]`)?.focus();
       fokus = null;
