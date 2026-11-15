@@ -88,6 +88,8 @@ export async function kopfbildAus(datei, maxBreite = 1200, maxHoehe = 260) {
   c.width = Math.max(1, Math.round(bild.naturalWidth * f));
   c.height = Math.max(1, Math.round(bild.naturalHeight * f));
   const g = c.getContext('2d');
+  g.fillStyle = '#fff';
+  g.fillRect(0, 0, c.width, c.height);
   g.drawImage(bild, 0, 0, c.width, c.height);
   const png = c.toDataURL('image/png');
   // Fotos werden als JPEG kleiner; das kleinere von beiden nehmen.

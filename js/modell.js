@@ -230,6 +230,8 @@ export const UNTERSCHRIFTEN_STANDARD = [
 const ALTE_TEXTE = new Map([
   ['Korrekturdatum und Unterschrift der Lehrkraft', 'Korrekturdatum und Unterschrift Lehrkraft'],
   ['Unterschrift Ausbilderin/Ausbilder\n(bei nicht mehr ausreichender Leistung!)', 'Unterschrift ausbildende Person\n(nur bei nicht ausreichender Leistung)'],
+  ['Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)', 'Unterschrift ausbildende Person\n(nur bei nicht ausreichender Leistung)'],
+  ['Unterschrift Erziehungsberechtigte(r) (bei nicht mehr ausreichender Leistung!)', 'Unterschrift erziehungsberechtigte Person\n(nur bei Minderjährigen und nicht ausreichender Leistung)'],
   ['Unterschrift Erziehungsberechtigte(r)\n(bei nicht mehr ausreichender Leistung!)', 'Unterschrift erziehungsberechtigte Person\n(nur bei Minderjährigen und nicht ausreichender Leistung)'],
 ]);
 /** Frühere Fassung ohne Zeilenumbruch; für die Umstellung älterer Dateien. */

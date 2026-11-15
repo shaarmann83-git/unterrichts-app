@@ -245,6 +245,7 @@ input.bemerkung { min-width: 12rem; }
 @page quer { size: A4 landscape; margin: 12mm; }
 @page { size: A4 portrait; margin: 18mm; }
 @media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body { background: #fff; color: #000; }
   .kopfleiste, .druck-steuerung, .toast, h1, .druck-seite > p, #navigation { display: none !important; }
   body:not([data-ansicht="druck"]):not([data-ansicht="nachschreiben"]):not([data-ansicht="listen"]) main { display: none; }
@@ -289,7 +290,7 @@ input.bemerkung { min-width: 12rem; }
 .protokoll-tabelle.ergebnis { margin-top: 0; border-top: 0; }
 .protokoll-tabelle.ergebnis td { border-top: 0; }
 .protokoll-tabelle.ergebnis td.mitte { text-align: center; font-weight: 600; height: 1.8rem; }
-.protokoll-tabelle.unterschrift { margin-top: 0; border-top: 0; }
+.protokoll-tabelle.unterschrift { margin-top: 0.7rem; }
 .protokoll-tabelle.unterschrift td.feld { height: 3.2rem; vertical-align: bottom; }
 .protokoll-tabelle.unterschrift td.hoch { vertical-align: top; }
 .protokoll-tabelle.unterschrift .stark, .protokoll-tabelle.eltern .stark { font-weight: 600; font-size: 0.78rem; }
