@@ -2,7 +2,7 @@ import { K } from '../kontext.js';
 import { ausOneDriveOeffnen } from '../sync-ui.js';
 import { h, leeren, bestaetigen, toast } from '../ui.js';
 import { jetztLeiste, stundenplanLaden } from './stundenplan.js';
-import { untisListeLaden } from './fehlzeiten.js';
+import { untisListeLaden, UNTIS_WEG_ABWESENHEIT } from './fehlzeiten.js';
 import {
   neueDateiAnlegen,
   dateiOeffnenAktion,
@@ -92,6 +92,8 @@ export function zeigeStart() {
       K.buch && h('button', { type: 'button', class: 'knopf gross', id: 'start-stundenplan', onclick: stundenplanLaden }, 'Stundenplan laden (.ics)'),
       K.buch && h('button', { type: 'button', class: 'knopf gross', onclick: dateiSchliessen }, 'Aktuelle Datei schließen'),
     ),
+    K.buch && h('p', { class: 'klein untis-weg' }, UNTIS_WEG_ABWESENHEIT),
+
     h('h2', {}, 'Zuletzt geöffnet (lokale Arbeitskopien)'),
     liste,
     h('h2', {}, 'Datenschutz'),

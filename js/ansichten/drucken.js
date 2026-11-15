@@ -3,7 +3,7 @@ import { h, leeren, bestaetigen, fuege } from '../ui.js';
 import { standText } from '../excel.js';
 import { zeigeSportDruck } from './sport-druck.js';
 import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, unterschriftenFuer, spaltenName } from '../modell.js';
-import { teilnahmeStatus } from '../nachschreiben.js';
+import { teilnahmeStatus, fehlzeitenAmTermin } from '../nachschreiben.js';
 import { anwesenheitsSeiten } from './anwesenheit-druck.js';
 import { kopfbilderReihe } from './kopfbilder.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE, istPunktsystem } from '../rechnen.js';
@@ -35,6 +35,7 @@ export function zeigeDruck() {
       { 'aria-label': 'Was soll gedruckt werden?', onchange: (e) => { art = e.target.value; steuerungZeichnen(); vorschauZeichnen(); } },
       [
         ['protokoll', 'Protokoll je Klassenarbeit und Schüler:in'],
+        ['protokoll-blanko', 'Protokoll blanko (zum Ausfüllen von Hand)'],
         ['blanko', 'Korrekturliste blanko (mit Höchstpunkten)'],
         ['korrektur', 'Korrekturliste ausgefüllt'],
         ['anwesenheit', 'Anwesenheitsliste (ausgefüllt)'],
@@ -44,7 +45,7 @@ export function zeigeDruck() {
       ].map(([w, t]) => h('option', { value: w, selected: art === w }, t)),
     );
     steuerung.append(h('label', {}, 'Ausdruck', artWahl));
-    if (art === 'protokoll' || art === 'spiegel' || art === 'blanko' || art === 'korrektur') {
+    if (art === 'protokoll' || art === 'protokoll-blanko' || art === 'spiegel' || art === 'blanko' || art === 'korrektur') {
       const kaWahl = h(
         'select',
         { 'aria-label': 'Klassenarbeit', onchange: (e) => { kaNr = Number(e.target.value); vorschauZeichnen(); } },
@@ -65,7 +66,7 @@ export function zeigeDruck() {
     if (art === 'protokoll' && ka && !ka.korrekturdatum) {
       steuerung.append(h('p', { class: 'warnung' }, 'Kein Korrekturdatum eingetragen. Es erscheint dann nicht im Protokoll. Sie können es oben bei der Klassenarbeit nachtragen.'));
     }
-    if (art === 'protokoll') {
+    if (art === 'protokoll' || art === 'protokoll-blanko') {
       steuerung.append(h('details', { class: 'kopfbilder' },
         h('summary', {}, 'Kopfbilder für das Protokoll'),
         h('p', { class: 'klein' }, 'Diese Bilder stehen oben auf dem Protokoll und gelten für das ganze Notenbuch. Haben Sie den Kopf als ein einziges Bild, genügt das erste Feld; es wird dann über die ganze Breite gezeigt.'),
@@ -78,63 +79,79 @@ export function zeigeDruck() {
     } }, 'Drucken / PDF speichern'));
   }
 
-  function protokollSeite(ka, nr, s) {
-    const e = ergebnisKA(ka, s.id, d);
-    const roh = ka.ergebnisse[s.id];
+  // Protokoll nach der Vorlage der Schule (11/2026). `blanko`: ohne Person und Ergebnis zum Ausfüllen von Hand.
+  function protokollSeite(ka, nr, s, blanko = false) {
+    const e = blanko ? { summe: null, prozent: null, note: null, attest: false } : ergebnisKA(ka, s.id, d);
+    const roh = blanko ? null : ka.ergebnisse[s.id];
     const gesamt = gesamtpunkte(ka);
     const dr = K.buch?.einstellungen?.druck || {};
     const band = (text, stark = false) => h('div', { class: `protokoll-band${stark ? ' stark' : ''}` }, text);
-    const kasten = (text, hoch, mittig = false) => h('div', { class: `protokoll-kasten${mittig ? ' mittig' : ''}`, style: `min-height:${hoch}` }, text || '');
-    // „Sonstiges“: zuerst, was die App weiß (Fehlen, Attest, Nachschreibtermin), danach der eigene Text der Lehrkraft
     const datumOderLeer = (iso) => (/^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? datumDeutsch(iso) : '');
-    const tn = ka.teilnahme?.[s.id] || {};
-    const wirksam = teilnahmeStatus(d, ka, s.id).status;
+    // Schwerpunkte: jede Zeile ein Aufzählungspunkt, im Kasten vertikal mittig, Text linksbündig
+    const punkte = String(ka.schwerpunkte || '').split('\n').map((z) => z.replace(/^\s*[-•*]\s*/, '').trim()).filter(Boolean);
+    const schwerpunkte = h('div', { class: 'protokoll-kasten schwerpunkte' }, punkte.length ? h('ul', {}, punkte.map((z) => h('li', {}, z))) : null);
+    // „Sonstiges“: zuerst, was die App weiß (Nachschreibtermin, unentschuldigtes Fehlen, kein Attest), danach der eigene Text
     const auto = [];
-    if (wirksam === 'attest-offen') auto.push(`Gefehlt mit Attest.${datumOderLeer(tn.nachschreibtermin) ? ` Nachschreibtermin: ${datumOderLeer(tn.nachschreibtermin)}.` : ' Nachschreibtermin folgt.'}`);
-    else if (wirksam === 'nachgeschrieben') auto.push(`Nachgeschrieben${datumOderLeer(tn.nachschreibtermin) ? ` am ${datumOderLeer(tn.nachschreibtermin)}` : ''}.`);
-    else if (wirksam === 'ohne-attest') auto.push('Gefehlt ohne Attest.');
-    else if (wirksam === 'entschuldigung-offen') auto.push('Gefehlt, Entschuldigung noch offen.');
-    const sonstigesText = [...auto, (roh?.sonstiges || '').trim()].filter(Boolean).join('\n');
+    if (blanko) auto.push('Nachschreibtermin: xx.xx.xxxx', 'Unentschuldigtes Fehlen', 'Kein Attest');
+    else {
+      const tn = ka.teilnahme?.[s.id] || {};
+      const wirksam = teilnahmeStatus(d, ka, s.id).status;
+      if (wirksam === 'attest-offen') auto.push(`Nachschreibtermin: ${datumOderLeer(tn.nachschreibtermin) || 'folgt'}`);
+      else if (wirksam === 'nachgeschrieben') auto.push(`Nachschreibtermin: ${datumOderLeer(tn.nachgeschriebenAm) || datumOderLeer(tn.nachschreibtermin) || 'nachgeschrieben'}`);
+      else if (wirksam === 'ohne-attest') {
+        if (fehlzeitenAmTermin(d, ka, s.id).some((f) => f.status === 'nicht')) auto.push('Unentschuldigtes Fehlen');
+        auto.push('Kein Attest');
+      } else if (wirksam === 'entschuldigung-offen') auto.push('Entschuldigung noch offen');
+    }
+    const eigeneZeilen = String(roh?.sonstiges || '').split('\n').map((z) => z.trim()).filter(Boolean);
+    const sonstiges = h('div', { class: 'protokoll-kasten sonstiges' }, [...auto, ...eigeneZeilen].map((z) => h('div', {}, z)));
     const werte = e.attest
       ? [['Bewertung', 'Attest vorgelegt, keine Bewertung.']]
       : [
           ['erreichte Punktzahl:', e.summe === null ? '' : `${formatKurz(e.summe)}/${formatKurz(gesamt)}`],
-          ['Prozentzahl:', e.prozent === null ? '' : `${formatZahl(e.prozent, 1)} %`],
+          ['Prozent:', e.prozent === null ? '' : `${formatZahl(e.prozent, 1)} %`],
           [istPunktsystem(d) ? 'Notenpunkte:' : 'Note:', e.note === null ? '' : (istPunktsystem(d) ? String(e.note).padStart(2, '0') : NOTEN_WORTE[e.note])],
         ];
-    // Zusatzzeile nur bei schlechter als ausreichend: Note über 4,0, bei Punkten unter 4
+    // Zusatzzeilen nur bei schlechter als ausreichend: Note über 4,0, bei Punkten unter 4. Blanko: beide Zeilen.
     const schlecht = !e.attest && e.note !== null && (istPunktsystem(d) ? e.note < 4 : e.note > 4);
-    const zeilen = unterschriftenFuer(d, s, { schlechter: schlecht, stichtag: ka.datum });
+    let zeilen = blanko
+      ? [...unterschriftenFuer(d, null), String(d.unterschriftMitBetrieb || '').trim()].filter(Boolean)
+      : unterschriftenFuer(d, s, { schlechter: schlecht, stichtag: ka.datum });
+    if (blanko && String(d.unterschriftOhneBetrieb || '').trim()) zeilen = [...zeilen.filter((z) => z !== String(d.unterschriftOhneBetrieb).trim()), String(d.unterschriftOhneBetrieb).trim()];
+    // Die Zeile für die erziehungsberechtigte Person steht wie in der Vorlage unter der Tabelle, rechts
+    const eltern = String(d.unterschriftOhneBetrieb || '').trim();
+    const elternZeile = zeilen.length > 1 && eltern && zeilen[zeilen.length - 1] === eltern ? eltern : null;
+    const hauptZeilen = elternZeile ? zeilen.slice(0, -1) : zeilen;
+    const textBlock = (t) => t.split('\n').map((teil, k) => h('div', { class: k === 0 ? 'stark' : 'klein' }, teil));
+    const mitte = dr.kopfText && h('div', { class: 'kopf-text' }, dr.kopfText);
     return h(
       'article',
       { class: 'druckseite protokoll' },
-      // Ein einzelnes Bild wird über die ganze Breite gezeigt, zwei Bilder links und rechts.
+      // Ein einzelnes Bild wird über die ganze Breite gezeigt, zwei Bilder links und rechts, optional mit Text dazwischen.
       (dr.kopfLinks || dr.kopfRechts) && (dr.kopfLinks && dr.kopfRechts
         ? h('div', { class: 'protokoll-kopfbilder' },
           h('div', {}, h('img', { src: dr.kopfLinks, alt: '' })),
+          mitte,
           h('div', { class: 'rechts' }, h('img', { src: dr.kopfRechts, alt: '' })))
         : h('div', { class: 'protokoll-kopfbild-voll' }, h('img', { src: dr.kopfLinks || dr.kopfRechts, alt: '' }))),
-      h('table', { class: 'protokoll-tabelle kopf' }, h('colgroup', {}, h('col', { style: 'width:40%' }), h('col', { style: 'width:30%' }), h('col', { style: 'width:30%' })), h('tbody', {},
-        h('tr', {},
-          h('td', {}, h('strong', {}, 'Name: '), anzeigename(s)),
-          h('td', {}, h('strong', {}, 'Klasse: '), d.kopf.klasse || ''),
-          h('td', {}, h('strong', {}, 'Datum: '), datumDeutsch(ka.datum))))),
+      h('table', { class: 'protokoll-tabelle kopf' }, h('colgroup', {}, h('col', { style: 'width:34%' }), h('col', { style: 'width:33%' }), h('col', { style: 'width:33%' })), h('tbody', {},
+        h('tr', {}, ['Name:', 'Klasse:', 'Datum:'].map((t) => h('td', { class: 'etikett' }, h('strong', {}, t)))),
+        h('tr', {}, [blanko ? '' : anzeigename(s), d.kopf.klasse || '', datumDeutsch(ka.datum)].map((t) => h('td', { class: 'wert' }, t))))),
       band(fachZeile(d.kopf) || `${d.kopf.fachLabel || 'Lernfeld'}:`, true),
-      band(`Thematische Schwerpunkte der Klassenarbeit Nr. ${nr}:`),
-      kasten(ka.schwerpunkte, '16rem', true),
+      band(`Thematische Schwerpunkte der Klassenarbeit Nr. ${nr}`),
+      schwerpunkte,
       band('Sonstiges'),
-      kasten(sonstigesText, '7rem'),
+      sonstiges,
       h('table', { class: 'protokoll-tabelle ergebnis' }, h('tbody', {},
         h('tr', {}, werte.map(([t]) => h('td', {}, h('strong', {}, t)))),
         h('tr', {}, werte.map(([, v]) => h('td', { class: 'mitte' }, v))))),
-      // Unterschriften: links das Feld der Lehrkraft mit dem Korrekturdatum, rechts die
-      // Zeile je nach Ausbildung über die volle Höhe, genau wie in der Vorlage der Schule.
+      // Unterschriften: links das Feld der Lehrkraft mit dem Korrekturdatum, rechts die Zeile für die ausbildende Person
       h('table', { class: 'protokoll-tabelle unterschrift' },
-        h('colgroup', {}, zeilen.map((_, i) => h('col', { style: `width:${i === 0 ? 61 : Math.round(39 / Math.max(1, zeilen.length - 1))}%` }))),
+        h('colgroup', {}, hauptZeilen.map((_, i) => h('col', { style: `width:${i === 0 ? 61 : Math.round(39 / Math.max(1, hauptZeilen.length - 1))}%` }))),
         h('tbody', {},
-          h('tr', {}, zeilen.map((t, i) => h('td', { class: i === 0 ? '' : 'hoch', rowspan: i === 0 ? 1 : 2 },
-            t.split('\n').map((teil, k) => h('div', { class: k === 0 ? 'stark' : 'klein' }, teil))))),
-          h('tr', {}, h('td', { class: 'feld' }, ka.korrekturdatum ? datumDeutsch(ka.korrekturdatum) : ' ')))),
+          h('tr', {}, hauptZeilen.map((t, i) => h('td', { class: i === 0 ? '' : 'hoch', rowspan: i === 0 ? 1 : 2 }, textBlock(t)))),
+          h('tr', {}, h('td', { class: 'feld' }, ka.korrekturdatum && !blanko ? datumDeutsch(ka.korrekturdatum) : ' ')))),
+      elternZeile && h('table', { class: 'protokoll-tabelle eltern' }, h('tbody', {}, h('tr', {}, h('td', { class: 'hoch' }, textBlock(elternZeile))))),
     );
   }
 
@@ -245,9 +262,10 @@ export function zeigeDruck() {
       if (!ka) return vorschau.append(h('p', { class: 'hinweis' }, 'Noch keine Klassenarbeit angelegt.'));
       const nr = d.klassenarbeiten.indexOf(ka) + 1;
       if (art === 'spiegel') return vorschau.append(spiegelDruck(ka, nr));
+      if (art === 'protokoll-blanko') return vorschau.append(protokollSeite(ka, nr, null, true));
       let personen = aktiveSchueler(d);
       if (personId !== 'alle') personen = personen.filter((s) => s.id === personId);
-      else personen = personen.filter((s) => ergebnisKA(ka, s.id, d).note !== null || ergebnisKA(ka, s.id, d).attest);
+      else personen = personen.filter((s) => ergebnisKA(ka, s.id, d).note !== null || ergebnisKA(ka, s.id, d).attest || teilnahmeStatus(d, ka, s.id).status === 'ohne-attest');
       if (personen.length === 0) vorschau.append(h('p', { class: 'hinweis' }, 'Für diese Klassenarbeit sind noch keine Ergebnisse eingetragen.'));
       for (const s of personen) vorschau.append(protokollSeite(ka, nr, s));
     }

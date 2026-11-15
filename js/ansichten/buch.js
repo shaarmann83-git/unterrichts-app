@@ -16,7 +16,7 @@ import { ausDateitext, istVerschluesselt } from '../krypto.js';
 import { passwortFrage } from '../ui.js';
 import { alleAlsExcel } from '../excel.js';
 import { jetztLeiste, stundenplanLaden } from './stundenplan.js';
-import { untisListeLaden } from './fehlzeiten.js';
+import { untisListeLaden, UNTIS_WEG_ABWESENHEIT } from './fehlzeiten.js';
 
 function klassenFormular(k = { kopf: { klasse: '', lernfeldNr: '', lernfeldBez: '', schuljahr: '', fachLabel: 'Lernfeld' }, fachtyp: null }) {
   const feld = (beschriftung, wert, platzhalter = '') =>
@@ -166,6 +166,8 @@ export function zeigeBuch() {
       h('button', { type: 'button', class: 'knopf', id: 'buch-fehlzeiten', onclick: () => untisListeLaden(null) }, 'Fehlzeiten importieren (Untis)'),
       h('button', { type: 'button', class: 'knopf', id: 'buch-stundenplan', onclick: stundenplanLaden }, 'Stundenplan laden (.ics)'),
     ),
+    h('p', { class: 'klein untis-weg' }, UNTIS_WEG_ABWESENHEIT),
+
     kacheln,
     h('h2', {}, 'Speichern und Sicherung'),
     h('div', { class: 'knopfreihe' },

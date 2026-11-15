@@ -1,6 +1,6 @@
-# Arbeitsstand (Stand 8.11.2026, App-Stand noten-v20)
+# Arbeitsstand (Stand 15.11.2026, App-Stand noten-v21)
 
-Zweck: Gedächtnis für neue Sitzungen. Die Anforderung steht in `docs/SPEC.md` (Abschnitte 12.4 bis 12.9 sind die jüngsten Nachträge). Keine echten Schülerdaten in das Repository.
+Zweck: Gedächtnis für neue Sitzungen. Die Anforderung steht in `docs/SPEC.md` (Abschnitte 12.4 bis 12.10 sind die jüngsten Nachträge). Keine echten Schülerdaten in das Repository.
 
 ## Zusammenarbeit
 - Nutzerin: Sabine, Lehrkraft an der BBS Lingen Wirtschaft (Niedersachsen), keine Programmiererin. Antworten kurz, auf Deutsch, ohne Fachjargon, Wichtigstes zuerst, ehrlich sagen, was geprüft wurde und was nicht.
@@ -23,6 +23,10 @@ Zweck: Gedächtnis für neue Sitzungen. Die Anforderung steht in `docs/SPEC.md` 
 - Eigene Dateien außerhalb des App-Ordners werden nicht synchronisiert.
 
 ## Umgesetzt (Auswahl, jüngste zuerst)
+- Protokoll nach der Word-Vorlage der Nutzerin (12.10): Kopf mit Beschriftungszeile und Wertezeile, Schwerpunkte als Aufzählung vertikal mittig (links), „Sonstiges“ mit Nachschreibtermin, unentschuldigtem Fehlen, „Kein Attest“, danach der eigene Text; Ergebnis direkt darunter; Unterschriften; Druckart „Protokoll blanko“; optionaler Text zwischen den Kopfbildern. Die Zeile für die erziehungsberechtigte Person hängt jetzt nur an Minderjährigkeit (bei Ausbildung beide Zeilen möglich), früher entweder/oder.
+- Attest-Häkchen in der Klassenarbeit folgt der Teilnahme („gefehlt mit Attest“, auch aus Untis) und ist dann gesperrt; „kein Attest“ steht im Protokoll und markiert die Zeile, ergibt aber keine automatische 6 (nur der Knopf „mit 0 % werten“ von Hand).
+- Untis-Wege (Abwesenheiten, Schülerliste) stehen bei den Import-Knöpfen (Start, Notenbuch, Fehlzeiten, Nachschreiben, Klassenarbeit, Grunddaten).
+- Grunddaten: leere Schülerzeilen verschwinden beim Öffnen (nicht, wenn Fehlzeiten oder Noten daran hängen); „Zeile hinzufügen“ bleibt, eine leere Klasse behält eine Zeile.
 - Anwesenheit Lernfeld: Spalten aus Stundenplan, Ferien und Feiertage Niedersachsen (`js/rhythmus.js`), Zeichen `. V | E A B P U`, „Alle da“, Datum frei wählbar, selbst angelegte Tage löschbar, „Schuljahr auffüllen“, Tage mit Klassenarbeit gelb („KA n“), Kopfzeilen sowie Nr. und Name beim Scrollen fixiert (auch Sport).
 - Untis-Abgleich je Stunde: Stundenraster in den Einstellungen für Einträge mit Stundennummer; Zeiträume mit Uhrzeit (AbsenceList, Format B) werden direkt nach Uhrzeit mit den eigenen Stunden verglichen; einzelne Untis-Einträge lassen sich für die eigene Stunde ignorieren; der Dialog nennt den Grund.
 - Fehlzeiten: zeigt standardmäßig alles (Klassenleitung), Spalten Offen, Entschuldigt, davon mit Attest, Nicht entschuldigt, Gesamt, Fehltage, Verspätungen; offene Einträge oben; optionaler Filter „nur meine Tage“; Knopf „Importierte Fehlzeiten löschen“.
@@ -40,13 +44,9 @@ Zweck: Gedächtnis für neue Sitzungen. Die Anforderung steht in `docs/SPEC.md` 
 - Ohne Geburtstag gilt jemand als minderjährig, solange „volljährig“ nicht angehakt ist.
 
 ## Offen / nicht geprüft
-- Nicht auf echten Geräten geprüft: Android und iPad (Anmeldung per Weiterleitung, Datei öffnen), Ursache der iPad-Synchronisationsprobleme unbekannt (Details erfragt), Druck auf Papier, Kopfbild-Auswahl im Drucken-Reiter, Mitarbeit-Raster mit fixierten Kopfzeilen.
+- Nicht auf echten Geräten geprüft: Android und iPad (Anmeldung per Weiterleitung, Datei öffnen), Ursache der iPad-Synchronisationsprobleme unbekannt (Details erfragt), Druck auf Papier (Protokoll nur im Browser als Bild geprüft), Kopfbild-Auswahl im Drucken-Reiter, Mitarbeit-Raster mit fixierten Kopfzeilen.
 - End-to-End-Test der OneDrive-Synchronisation mit drei Geräten steht aus.
 - Ideen, nicht gewünscht oder nicht entschieden: Lizenz für das Repository, kurze Anleitung, Excel-Import mit freier Spaltenzuordnung, Verhalten beim Klick auf eine Klassenkachel (Empfehlung: zuletzt genutzte Ansicht), Spalte „Entschuldigte Tage“ fürs Zeugnis (Untis rechnet Fehltage und unentschuldigte Tage getrennt, die Nutzerin schreibt fürs Zeugnis ab), Knopf „Tag leeren“ in der Anwesenheit, Anzeige von Dateiname, letzter Speicherung und letzter Synchronisation oben im Notenbuch.
 
 ## Gesammelte Wünsche (nicht umgesetzt, erst nach „los“)
-- Attest-Häkchen in der Klassenarbeit soll automatisch gesetzt werden, wenn Untis am Termin „entschuldigt mit Attest“ meldet. Zusätzlich soll „kein Attest“ deutlich gekennzeichnet werden, ohne dass daraus automatisch eine 6 wird (Fehlen kann situationsabhängig sein, z. B. Verspätung im ÖPNV). Stand im Code: Das Häkchen (`e.attest`) und der Teilnahme-Status „gefehlt mit Attest, Nachschreiben offen“ bewirken dasselbe (`js/rechnen.js` ergebnisKA); der Status wird schon aus Untis abgeleitet, das Häkchen nicht. Die Nutzerin fragt, ob das Häkchen dort überhaupt Sinn hat.
-- In der App soll irgendwo (Start oder Fehlzeiten, beim Import-Knopf) stehen, wo man die Untis-Abwesenheitsliste findet: Klassenbuch, Abwesenheiten, Klasse auswählen, Zeitraum „gesamtes Schuljahr“, dann unter Berichte die Excel-Datei wählen. Die Schülerliste (Klassenimport) steht in Untis unter Stammdaten, Schüler, Klasse auswählen, Berichte, ebenfalls als Excel-Datei. Beide Wege sollen in der App beim jeweiligen Import-Knopf erklärt werden.
-- Protokoll, „Sonstiges“: Hat die Person nachgeschrieben, soll dort stehen „Nachschreibtermin: <Datum>“ (aktuell steht dort „Nachgeschrieben am …“).
-- Protokoll, thematische Schwerpunkte: nicht horizontal, sondern vertikal (oben/unten) mittig im Kasten. Die Linksbündigkeit des Textes soll erhalten bleiben (bisher in `js/ansichten/drucken.js` `kasten(..., mittig)` und `.protokoll-kasten.mittig` in `style.css` auf horizontal zentriert gesetzt, was nicht gemeint war).
-- Grunddaten: Leere Zeilen in der Schülerliste sollen automatisch verschwinden. Die Möglichkeit, eine Person neu hinzuzufügen (z. B. Neuzugang), muss bleiben.
+- (zurzeit keine)

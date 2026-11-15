@@ -466,3 +466,12 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - Drucken ist ohne gewählte Klasse erreichbar (Klassenwahl dort). Kopfbilder des Protokolls stehen im Reiter Drucken.
 - Anwesenheit Lernfeld: Untis-Fehlzeiten je Stunde werden mit dem Stundenraster (Einstellungen, Beginnzeiten der Stunden 1 bis 10 und Dauer) und den eigenen Stunden aus dem Stundenplan verglichen. Es zählt nur, was sich zeitlich mit einer eigenen Stunde überschneidet. Ohne Raster oder ohne Stundennummer zählt der ganze Tag. Ein trotzdem unpassender Untis-Eintrag lässt sich in der Zelle für die eigene Stunde als anwesend setzen (`ohneUntis`); der Eintrag unter Fehlzeiten bleibt unverändert, Entf stellt ihn wieder her.
 - Tage mit Klassenarbeit sind in der Anwesenheit gelb markiert („KA n“).
+
+### 12.10 Protokoll nach Schulvorlage, Attest, Untis-Hinweise (11/2026)
+- Protokoll wie `Protokoll_KA_blanko.docx`: Zeile Name/Klasse/Datum (Beschriftung, darunter Wert), grau abgesetzte Zeile Lernfeld, Band „Thematische Schwerpunkte der Klassenarbeit Nr. n“, Kasten (mindestens etwa 6,8 cm) mit Aufzählung je Zeile, vertikal mittig und linksbündig, Band „Sonstiges“ (mindestens etwa 3,1 cm, mittig), darunter „erreichte Punktzahl:“, „Prozent:“, „Note:“ bzw. „Notenpunkte:“, dann Unterschriften.
+- Sonstiges füllt die App vor: „Nachschreibtermin: Datum“ (nachgeschrieben bzw. Termin offen), „Unentschuldigtes Fehlen“ (laut Untis nicht entschuldigt), „Kein Attest“, „Entschuldigung noch offen“, danach der eigene Text. Rechenregeln unverändert.
+- Unterschriften: links Korrekturdatum und Unterschrift Lehrkraft; bei Note schlechter als ausreichend rechts „Unterschrift ausbildende Person (nur bei nicht ausreichender Leistung)“ (Ausbildungsklasse) und getrennt darunter „Unterschrift erziehungsberechtigte Person (nur bei Minderjährigen und nicht ausreichender Leistung)“ (Minderjährige).
+- Druckart „Protokoll blanko (zum Ausfüllen von Hand)“ mit allen Zeilen als Vorlage. Optionaler Text zwischen zwei Kopfbildern.
+- Attest-Häkchen ist aus der Teilnahme abgeleitet. „Kein Attest“ führt nie automatisch zur Note 6.
+- Import-Knöpfe nennen den Weg in Untis: Abwesenheiten (Klassenbuch → Abwesenheiten → Klasse → gesamtes Schuljahr → Berichte → Excel) und Schülerliste (Stammdaten → Schüler → Klasse → Berichte → Excel).
+- Leere Schülerzeilen in den Grunddaten verschwinden automatisch.

@@ -1,5 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, fuege, inhaltDialog, avatar, spaltenDialog, meldung, toast, auswahlMitFreitext } from '../ui.js';
+import { UNTIS_WEG_SCHUELER } from './fehlzeiten.js';
 import { neuerSchueler, aktiveSchueler, sortiereSchueler, heuteIso, buchHatFotos, datumDeutsch, UNTERSCHRIFTEN_STANDARD, UNTERSCHRIFT_VORLAGEN, BEZEICHNUNGEN, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB } from '../modell.js';
 import { istVolljaehrig, zahlLesen, NOTENGRENZEN_STANDARD, PUNKTEGRENZEN_STANDARD } from '../rechnen.js';
 import { passwortSetzen, passwortEntfernen, speichern, passwortFuerFotosSicherstellen } from '../aktionen.js';
@@ -191,6 +192,14 @@ export function zeigeGrunddaten() {
   bereicheZeichnen();
 
   // ----- Schülerliste -----
+  // Leere Zeilen (ohne Namen, Geburtstag, Untis-ID und ohne Bezug in Noten oder Fehlzeiten) verschwinden beim Öffnen von selbst.
+  // „Zeile hinzufügen“ bleibt möglich; die neue Zeile bleibt, bis die Ansicht erneut geöffnet wird.
+  const benutzt = (id) => d.fehlzeiten.some((f) => f.schuelerId === id)
+    || d.klassenarbeiten.some((ka) => ka.ergebnisse?.[id] || ka.teilnahme?.[id]);
+  const vorher = d.schueler.length;
+  d.schueler = d.schueler.filter((x) => x.name || x.vorname || x.geburtstag || x.untisId || x.archiviert || benutzt(x.id));
+  if (d.schueler.length === 0) d.schueler.push(neuerSchueler()); // eine leere Klasse behält eine Zeile zum Eintragen
+  if (d.schueler.length !== vorher) K.aenderung();
   const tbody = h('tbody');
   const fotosAn = d.bereiche.fotos;
   function zeilen() {
@@ -369,6 +378,7 @@ export function zeigeGrunddaten() {
       h('button', { type: 'button', class: 'knopf', id: 'liste-anlegen', onclick: async () => { const l = await listeAnlegenDialog(d); if (l) K.navigiere('listen'); } }, '+ Eigene Liste anlegen (Strich-, Abhak-, Betragsliste)'),
       d.listen.length > 0 && h('a', { class: 'knopf', href: '#/listen' }, `Eigene Listen (${d.listen.length})`)),
     h('h2', {}, 'Schüler:innen'),
+    h('p', { class: 'klein untis-weg' }, `Schülerliste importieren: ${UNTIS_WEG_SCHUELER}`),
     h(
       'div',
       { class: 'knopfreihe' },

@@ -77,6 +77,7 @@ export function zeigeFehlzeiten() {
   const offenGesamt = summen.reduce((n, { z }) => n + z.offen, 0);
   wurzel.append(
     h('h1', {}, 'Fehlzeiten'),
+    h('p', { class: 'klein untis-weg' }, UNTIS_WEG_ABWESENHEIT),
     h('div', { class: 'knopfreihe' },
       h('button', { type: 'button', class: 'knopf primaer', id: 'untis-laden', onclick: () => untisListeLaden(d) }, 'Untis-Liste laden'),
       h('button', { type: 'button', class: 'knopf', onclick: async () => { if (await fehlzeitManuell(d)) K.neuZeichnen(); } }, '+ Fehlzeit manuell'),
@@ -126,3 +127,7 @@ personAbschnittRegistrieren(40, (d, s) => {
 });
 
 ansichtRegistrieren('fehlzeiten', { text: 'Fehlzeiten', bauen: zeigeFehlzeiten, klasse: true, reihe: 6 });
+
+/** Kurzer Hinweis, wo die Untis-Listen zu finden sind. */
+export const UNTIS_WEG_ABWESENHEIT = 'In Untis: Klassenbuch → Abwesenheiten → Klasse wählen → Zeitraum „gesamtes Schuljahr“ → Berichte → Excel-Datei wählen.';
+export const UNTIS_WEG_SCHUELER = 'In Untis: Stammdaten → Schüler → Klasse wählen → Berichte → Excel-Datei wählen.';

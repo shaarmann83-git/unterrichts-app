@@ -2,7 +2,7 @@ import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog, personLink } from '../ui.js';
 import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht } from '../modell.js';
 import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege, teilnahmeStatus } from '../nachschreiben.js';
-import { untisListeLaden } from './fehlzeiten.js';
+import { untisListeLaden, UNTIS_WEG_ABWESENHEIT } from './fehlzeiten.js';
 import { eintraegeUm } from '../stundenplan.js';
 import { vorschlaegeDialog } from './untis-dialog.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, formatZahl, formatKurz, zahlLesen, NOTEN_WORTE } from '../rechnen.js';
@@ -187,6 +187,7 @@ export function zeigeKlassenarbeit(params) {
       'Klassenarbeit löschen',
     ),
     h('button', { type: 'button', class: 'knopf', id: 'untis-laden', onclick: async () => { await untisListeLaden(d); K.neuZeichnen(); } }, 'Untis-Liste laden'),
+    h('span', { class: 'klein untis-weg' }, ' ' + UNTIS_WEG_ABWESENHEIT),
     teilnahmeVorschlaege(d).some((v) => v.kaIndex === nr - 1) && h('button', { type: 'button', class: 'knopf', onclick: async () => { await vorschlaegeDialog([d]); K.neuZeichnen(); } }, 'Teilnahme-Vorschläge prüfen'),
     h(
       'button',
@@ -249,10 +250,14 @@ export function zeigeKlassenarbeit(params) {
       });
       return feld;
     });
+    // Das Häkchen folgt der Teilnahme: „gefehlt mit Attest“ (auch aus Untis) setzt es von selbst und sperrt es.
+    const attestAbgeleitet = !e.attest && teilnahmeStatus(d, ka, s.id).status === 'attest-offen';
     const attest = h('input', {
       type: 'checkbox',
       'aria-label': `${anzeigename(s)} Attest`,
-      checked: e.attest,
+      checked: e.attest || attestAbgeleitet,
+      disabled: attestAbgeleitet,
+      title: attestAbgeleitet ? 'Ergibt sich aus der Teilnahme (gefehlt mit Attest). Zum Ändern die Teilnahme ändern.' : '',
       onchange: (ev) => {
         e.attest = ev.target.checked;
         K.aenderung();

@@ -264,7 +264,7 @@ test('Anwesenheitsliste der Lernfeldklassen: Zeichen setzen und lesen', () => {
 });
 
 test('Unterschriftszeile automatisch: Ausbildung, Minderjährige, nur bei schlechter als 4', () => {
-  const fest = 'Korrekturdatum und Unterschrift der Lehrkraft';
+  const fest = UNTERSCHRIFTEN_STANDARD[0];
   const ausb = neueKlasse({ klasse: 'WKM1-2' });
   const schule = neueKlasse({ klasse: 'BG 11' });
   const jung = { id: 'a', geburtstag: '2009-06-01', betrieb: { name: '' } };
@@ -280,6 +280,8 @@ test('Unterschriftszeile automatisch: Ausbildung, Minderjährige, nur bei schlec
   assert.deepEqual(unterschriftenFuer(ausb, jung, { schlechter: false, stichtag: stich }), [fest]);
   // Ausbildung und schlechter: Zeile für den Ausbildungsbetrieb, unabhängig vom Alter
   assert.deepEqual(unterschriftenFuer(ausb, alt, { schlechter: true, stichtag: stich }), [fest, UNTERSCHRIFT_MIT_BETRIEB]);
+  // Ausbildung und minderjährig: beide Zeilen (Vorlage 11/2026: unabhängig voneinander)
+  assert.deepEqual(unterschriftenFuer(ausb, jung, { schlechter: true, stichtag: stich }), [fest, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB]);
   // ohne Ausbildung: Erziehungsberechtigte nur bei unter 18
   assert.deepEqual(unterschriftenFuer(schule, jung, { schlechter: true, stichtag: stich }), [fest, UNTERSCHRIFT_OHNE_BETRIEB]);
   assert.deepEqual(unterschriftenFuer(schule, alt, { schlechter: true, stichtag: stich }), [fest]);

@@ -24,6 +24,7 @@ export function kopfbilderReihe(buch, nachher = () => K.neuZeichnen()) {
       } }, dr[schluessel] ? 'Bild ersetzen' : 'Bild wählen'),
       dr[schluessel] && h('button', { type: 'button', class: 'knopf klein gefahr', onclick: () => { dr[schluessel] = ''; K.aenderung(); nachher(); } }, 'Entfernen'));
   };
-  return h('div', {}, feld('kopfLinks', 'Erstes Bild (oder ganze Breite)'), feld('kopfRechts', 'Zweites Bild (rechts, optional)'));
+  return h('div', {}, feld('kopfLinks', 'Erstes Bild (oder ganze Breite)'), feld('kopfRechts', 'Zweites Bild (rechts, optional)'),
+    h('label', {}, 'Text zwischen den Bildern (optional, nur bei zwei Bildern) ', h('input', { type: 'text', id: 'kopf-text', value: dr.kopfText || '', placeholder: 'z. B. Name der Schule', 'aria-label': 'Text zwischen den Kopfbildern', oninput: (ev) => { dr.kopfText = ev.target.value; K.aenderung(); } })));
 }
 

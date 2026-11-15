@@ -3,7 +3,7 @@ import { K } from '../kontext.js';
 import { h } from '../ui.js';
 import { datumDeutsch } from '../modell.js';
 import { nachschreibListe, TEILNAHME } from '../nachschreiben.js';
-import { untisListeLaden } from './fehlzeiten.js';
+import { untisListeLaden, UNTIS_WEG_ABWESENHEIT } from './fehlzeiten.js';
 import { vorschlaegeDialog } from './untis-dialog.js';
 import { ansichtRegistrieren } from '../registry.js';
 
@@ -23,6 +23,7 @@ export function zeigeNachschreiben() {
         : h('td', { class: 'links' }, TEILNAHME[z.status]))))));
   wurzel.append(
     h('h1', {}, 'Nachschreiben'),
+    h('p', { class: 'klein untis-weg' }, UNTIS_WEG_ABWESENHEIT),
     h('div', { class: 'knopfreihe nicht-drucken' },
       h('button', { type: 'button', class: 'knopf primaer', id: 'untis-laden', onclick: async () => { await untisListeLaden(null); K.neuZeichnen(); } }, 'Untis-Liste laden'),
       h('button', { type: 'button', class: 'knopf', onclick: async () => { await vorschlaegeDialog(buch.klassen); K.neuZeichnen(); } }, 'Vorschläge prüfen'),
