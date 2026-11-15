@@ -25,17 +25,12 @@ export function kopfbilderReihe(buch, nachher = () => K.neuZeichnen()) {
       dr[schluessel] && h('button', { type: 'button', class: 'knopf klein gefahr', onclick: () => { dr[schluessel] = ''; K.aenderung(); nachher(); } }, 'Entfernen'));
   };
   const vorlage = h('button', { type: 'button', class: 'knopf klein', title: 'Setzt die beiden Logos und den Schulnamen wie in der Word-Vorlage der BBS Lingen Wirtschaft', onclick: async () => {
-    const laden = async (pfad) => {
-      const antwort = await fetch(pfad);
-      return kopfbildAus(new File([await antwort.blob()], pfad.split('/').pop()), 600, 260);
-    };
-    try {
-      dr.kopfLinks = await laden('icons/kopf-bbs-links.png');
-      dr.kopfRechts = await laden('icons/kopf-bbs-rechts.jpg');
-      dr.kopfText = 'Berufsbildende Schulen Lingen Wirtschaft';
-      K.aenderung();
-      nachher();
-    } catch (e) { /* ohne Netz/Cache nicht verfügbar: Bilder dann von Hand wählen */ }
+    // Die Logos liegen als Dateien in der App; gespeichert wird nur der Pfad (wie in der Word-Vorlage zugeschnitten)
+    dr.kopfLinks = 'icons/kopf-bbs-links.png';
+    dr.kopfRechts = 'icons/kopf-bbs-rechts.jpg';
+    dr.kopfText = 'Berufsbildende Schulen Lingen Wirtschaft';
+    K.aenderung();
+    nachher();
   } }, 'Kopf der BBS Lingen Wirtschaft einsetzen');
   return h('div', {}, h('div', { class: 'knopfreihe' }, vorlage), feld('kopfLinks', 'Erstes Bild (oder ganze Breite)'), feld('kopfRechts', 'Zweites Bild (rechts, optional)'),
     h('label', {}, 'Text zwischen den Bildern (optional, nur bei zwei Bildern) ', h('input', { type: 'text', id: 'kopf-text', value: dr.kopfText || '', placeholder: 'z. B. Name der Schule', 'aria-label': 'Text zwischen den Kopfbildern', oninput: (ev) => { dr.kopfText = ev.target.value; K.aenderung(); } })));

@@ -134,7 +134,7 @@ export function zeigeDruck() {
           mitte,
           h('div', { class: 'rechts' }, h('img', { src: dr.kopfRechts, alt: '' })))
         : h('div', { class: 'protokoll-kopfbild-voll' }, h('img', { src: dr.kopfLinks || dr.kopfRechts, alt: '' }))),
-      h('table', { class: 'protokoll-tabelle kopf' }, h('colgroup', {}, h('col', { style: 'width:34%' }), h('col', { style: 'width:33%' }), h('col', { style: 'width:33%' })), h('tbody', {},
+      h('table', { class: 'protokoll-tabelle kopf' }, h('colgroup', {}, h('col', { style: 'width:33.33%' }), h('col', { style: 'width:33.33%' }), h('col', { style: 'width:33.33%' })), h('tbody', {},
         h('tr', {}, ['Name:', 'Klasse:', 'Datum:'].map((t) => h('td', { class: 'etikett' }, h('strong', {}, t)))),
         h('tr', {}, [blanko ? '' : anzeigename(s), d.kopf.klasse || '', datumDeutsch(ka.datum)].map((t) => h('td', { class: 'wert' }, t))))),
       band(fachZeile(d.kopf) || `${d.kopf.fachLabel || 'Lernfeld'}:`, true),
@@ -147,11 +147,11 @@ export function zeigeDruck() {
         h('tr', {}, werte.map(([, v]) => h('td', { class: 'mitte' }, v))))),
       // Unterschriften: links das Feld der Lehrkraft mit dem Korrekturdatum, rechts die Zeile für die ausbildende Person
       h('table', { class: 'protokoll-tabelle unterschrift' },
-        h('colgroup', {}, hauptZeilen.map((_, i) => h('col', { style: `width:${i === 0 ? 61 : Math.round(39 / Math.max(1, hauptZeilen.length - 1))}%` }))),
+        h('colgroup', {}, hauptZeilen.map((_, i) => h('col', { style: `width:${i === 0 ? 56.4 : (43.6 / Math.max(1, hauptZeilen.length - 1)).toFixed(1)}%` }))),
         h('tbody', {},
           h('tr', {}, hauptZeilen.map((t, i) => h('td', { class: i === 0 ? '' : 'hoch', rowspan: i === 0 ? 1 : 2 }, textBlock(t)))),
           h('tr', {}, h('td', { class: 'feld' }, ka.korrekturdatum && !blanko ? datumDeutsch(ka.korrekturdatum) : ' ')))),
-      elternZeile && h('table', { class: 'protokoll-tabelle eltern' }, h('tbody', {}, h('tr', {}, h('td', { class: 'hoch' }, textBlock(elternZeile))))),
+      elternZeile && h('div', { class: 'protokoll-eltern' }, textBlock(elternZeile)),
     );
   }
 
