@@ -299,7 +299,7 @@ input.bemerkung { min-width: 12rem; }
 .protokoll-band { border: 1px solid #000; border-top: 0; background: #d9d9d9; text-align: center; font-weight: 600; padding: 0.35rem; font-size: 0.9rem; }
 .protokoll-band.stark { background: #a6a6a6; margin-top: 1rem; border-top: 1px solid #000; padding: 0.9rem 0.35rem; }
 .protokoll-kasten { border: 1px solid #000; border-top: 0; padding: 0.4rem 0.5rem; font-size: 0.9rem; display: flex; flex-direction: column; }
-.protokoll-kasten.schwerpunkte { min-height: 6.8cm; justify-content: center; text-align: left; }
+.protokoll-kasten.schwerpunkte { min-height: 6.8cm; justify-content: center; align-items: center; text-align: left; }
 .protokoll-kasten.schwerpunkte ul { margin: 0; padding-left: 1.2rem; }
 .protokoll-kasten.sonstiges { min-height: 3.1cm; justify-content: center; align-items: center; text-align: center; }
 
