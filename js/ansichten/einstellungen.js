@@ -10,7 +10,7 @@ import { bewertungBereich } from './bewertung.js';
 import { fachZeile } from '../modell.js';
 
 /** Stand der App (bei jeder Auslieferung mit sw.js VERSION erhöhen). */
-export const APP_STAND = 'noten-v26';
+export const APP_STAND = 'noten-v27';
 
 export function zeigeEinstellungen() {
   const wurzel = h('section', { class: 'seite' });

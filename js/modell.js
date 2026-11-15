@@ -513,6 +513,12 @@ export function pruefeBuch(roh) {
   }
   buch.version = FORMAT_VERSION;
   buch.dokumentId ||= neueId();
+  // Schulkopf, der früher als Bild (mit schwarzem Grund) gespeichert wurde, wieder auf die Dateien der App umstellen
+  const dr = buch.einstellungen?.druck;
+  if (dr && dr.kopfText === 'Berufsbildende Schulen Lingen Wirtschaft' && String(dr.kopfLinks || '').startsWith('data:')) {
+    dr.kopfLinks = 'icons/kopf-bbs-links.png';
+    dr.kopfRechts = 'icons/kopf-bbs-rechts.jpg';
+  }
   buch.gespeichertAm ||= '';
   buch.einstellungen ||= {};
   buch.einstellungen.untisOrdnerAutomatisch ??= false;

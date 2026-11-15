@@ -289,15 +289,16 @@ input.bemerkung { min-width: 12rem; }
 .protokoll-tabelle.kopf td.wert { border-top: 0; height: 1.1cm; font-size: 13pt; font-weight: 700; text-align: center; }
 .protokoll-tabelle.ergebnis { margin-top: 0; }
 .protokoll-tabelle.ergebnis tr:first-child td { border-top: 0; }
-.protokoll-tabelle.ergebnis tr:first-child td { height: 0.6cm; border-bottom: 0; vertical-align: top; }
-.protokoll-tabelle.ergebnis td.mitte { border-top: 0; height: 1.1cm; text-align: center; font-weight: 700; }
+.protokoll-tabelle.ergebnis tr:first-child td { height: 0.6cm; vertical-align: top; }
+.protokoll-tabelle.ergebnis td.mitte { height: 1.1cm; text-align: center; font-weight: 700; }
 .protokoll-tabelle.unterschrift { margin-top: 0.564cm; }
 .protokoll-tabelle.unterschrift td { vertical-align: top; }
-.protokoll-tabelle.unterschrift tr:first-child td:first-child { height: 0.6cm; border-bottom: 0; }
-.protokoll-tabelle.unterschrift td.feld { height: 1.4cm; border-top: 0; vertical-align: bottom; }
+.protokoll-tabelle.unterschrift tr:first-child td:first-child { height: 0.6cm; }
+.protokoll-tabelle.unterschrift td.feld { height: 1.4cm; vertical-align: bottom; }
 .protokoll-tabelle.unterschrift .stark, .protokoll-eltern .stark { font-weight: 700; font-size: 11pt; }
 .protokoll-tabelle.unterschrift .klein, .protokoll-eltern .klein { font-style: italic; font-size: 9pt; }
 .protokoll-eltern { margin: 0.2cm 0 0 9.25cm; }
+.protokoll-eltern .stark { white-space: nowrap; letter-spacing: -0.1pt; }
 .protokoll-band { border: 0.75pt solid #000; border-top: 0; background: #d9d9d9; display: flex; align-items: center; justify-content: center; height: 1.1cm; font-weight: 700; font-size: 12pt; box-sizing: border-box; }
 .protokoll-band.stark { background: #a6a6a6; margin-top: 0.564cm; border-top: 0.75pt solid #000; height: 1.4cm; font-size: 13pt; }
 .protokoll-kasten { border: 0.75pt solid #000; border-top: 0; padding: 0 0.19cm; font-size: 11pt; display: flex; flex-direction: column; box-sizing: border-box; }
