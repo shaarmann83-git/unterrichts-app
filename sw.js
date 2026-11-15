@@ -1,8 +1,8 @@
 // Offline-Dienst: legt die App-Dateien beim ersten Besuch ab und liefert sie danach ohne Netz.
-const VERSION = 'noten-v21';
+const VERSION = 'noten-v22';
 const DATEIEN = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
-  'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
+  'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/kopf-bbs-links.png', 'icons/kopf-bbs-rechts.jpg',
   'lib/xlsx.full.min.js',
   'js/app.js', 'js/registry.js', 'js/start-app.js', 'js/dalton.js', 'js/sport.js', 'js/sport-vorlagen.js', 'js/sport-excel.js', 'js/ical.js', 'js/stundenplan.js', 'js/foto.js', 'js/fehlzeiten.js', 'js/tabelle.js', 'js/sync.js', 'js/onedrive.js', 'lib/msal-browser.min.js', 'js/listen.js', 'js/untis-eingang.js', 'js/untis.js', 'js/nachschreiben.js', 'js/tabelle-datei.js', 'js/schuelerliste.js', 'js/aktionen.js', 'js/excel.js', 'js/ihk-schema.js', 'js/kontext.js', 'js/krypto.js',
   'js/modell.js', 'js/rechnen.js', 'js/speicher.js', 'js/ui.js',
