@@ -20,7 +20,7 @@ function vollesBuch({ mitFoto = false } = {}) {
   a.klassenarbeiten[0].aufgaben = [10, 10];
   a.klassenarbeiten[0].teile = [1, 1];
   a.klassenarbeiten[0].datum = '2025-10-15';
-  a.klassenarbeiten[0].ergebnisse[p.id] = { punkte: [8, 7], attest: false, sonstiges: 'Gut' };
+  a.klassenarbeiten[0].ergebnisse[p.id] = { punkte: [8, 7], sonstiges: 'Gut' };
   a.klassenarbeiten[0].teilnahme[q.id] = { status: 'attest-offen', nachschreibtermin: '2025-11-05' };
   const t = neuerTermin('2025-10-01', 'Gruppenarbeit');
   t.eintraege[p.id] = { note: 2, notiz: 'aktiv' };

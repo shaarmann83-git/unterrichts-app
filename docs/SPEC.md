@@ -27,7 +27,7 @@ Alle Rechenregeln unten sind aus den Excel-Formeln übernommen. Die Ergebnisse d
 - Kopfdaten: Klasse, Lernfeld-Nummer, Lernfeld-Bezeichnung, Schuljahr.
 - Gewichtung: schriftlich in Prozent (Standard 50 %), sonstige Leistung = 100 % minus schriftlich. Eingabe 0 bis 100.
 - Schüler:innen (Standard bis 32, erweiterbar): Name, Vorname, m/w/d, Geburtstag (optional). Laufende Nummer automatisch. „Volljährig?“ wird aus dem Geburtstag zum heutigen Datum berechnet (ja/nein). Ist kein Geburtstag eingetragen, kann „volljährig“ manuell angehakt werden.
-- Klassenarbeiten (Standard 4, erweiterbar): Nummer, Datum, „Thematische Schwerpunkte“ (Freitext), bis zu 21 Aufgaben (erweiterbar) mit Höchstpunktzahl je Aufgabe (Dezimalzahl ≥ 0). Je Schüler:in: Punkte je Aufgabe, Feld „Attest“ (Haken), Feld „Sonstiges“ (Freitext für das Protokoll).
+- Klassenarbeiten (Standard 4, erweiterbar): Nummer, Datum, „Thematische Schwerpunkte“ (Freitext), bis zu 21 Aufgaben (erweiterbar) mit Höchstpunktzahl je Aufgabe (Dezimalzahl ≥ 0). Je Schüler:in: Punkte je Aufgabe, Teilnahme (siehe 8.6), Feld „Sonstiges“ (Freitext für das Protokoll).
 - Sonstige Leistungen: **beliebig viele Einträge**, damit nach jeder Unterrichtsstunde kurz etwas notiert werden kann. Ein Eintrag (Termin) hat Datum und optional ein Stichwort (z. B. „Gruppenarbeit Inventur“). Je Schüler:in und Termin: optional eine Dezimalnote mit einer Nachkommastelle von 1,0 bis 6,0 und optional eine kurze Textnotiz. Einträge nur mit Notiz und ohne Note sind erlaubt.
 
 ## 4. Rechenregeln (exakt wie in Excel)
@@ -42,7 +42,7 @@ p ≥ 91,5 → 1 (sehr gut); p ≥ 80,5 → 2 (gut); p ≥ 66,5 → 3 (befriedig
 - Prozent = auf 1 Nachkommastelle **abgeschnitten** (nicht gerundet): `trunc(summe * 100 / gesamtpunkte, 1)`.
 - Note aus Prozent nach den Notengrenzen.
 - Notenspiegel je Arbeit: Anzahl Noten 1 bis 6 und Durchschnitt = Summe(Note × Anzahl) / Anzahl.
-- Schüler:innen mit Attest bekommen keine Punkte, keine Note und zählen nicht im Notenspiegel.
+- Schüler:innen mit Teilnahme „gefehlt mit Attest, Nachschreiben offen“ und ohne Punkte bekommen keine Note und zählen nicht im Notenspiegel. Den früheren Haken „Attest“ gibt es nicht mehr (alte Daten werden beim Laden zu dieser Teilnahme).
 
 **Sonstige Leistung**
 - Note wird auf 1 Nachkommastelle gerundet und über das IHK-Schema in Prozent umgerechnet: Prozent = Mittelwert aller Prozentwerte, denen in `docs/ihk-schema.json` diese Note zugeordnet ist (Excel: `AVERAGEIF`). Beispiele: 1,0 → 100; 2,0 → 85,5; 3,3 → 68,5; 6,0 → 2,5.
@@ -67,7 +67,7 @@ Beim Abschneiden Gleitkommafehler abfangen (z. B. 0,3 × 100 darf nicht zu 29,9 
 
 1. **Start:** Notendatei öffnen, neue anlegen, zuletzt geöffnete (nur aus lokaler Arbeitskopie), Excel-Vorlage importieren.
 2. **Grunddaten:** Kopfdaten, Gewichtung, Schülerliste (Zeilen hinzufügen, löschen mit Rückfrage, Reihenfolge ändern, alphabetisch sortieren).
-3. **Klassenarbeit 1 bis n:** Tabelle wie in Excel (Nr., Name, Aufg. 1…n, ∑, %, Note, Attest). Kopfzeile mit Höchstpunkten. Notenspiegel daneben bzw. darunter. Auf schmalen Bildschirmen: Ansicht „Schüler:in für Schüler:in“ mit Vor/Zurück, damit man am Tablet bequem korrigiert.
+3. **Klassenarbeit 1 bis n:** Tabelle wie in Excel (Nr., Name, Aufg. 1…n, ∑, %, Note, Teilnahme, Sonstiges). Kopfzeile mit Höchstpunkten. Notenspiegel daneben bzw. darunter. Auf schmalen Bildschirmen: Ansicht „Schüler:in für Schüler:in“ mit Vor/Zurück, damit man am Tablet bequem korrigiert.
 4. **Sonstige Leistung:**
    - **Schnelleingabe „Heutige Stunde“** (wichtigste Ansicht, für das Tablet direkt nach dem Unterricht): ein Knopf legt einen Termin mit heutigem Datum an; darunter die Klassenliste mit je einem Notenfeld und einem Notizfeld. Optional Tasten für häufige Noten (z. B. 1,0 / 2,0 / 3,0 / 4,0 / 5,0) und Wiederverwenden der zuletzt benutzten Stichworte. Leere Felder sind normal und werden nicht als Fehler markiert.
    - **Übersicht nach Termin:** Tabelle Termine × Schüler:innen mit Note und Prozent; Notizen als Symbol, Antippen zeigt den Text. Termine bearbeiten und löschen (mit Rückfrage).
@@ -177,7 +177,7 @@ In den Grunddaten jeder Klasse drei Schalter. Ist ein Bereich aus, sind seine Fe
 
 **Auswertung**
 - Summen je Person: Fehlstunden entschuldigt, davon mit Attest, nicht entschuldigt, offen, gesamt; Fehltage; Verspätungen (Einträge mit Fehlminuten unter einer vollen Stunde, falls vorhanden). Anzeige in Personenübersicht, Gesamtübersicht (Spalten ein-/ausblendbar) und Excel-Export.
-- **Attest bei Klassenarbeiten:** Gibt es für eine Person am Datum einer Klassenarbeit eine Fehlzeit „entschuldigt mit Attest“, zeigt die Klassenarbeits-Ansicht einen Hinweis und bietet an, das Feld „Attest“ zu setzen. Nie automatisch ohne Bestätigung. Bei „nicht entschuldigt“ am KA-Datum ebenfalls ein Hinweis.
+- **Attest bei Klassenarbeiten:** Gibt es für eine Person am Datum einer Klassenarbeit eine Fehlzeit „entschuldigt mit Attest“, zeigt die Klassenarbeits-Ansicht einen Hinweis und bietet an, die Teilnahme auf „gefehlt mit Attest, Nachschreiben offen“ zu setzen. Nie automatisch ohne Bestätigung. Bei „nicht entschuldigt“ am KA-Datum ebenfalls ein Hinweis.
 - Fehlzeiten fließen **nicht** in Noten ein.
 - Abwesenheitsgründe wie „krank“ sind Gesundheitsangaben: nur in der Personen- und Fehlzeitenansicht zeigen, nicht im Excel-Export der Gesamtübersicht, nicht im Druck (außer in einer ausdrücklich gewählten Fehlzeitenliste).
 
@@ -472,6 +472,13 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - Sonstiges füllt die App vor: „Nachschreibtermin: Datum“ (nachgeschrieben bzw. Termin offen), „Unentschuldigtes Fehlen“ (laut Untis nicht entschuldigt), „Kein Attest“, „Entschuldigung noch offen“, danach der eigene Text. Rechenregeln unverändert.
 - Unterschriften: links Korrekturdatum und Unterschrift Lehrkraft; bei Note schlechter als ausreichend rechts „Unterschrift ausbildende Person (nur bei nicht ausreichender Leistung)“ (Ausbildungsklasse) und getrennt darunter „Unterschrift erziehungsberechtigte Person (nur bei Minderjährigen und nicht ausreichender Leistung)“ (Minderjährige).
 - Druckart „Protokoll blanko (zum Ausfüllen von Hand)“ mit allen Zeilen als Vorlage. Optionaler Text zwischen zwei Kopfbildern.
-- Attest-Häkchen ist aus der Teilnahme abgeleitet. „Kein Attest“ führt nie automatisch zur Note 6.
+- Der Haken „Attest“ ist entfallen; die Teilnahme „gefehlt mit Attest, Nachschreiben offen“ ersetzt ihn. „Kein Attest“ führt nie automatisch zur Note 6.
+
+### 12.11 Klassenarbeit: Tasten, Farben, Auswertung (11/2026)
+
+- Tabelle am PC wie in Excel: Pfeiltasten springen in die Nachbarzelle (Inhalt markiert; links/rechts nur am Textrand), Tab und Umschalt+Tab gehen eine Zelle weiter oder zurück (am Zeilenende in die nächste Zeile), Enter geht nach unten, Tab-Folge und dann Enter führt in die Startspalte der nächsten Zeile. Gesperrte Zeilen werden übersprungen. Auswahl- und Datumsfelder sind unberührt.
+- Zeilenfarben: hellrot mit Rahmen um die ganze Zeile bei „gefehlt, Entschuldigung offen“ und „gefehlt ohne Attest“ (nur solange keine Punkte da sind), gelblich bei „gefehlt mit Attest, Nachschreiben offen“, grau und gesperrt bei „noch nicht in der Klasse“.
+- „Nachprüfung offen“ ist bei Klassenarbeiten nicht mehr wählbar (gespeicherte Werte werden zu „gefehlt, Entschuldigung offen“). Die Nachprüfung im Sport bleibt.
+- Unter dem Notenspiegel: Auswertung je Aufgabe und Teilaufgabe (Höchstpunkte, Anzahl Werte, Durchschnitt in Punkten und Prozent, kleinster, größter Wert; Summenzeile je Aufgabe mit Teilaufgaben). Es zählen nur eingetragene Werte.
 - Import-Knöpfe nennen den Weg in Untis: Abwesenheiten (Klassenbuch → Abwesenheiten → Klasse → gesamtes Schuljahr → Berichte → Excel) und Schülerliste (Stammdaten → Schüler → Klasse → Berichte → Excel).
 - Leere Schülerzeilen in den Grunddaten verschwinden automatisch.

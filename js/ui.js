@@ -203,17 +203,82 @@ export function auswahlMitFreitext({ werte, wert = '', bezeichnung = 'Auswahl', 
   };
 }
 
+/**
+ * Tasten wie in Excel für die Eingabefelder mit data-sp (Punktefelder):
+ * Pfeile springen in die Nachbarzelle (Inhalt markiert), Tab/Umschalt+Tab gehen eine Zelle weiter oder zurück
+ * (am Zeilenende in die nächste Zeile), Enter geht nach unten. Wer mit Tab durch die Zeile läuft und dann
+ * Enter drückt, landet in der Startspalte der nächsten Zeile. Auswahl- und Datumsfelder bleiben unberührt.
+ */
 export function enterNachUnten(tabelle) {
+  const zeilen = () => [...tabelle.querySelectorAll('tr')]
+    .map((tr) => [...tr.querySelectorAll('input[data-sp]')])
+    .filter((felder) => felder.length > 0);
+  const aktiv = (f) => f && !f.disabled;
+  const gehe = (feld) => { feld.focus(); feld.select?.(); };
+  let startSpalte = null; // Spalte, in der die Tab-Folge begann
+  tabelle.addEventListener('mousedown', () => { startSpalte = null; });
   tabelle.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' || e.target.tagName !== 'INPUT') return;
-    const sp = e.target.dataset.sp;
-    if (!sp) return;
-    e.preventDefault();
-    const felder = [...tabelle.querySelectorAll(`input[data-sp="${CSS.escape(sp)}"]`)];
-    const i = felder.indexOf(e.target);
-    const naechstes = felder[i + 1] || felder[0];
-    naechstes.focus();
-    naechstes.select?.();
+    const feld = e.target;
+    if (feld.tagName !== 'INPUT' || !feld.dataset.sp || e.altKey || e.ctrlKey || e.metaKey) return;
+    const z = zeilen();
+    const r = z.findIndex((felder) => felder.includes(feld));
+    if (r < 0) return;
+    const c = z[r].indexOf(feld);
+    // Nächste bedienbare Zelle in Spaltenrichtung (gesperrte Zeilen werden übersprungen), ohne Umlauf.
+    const senkrecht = (schritt, spalte, umlauf) => {
+      for (let n = 1; n <= z.length; n++) {
+        let i = r + schritt * n;
+        if (i < 0 || i >= z.length) {
+          if (!umlauf) return null;
+          i = (i + z.length) % z.length;
+        }
+        const f = z[i][Math.min(spalte, z[i].length - 1)];
+        if (aktiv(f)) return f;
+      }
+      return null;
+    };
+    const waagerecht = (schritt) => {
+      for (let n = 1; n <= z[r].length; n++) {
+        const f = z[r][c + schritt * n];
+        if (!f) return null;
+        if (aktiv(f)) return f;
+      }
+      return null;
+    };
+    let ziel = null;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      startSpalte = null;
+      ziel = senkrecht(e.key === 'ArrowDown' ? 1 : -1, c, false);
+      e.preventDefault();
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      startSpalte = null;
+      const rechts = e.key === 'ArrowRight';
+      // Steht der Cursor mitten im Text, gilt die Pfeiltaste wie gewohnt für den Text.
+      const amRand = rechts ? feld.selectionEnd === feld.value.length : feld.selectionStart === 0;
+      if (!amRand) return;
+      ziel = waagerecht(rechts ? 1 : -1);
+      e.preventDefault();
+    } else if (e.key === 'Tab') {
+      if (startSpalte === null) startSpalte = c;
+      const rueck = e.shiftKey;
+      ziel = waagerecht(rueck ? -1 : 1);
+      if (!ziel) {
+        // Zeilenende: erste (bei Umschalt+Tab letzte) bedienbare Zelle der nächsten (vorherigen) Zeile
+        for (let i = r + (rueck ? -1 : 1); i >= 0 && i < z.length && !ziel; i += rueck ? -1 : 1) {
+          ziel = (rueck ? [...z[i]].reverse() : z[i]).find(aktiv) || null;
+        }
+      }
+      if (!ziel) return; // Tabellenende: Tab verlässt die Tabelle wie üblich
+      e.preventDefault();
+    } else if (e.key === 'Enter') {
+      const spalte = startSpalte ?? c;
+      startSpalte = null;
+      ziel = senkrecht(e.shiftKey ? -1 : 1, spalte, true);
+      e.preventDefault();
+    } else {
+      return;
+    }
+    if (ziel) gehe(ziel);
   });
 }
 

@@ -5,7 +5,7 @@ import {
   neueKlasse, neuesBuch, pruefeBuch, pruefeKlasse, klasseKopieren, aktiveSchueler, archivierteSchueler, fachZeile, zweiteUnterschrift, ZWEITE_UNTERSCHRIFT,
   neuerTermin, neueDaltonAufgabe, buchHatFotos, dateiname, FORMAT_VERSION,
   neueKlassenarbeit, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht,
-  neuerSchueler,
+  neuerSchueler, aufgabenAuswertung,
 } from '../js/modell.js';
 import { ausDateitext, inDateitext } from '../js/krypto.js';
 import { gesamtPerson, ergebnisKA, notenspiegel } from '../js/rechnen.js';
@@ -267,4 +267,43 @@ test('Fehlzeiten: nur Tage mit eigenem Unterricht', async () => {
   );
   assert.equal(fehlzeitenSummen(k, 'x').offen, 5);
   assert.equal(fehlzeitenSummen(k, 'x', (f) => betrifftMeineStunden(f, tage)).offen, 2);
+});
+
+test('Alter Haken „Attest“ wird zur Teilnahme „gefehlt mit Attest“, Nachprüfung wird zu „Entschuldigung offen“', () => {
+  const k = pruefeBuch(stufe1Datei()).klassen[0];
+  const ka = k.klassenarbeiten[0];
+  k.schueler.push({ ...k.schueler[0], id: 's2', name: 'Beispiel', vorname: 'Max' });
+  k.schueler.push({ ...k.schueler[0], id: 's3', name: 'Muster', vorname: 'Eva' });
+  ka.ergebnisse.s2 = { punkte: [], attest: true, sonstiges: '' };
+  ka.ergebnisse.s3 = { punkte: [], attest: false, sonstiges: '' };
+  ka.teilnahme.s3 = { status: 'nachpruefung-offen', manuell: true };
+  const neu = pruefeKlasse(JSON.parse(JSON.stringify(k)));
+  const a = neu.klassenarbeiten[0];
+  assert.deepEqual(a.teilnahme.s2, { status: 'attest-offen', manuell: true });
+  assert.equal('attest' in a.ergebnisse.s2, false);
+  assert.equal(a.teilnahme.s3.status, 'entschuldigung-offen');
+  assert.equal(ergebnisKA(a, 's2', neu).attest, true);
+});
+
+test('Auswertung je Aufgabe: Durchschnitt, Prozent, kleinster und größter Wert; Summenzeile bei Teilaufgaben', () => {
+  const ka = neueKlassenarbeit(3);
+  ka.aufgaben = [10, 4, 6];
+  ka.teile = [1, 2];
+  ka.ergebnisse = {
+    a: { punkte: [8, 4, 3], sonstiges: '' },
+    b: { punkte: [5, 2, null], sonstiges: '' },
+    c: { punkte: [null, null, null], sonstiges: '' },
+  };
+  const z = aufgabenAuswertung(ka, [{ id: 'a' }, { id: 'b' }, { id: 'c' }]);
+  assert.deepEqual(z.map((r) => r.name), ['1', '2a', '2b', 'Aufgabe 2 gesamt']);
+  assert.equal(z[0].anzahl, 2);
+  assert.equal(z[0].durchschnitt, 6.5);
+  assert.equal(z[0].prozent, 65);
+  assert.equal(z[0].min, 5);
+  assert.equal(z[0].max, 8);
+  assert.equal(z[2].anzahl, 1); // nur ein Wert für 2b
+  assert.equal(z[3].summenzeile, true);
+  assert.equal(z[3].hoechst, 10);
+  assert.equal(z[3].anzahl, 2);
+  assert.equal(z[3].durchschnitt, 4.5); // (7 + 2) / 2
 });

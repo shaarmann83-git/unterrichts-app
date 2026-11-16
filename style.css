@@ -155,7 +155,17 @@ input.notizfeld { width: 100%; }
 .zeile-grau td { color: var(--text-leise); }
 .zeile-gruen td { background: #e3f4e5; color: #14401a; }
 .zeile-rot td { background: var(--fehler-bg); }
-tr.markiert td { background: var(--warn-bg) !important; box-shadow: inset 3px 0 0 var(--fehler); }
+/* Zeilenfarben der Klassenarbeit: Rahmen nur um die ganze Zeile */
+tr.ka-rot td { background: #fbd5d5 !important; box-shadow: inset 0 2px 0 var(--fehler), inset 0 -2px 0 var(--fehler); }
+tr.ka-rot td:first-child { box-shadow: inset 0 2px 0 var(--fehler), inset 0 -2px 0 var(--fehler), inset 2px 0 0 var(--fehler); }
+tr.ka-rot td:last-child { box-shadow: inset 0 2px 0 var(--fehler), inset 0 -2px 0 var(--fehler), inset -2px 0 0 var(--fehler); }
+tr.ka-gelb td { background: #fff1c4 !important; }
+tr.ka-grau td { background: #e4e6ea !important; color: var(--text-leise); }
+tr.ka-grau td > *, tr.ka-grau td input, tr.ka-grau td select { opacity: 0.6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) tr.ka-rot td { background: #5a2626 !important; } :root:not([data-theme="light"]) tr.ka-gelb td { background: #5a4a14 !important; } :root:not([data-theme="light"]) tr.ka-grau td { background: #2a2f37 !important; } }
+:root[data-theme="dark"] tr.ka-rot td { background: #5a2626 !important; }
+:root[data-theme="dark"] tr.ka-gelb td { background: #5a4a14 !important; }
+:root[data-theme="dark"] tr.ka-grau td { background: #2a2f37 !important; }
 .untis-klasse { margin-bottom: 1rem; }
 .untis-vorschau { max-height: 55vh; overflow: auto; }
 .liste-kurz { margin: 0.3rem 0 0.6rem 1rem; padding: 0; font-size: 0.85rem; }

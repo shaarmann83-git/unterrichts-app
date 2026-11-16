@@ -169,6 +169,38 @@ export function gruppeErreicht(ka, schuelerId, gruppe) {
   return werte.reduce((s, v) => s + Number(v), 0);
 }
 
+/**
+ * Auswertung je Aufgabe (Teilaufgabe): wie viele Werte, Durchschnitt in Punkten und in Prozent der Höchstpunkte, kleinster und größter Wert.
+ * Es zählen nur eingetragene Werte. Bei Aufgaben mit Teilaufgaben folgt eine Summenzeile je Aufgabe (nur Personen mit mindestens einem Wert).
+ * Zeilen: { name, summenzeile, hoechst, anzahl, durchschnitt, prozent, min, max }
+ */
+export function aufgabenAuswertung(ka, schueler) {
+  const wert = (id, i) => {
+    const v = ka.ergebnisse?.[id]?.punkte?.[i];
+    return v === null || v === undefined || v === '' ? null : Number(v);
+  };
+  const zeile = (name, summenzeile, hoechst, werte) => {
+    const n = werte.length;
+    const durchschnitt = n === 0 ? null : werte.reduce((a, b) => a + b, 0) / n;
+    return {
+      name, summenzeile, hoechst, anzahl: n, durchschnitt,
+      prozent: durchschnitt === null || !hoechst ? null : (durchschnitt / hoechst) * 100,
+      min: n === 0 ? null : Math.min(...werte),
+      max: n === 0 ? null : Math.max(...werte),
+    };
+  };
+  const zeilen = [];
+  for (const g of aufgabenGruppen(ka)) {
+    for (const [k, i] of g.indizes.entries()) {
+      zeilen.push(zeile(g.namen[k], false, Number(ka.aufgaben[i]) || 0, schueler.map((s) => wert(s.id, i)).filter((v) => v !== null)));
+    }
+    if (g.geteilt) {
+      zeilen.push(zeile(`Aufgabe ${g.nr} gesamt`, true, gruppeHoechst(ka, g), schueler.map((s) => gruppeErreicht(ka, s.id, g)).filter((v) => v !== null)));
+    }
+  }
+  return zeilen;
+}
+
 export function neuerSchueler() {
   return {
     id: neueId(),
@@ -406,6 +438,19 @@ export function pruefeKlasse(k) {
     ka.teile = aufgabenTeile(ka);
     ka.ergebnisse ||= {};
     ka.teilnahme ||= {};
+    // Der Haken „Attest“ ist entfallen: er wird zur Teilnahme „gefehlt mit Attest, Nachschreiben offen“.
+    // „Nachprüfung offen“ gibt es bei Klassenarbeiten nicht mehr (Sport hat seine eigene Nachprüfung).
+    for (const [id, e] of Object.entries(ka.ergebnisse)) {
+      if (!e || e.attest === undefined) continue;
+      if (e.attest) {
+        const t = ka.teilnahme[id] || {};
+        if (!(t.manuell && t.status === 'nachgeschrieben')) ka.teilnahme[id] = { ...t, status: 'attest-offen', manuell: true };
+      }
+      delete e.attest;
+    }
+    for (const [id, t] of Object.entries(ka.teilnahme)) {
+      if (t?.status === 'nachpruefung-offen') ka.teilnahme[id] = { ...t, status: 'entschuldigung-offen' };
+    }
   }
   for (const t of k.sonstige) {
     t.id ||= neueId();

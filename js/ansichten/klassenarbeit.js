@@ -1,6 +1,6 @@
 import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog, personLink } from '../ui.js';
-import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht } from '../modell.js';
+import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht, aufgabenAuswertung } from '../modell.js';
 import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege, teilnahmeStatus } from '../nachschreiben.js';
 import { untisListeLaden, UNTIS_WEG_ABWESENHEIT } from './fehlzeiten.js';
 import { eintraegeUm } from '../stundenplan.js';
@@ -12,7 +12,7 @@ let modus = null; // 'tabelle' | 'einzel'
 let einzelPosition = 0;
 
 function ergebnisHolen(ka, s) {
-  return (ka.ergebnisse[s.id] ||= { punkte: [], attest: false, sonstiges: '' });
+  return (ka.ergebnisse[s.id] ||= { punkte: [], sonstiges: '' });
 }
 
 export function zeigeKlassenarbeit(params) {
@@ -201,7 +201,8 @@ export function zeigeKlassenarbeit(params) {
   const teileBereich = h('div');
   const arbeitsflaeche = h('div', { class: 'arbeitsflaeche' });
   const spiegel = h('div', { class: 'notenspiegel' });
-  wurzel.append(kopfFormular, aufgabenKnoepfe, teileBereich, arbeitsflaeche, h('h2', {}, 'Notenspiegel'), spiegel);
+  const auswertung = h('div', { class: 'aufgaben-auswertung' });
+  wurzel.append(kopfFormular, aufgabenKnoepfe, teileBereich, arbeitsflaeche, h('h2', {}, 'Notenspiegel'), spiegel, h('h2', {}, 'Auswertung je Aufgabe'), auswertung);
 
   async function nachgeschriebenFragen(s, e) {
     const t = ka.teilnahme[s.id];
@@ -252,19 +253,6 @@ export function zeigeKlassenarbeit(params) {
       });
       return feld;
     });
-    // Das Häkchen folgt der Teilnahme: „gefehlt mit Attest“ (auch aus Untis) setzt es von selbst und sperrt es.
-    const attestAbgeleitet = !e.attest && teilnahmeStatus(d, ka, s.id).status === 'attest-offen';
-    const attest = h('input', {
-      type: 'checkbox',
-      'aria-label': `${anzeigename(s)} Attest`,
-      checked: e.attest || attestAbgeleitet,
-      disabled: attestAbgeleitet,
-      title: attestAbgeleitet ? 'Ergibt sich aus der Teilnahme (gefehlt mit Attest). Zum Ändern die Teilnahme ändern.' : '',
-      onchange: (ev) => {
-        e.attest = ev.target.checked;
-        K.aenderung();
-      },
-    });
     const sonstiges = h('input', {
       type: 'text',
       value: e.sonstiges || '',
@@ -276,6 +264,7 @@ export function zeigeKlassenarbeit(params) {
       },
     });
     const wirksam = statusVon(s);
+    const nichtInKlasse = wirksam.status === 'nicht-in-klasse';
     const teilnahme = h('select', {
       class: 'teilnahme',
       'aria-label': `${anzeigename(s)} Teilnahme`,
@@ -285,7 +274,7 @@ export function zeigeKlassenarbeit(params) {
         K.aenderung();
         K.neuZeichnen();
       },
-    }, Object.entries(TEILNAHME).map(([w, t]) => h('option', { value: w, selected: wirksam.status === w }, t)));
+    }, Object.entries(TEILNAHME).filter(([w]) => w !== 'nachpruefung-offen').map(([w, t]) => h('option', { value: w, selected: wirksam.status === w }, t)));
     // Datum zur Teilnahme: bei „gefehlt mit Attest“ der geplante Nachschreibtermin, bei „nachgeschrieben“ der Tag des Nachschreibens
     const datumFeld = (klasse, beschriftung, feldName) => h('label', { class: 'datumzeile klein' }, beschriftung, h('input', {
       type: 'date',
@@ -303,8 +292,8 @@ export function zeigeKlassenarbeit(params) {
     // Hinweis laut Untis (nie automatisch gesetzt): Attest anbieten, nicht entschuldigt melden
     const hinweis = h('span', { class: 'untis-hinweis' });
     const treffer = fehlzeitenAmTermin(d, ka, s.id);
-    if (treffer.some((f) => f.status === 'attest') && !e.attest && wirksam.status !== 'attest-offen' && wirksam.status !== 'nachgeschrieben') {
-      hinweis.append(h('button', { type: 'button', class: 'knopf klein', title: 'Laut Untis entschuldigt mit Attest. Feld „Attest“ setzen?', onclick: () => { e.attest = true; K.aenderung(); K.neuZeichnen(); } }, 'Attest laut Untis: setzen'));
+    if (treffer.some((f) => f.status === 'attest') && wirksam.status !== 'attest-offen' && wirksam.status !== 'nachgeschrieben') {
+      hinweis.append(h('button', { type: 'button', class: 'knopf klein', title: 'Laut Untis entschuldigt mit Attest. Teilnahme auf „gefehlt mit Attest, Nachschreiben offen“ setzen?', onclick: () => { ka.teilnahme[s.id] = { ...(ka.teilnahme[s.id] || {}), status: 'attest-offen', manuell: true }; K.aenderung(); K.neuZeichnen(); } }, 'Attest laut Untis: übernehmen'));
     } else if (treffer.some((f) => f.status === 'nicht')) {
       hinweis.append(h('span', { class: 'klein fehlertext', title: 'Laut Untis am Termin nicht entschuldigt' }, 'nicht entschuldigt (Untis)'));
     }
@@ -313,7 +302,7 @@ export function zeigeKlassenarbeit(params) {
     }
     // Unentschuldigtes Fehlen von Hand werten: alle Aufgaben auf 0, das ergibt 0 % und die schlechteste Note.
     const ohneEntschuldigung = wirksam.status === 'ohne-attest' || wirksam.status === 'entschuldigung-offen';
-    if (ohneEntschuldigung && !e.attest && !hatEintrag(e)) {
+    if (ohneEntschuldigung && !hatEintrag(e)) {
       hinweis.append(h('button', { type: 'button', class: 'knopf klein', title: 'Alle Aufgaben auf 0 Punkte setzen', onclick: async () => {
         if (!(await bestaetigen('Mit 0 Punkten werten', `${anzeigename(s)} bekommt in allen Aufgaben 0 Punkte, also 0 %. Das lässt sich wieder ändern.`, 'Mit 0 werten'))) return;
         e.punkte = ka.aufgaben.map(() => 0);
@@ -333,7 +322,7 @@ export function zeigeKlassenarbeit(params) {
       prozent.textContent = erg.prozent === null ? '' : formatZahl(erg.prozent, 1);
       note.textContent = erg.attest ? 'Attest' : erg.note === null ? '' : String(erg.note);
       punkteFelder.forEach((feld, i) => {
-        feld.disabled = e.attest;
+        feld.disabled = nichtInKlasse;
         const wert = e.punkte[i];
         const max = ka.aufgaben[i];
         const zuHoch = wert !== null && wert !== undefined && wert !== '' && (wert < 0 || (max !== null && wert > max));
@@ -341,7 +330,7 @@ export function zeigeKlassenarbeit(params) {
         feld.title = zuHoch ? `Erlaubt: 0 bis ${String(max).replace('.', ',')}` : '';
       });
     });
-    return { summe, prozent, note, punkteFelder, gruppenFelder, attest, sonstiges, teilnahme, nachDatum, hinweis };
+    return { summe, prozent, note, punkteFelder, gruppenFelder, sonstiges, teilnahme, nachDatum, hinweis };
   }
 
   function tabelleBauen(personen) {
@@ -358,7 +347,7 @@ export function zeigeKlassenarbeit(params) {
         ...g.indizes.map((_, k) => h('th', { class: g.geteilt ? undefined : gesamtKlasse }, g.geteilt ? g.namen[k] : `Aufg. ${g.nr}`)),
         g.geteilt ? h('th', { class: 'gruppensumme', title: `Summe Aufgabe ${g.nr}` }, `∑ ${g.nr}`) : null,
       ]),
-      ['∑', '%', 'Note', 'Attest', 'Teilnahme', 'Sonstiges'].map((t) => h('th', {}, t)),
+      ['∑', '%', 'Note', 'Teilnahme', 'Sonstiges'].map((t) => h('th', {}, t)),
     );
     const hoechst = ka.aufgaben.map((max, i) =>
       h('input', {
@@ -389,7 +378,7 @@ export function zeigeKlassenarbeit(params) {
         g.geteilt ? h('td', { class: 'gruppensumme zahl' }, hoechstSumme(g)) : null,
       ]),
       h('td', {}, gesamtAnzeige2()),
-      h('td', { colspan: 5 }),
+      h('td', { colspan: 4 }),
     );
     // Zwischensumme der Höchstpunkte: muss mitlaufen, wenn Höchstpunkte geändert werden.
     function hoechstSumme(g) {
@@ -419,15 +408,16 @@ export function zeigeKlassenarbeit(params) {
           h('td', { class: 'zahl endergebnis' }, c.summe),
           h('td', { class: 'zahl' }, c.prozent),
           h('td', { class: 'mitte endergebnis' }, c.note),
-          h('td', { class: 'mitte' }, c.attest),
           h('td', { class: 'teilnahme-zelle' }, c.teilnahme, c.nachDatum),
           h('td', {}, c.sonstiges),
         );
-      // ohne Attest / Entschuldigung offen und noch keine Punkte: deutlich markieren
+      // Farbe der Zeile nach Teilnahme: rot = Attest fehlt, gelb = Nachschreiben offen, grau = noch nicht in der Klasse
       updater.push(() => {
-        const t = ka.teilnahme[s.id]?.status;
-        const punkte = (ka.ergebnisse[s.id]?.punkte || []).some((p) => p !== null && p !== undefined && p !== '');
-        zeile.classList.toggle('markiert', (t === 'ohne-attest' || t === 'entschuldigung-offen') && !punkte);
+        const t = statusVon(s).status;
+        const punkte = hatEintrag(ka.ergebnisse[s.id] || {});
+        zeile.classList.toggle('ka-rot', (t === 'ohne-attest' || t === 'entschuldigung-offen') && !punkte);
+        zeile.classList.toggle('ka-gelb', t === 'attest-offen' && !punkte);
+        zeile.classList.toggle('ka-grau', t === 'nicht-in-klasse');
       });
       tbody.append(zeile);
     });
@@ -469,7 +459,6 @@ export function zeigeKlassenarbeit(params) {
         h('span', {}, 'Prozent: ', c.prozent),
         h('span', {}, 'Note: ', c.note),
       ),
-      h('label', { class: 'schalter' }, c.attest, ' Attest'),
       h('label', {}, 'Teilnahme', c.teilnahme, c.nachDatum),
       c.hinweis,
       h('label', {}, 'Sonstiges (für das Protokoll)', c.sonstiges),
@@ -490,10 +479,39 @@ export function zeigeKlassenarbeit(params) {
   }
   updater.push(spiegelZeichnen);
 
+  function auswertungZeichnen() {
+    leeren(auswertung);
+    const zeilen = aufgabenAuswertung(ka, aktiveSchueler(d));
+    if (zeilen.length === 0 || zeilen.every((z) => z.anzahl === 0)) {
+      auswertung.append(h('p', { class: 'hinweis' }, 'Sobald Punkte eingetragen sind, erscheint hier der Durchschnitt je Aufgabe.'));
+      return;
+    }
+    const zahl = (x, st = 1) => (x === null ? '' : formatZahl(x, st));
+    auswertung.append(h(
+      'div', { class: 'tabelle-rahmen' },
+      h(
+        'table',
+        { class: 'tabelle klein-tabelle' },
+        h('thead', {}, h('tr', {}, ['Aufgabe', 'Höchstpunkte', 'Werte', 'Durchschnitt (Punkte)', 'Durchschnitt (%)', 'kleinster', 'größter'].map((t) => h('th', {}, t)))),
+        h('tbody', {}, zeilen.map((z) => h('tr', { class: z.summenzeile ? 'gruppensumme' : undefined },
+          h('td', { class: 'links' }, z.name),
+          h('td', { class: 'zahl' }, formatKurz(z.hoechst)),
+          h('td', { class: 'zahl' }, String(z.anzahl)),
+          h('td', { class: 'zahl' }, zahl(z.durchschnitt, 2)),
+          h('td', { class: 'zahl' }, zahl(z.prozent, 1)),
+          h('td', { class: 'zahl' }, z.min === null ? '' : formatKurz(z.min)),
+          h('td', { class: 'zahl' }, z.max === null ? '' : formatKurz(z.max)),
+        ))),
+      ),
+    ));
+  }
+  updater.push(auswertungZeichnen);
+
   function render() {
     updater.length = 0;
     updater.push(() => { gesamtAnzeige.textContent = formatKurz(gesamtpunkte(ka)); });
     updater.push(spiegelZeichnen);
+    updater.push(auswertungZeichnen);
     aufgabenAnzahl.textContent = String(aufgabenTeile(ka).length);
     leeren(teileBereich);
     const tf = teileFelder();

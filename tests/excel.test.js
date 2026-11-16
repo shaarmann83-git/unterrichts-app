@@ -76,7 +76,7 @@ test('Import der Vorlage: Kopf, Schüler, KA, Termine, Gewichte', async () => {
   assert.equal(ka1.datum, '2025-11-05');
   assert.equal(ka1.gewicht, 1);
   assert.equal(daten.klassenarbeiten[1].gewicht, 2);
-  assert.equal(ka1.ergebnisse[daten.schueler[2].id].attest, true);
+  assert.equal(ka1.teilnahme[daten.schueler[2].id].status, 'attest-offen');
   // sL: Termin 3 hat keine Noten und wird übersprungen
   assert.equal(daten.sonstige.length, 2);
   assert.equal(vorschau.termineUebersprungen, 10);

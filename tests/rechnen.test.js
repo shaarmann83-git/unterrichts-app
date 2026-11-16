@@ -154,7 +154,8 @@ test('Gewicht 0 bei einem von zwei Werten zählt nur den anderen', () => {
 test('Attest: keine Punkte, keine Note, nicht im Notenspiegel', () => {
   const { d, person } = pruefDaten();
   const ka = d.klassenarbeiten[0];
-  ka.ergebnisse[person.id].attest = true;
+  ka.ergebnisse[person.id].punkte = [];
+  ka.teilnahme[person.id] = { status: 'attest-offen', manuell: true };
   const e = ergebnisKA(ka, person.id);
   assert.deepEqual(e, { summe: null, prozent: null, note: null, attest: true });
   const sp = notenspiegel(ka, d.schueler);

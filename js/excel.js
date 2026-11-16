@@ -121,7 +121,8 @@ export function importiereVorlage(arrayBuffer) {
       const attest = attestWert !== '' && !['0', 'nein', 'false'].includes(attestWert.toLowerCase());
       if (!s) continue;
       if (punkte.some((p) => p !== null) || attest) {
-        ka.ergebnisse[s.id] = { punkte, attest, sonstiges: '' };
+        ka.ergebnisse[s.id] = { punkte, sonstiges: '' };
+        if (attest) ka.teilnahme[s.id] = { status: 'attest-offen', manuell: true };
         punkteAnzahl += punkte.filter((p) => p !== null).length;
       }
     }
