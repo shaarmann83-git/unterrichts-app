@@ -280,7 +280,7 @@ input.bemerkung { min-width: 12rem; }
 
 /* Protokoll zur Klassenarbeit, Aufbau nach der Vorlage der Schule */
 .druckseite.protokoll { font: 11pt/16pt var(--protokoll-schrift, Calibri, Carlito, sans-serif); page: protokoll; max-width: calc(16.4cm + 4rem); margin-inline: auto; }
-@page protokoll { size: A4 portrait; margin: 1.25cm 2.3cm; }
+@page protokoll { size: A4 portrait; margin: 0 2.3cm; }
 /* Maße wie in der Word-Vorlage: Seitenränder 2,3 cm, Tabelle 16,4 cm breit, Zeilenabstand 16 pt */
 .protokoll-kopfbilder { position: relative; display: flex; justify-content: space-between; align-items: flex-start; height: 2.7cm; margin-bottom: 0.85cm; }
 .protokoll-kopfbilder img { display: block; }
@@ -301,8 +301,7 @@ input.bemerkung { min-width: 12rem; }
 .protokoll-tabelle.unterschrift td.feld { height: 1.4cm; vertical-align: middle; }
 .protokoll-tabelle.unterschrift .stark, .protokoll-eltern .stark { font-weight: 700; font-size: 11pt; }
 .protokoll-tabelle.unterschrift .klein, .protokoll-eltern .klein { font-style: italic; font-size: 9pt; }
-.protokoll-eltern { margin: 0.2cm -1cm 0 9.25cm; }
-.protokoll-eltern .stark { white-space: nowrap; letter-spacing: -0.1pt; }
+.protokoll-eltern { margin: 0.2cm 0 -1.8cm 8.6cm; }
 .protokoll-band { border: 0.75pt solid #000; border-top: 0; background: #d9d9d9; display: flex; align-items: center; justify-content: center; height: 1.1cm; font-weight: 700; font-size: 12pt; box-sizing: border-box; }
 .protokoll-band.stark { background: #a6a6a6; margin-top: 0.564cm; border-top: 0.75pt solid #000; height: 1.4cm; font-size: 13pt; }
 .protokoll-kasten { border: 0.75pt solid #000; border-top: 0; padding: 0 0.19cm; font-size: 11pt; display: flex; flex-direction: column; box-sizing: border-box; }
@@ -380,3 +379,10 @@ body.hilfe-modus button:not(#knopf-hilfe), body.hilfe-modus a.knopf { outline: 2
 
 .teilnahme-zelle select { display: block; }
 .teilnahme-zelle .datumzeile { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.2rem; white-space: nowrap; }
+
+/* Druck: Seitenränder wie in Word (oben 4 cm, unten 2 cm). Der Kopf steht oben im Rand, der Block darunter ist zwischen den Rändern zentriert. */
+@media print {
+  .druckseite.protokoll { position: relative; display: flex; flex-direction: column; height: 292mm; padding: 40mm 0 20mm; box-sizing: border-box; }
+  .druckseite.protokoll .protokoll-kopfbilder, .druckseite.protokoll .protokoll-kopfbild-voll { position: absolute; top: 12.5mm; left: 0; right: 0; margin: 0; }
+  .druckseite.protokoll .protokoll-block { margin: auto 0; }
+}
