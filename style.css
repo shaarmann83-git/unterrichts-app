@@ -373,3 +373,6 @@ body.hilfe-modus button:not(#knopf-hilfe), body.hilfe-modus a.knopf { outline: 2
 .anwesenheit-lf th.ka-tag { background: #ffe08a; color: #3a2a00; }
 .anwesenheit-lf th.ka-tag .datum-knopf { color: inherit; }
 .ka-marke { display: block; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.02em; }
+
+.teilnahme-zelle select { display: block; }
+.teilnahme-zelle .datumzeile { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.2rem; white-space: nowrap; }

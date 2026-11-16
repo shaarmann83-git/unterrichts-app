@@ -284,9 +284,20 @@ export function zeigeKlassenarbeit(params) {
         K.neuZeichnen();
       },
     }, Object.entries(TEILNAHME).map(([w, t]) => h('option', { value: w, selected: wirksam.status === w }, t)));
-    const nachDatum = wirksam.status === 'nachgeschrieben'
-      ? h('input', { type: 'date', class: 'nachgeschrieben', 'aria-label': `${anzeigename(s)} nachgeschrieben am`, value: ka.teilnahme[s.id].nachgeschriebenAm || '', onchange: (ev) => { ka.teilnahme[s.id].nachgeschriebenAm = ev.target.value; K.aenderung(); } })
-      : null;
+    // Datum zur Teilnahme: bei „gefehlt mit Attest“ der geplante Nachschreibtermin, bei „nachgeschrieben“ der Tag des Nachschreibens
+    const datumFeld = (klasse, beschriftung, feldName) => h('label', { class: 'datumzeile klein' }, beschriftung, h('input', {
+      type: 'date',
+      class: klasse,
+      'aria-label': `${anzeigename(s)} ${beschriftung}`,
+      value: ka.teilnahme[s.id]?.[feldName] || '',
+      onchange: (ev) => {
+        ka.teilnahme[s.id] = { ...(ka.teilnahme[s.id] || {}), [feldName]: ev.target.value };
+        K.aenderung();
+      },
+    }));
+    const nachDatum = wirksam.status === 'nachgeschrieben' ? datumFeld('nachgeschrieben', 'nachgeschrieben am', 'nachgeschriebenAm')
+      : wirksam.status === 'attest-offen' ? datumFeld('nachschreibtermin', 'Nachschreibtermin', 'nachschreibtermin')
+        : null;
     // Hinweis laut Untis (nie automatisch gesetzt): Attest anbieten, nicht entschuldigt melden
     const hinweis = h('span', { class: 'untis-hinweis' });
     const treffer = fehlzeitenAmTermin(d, ka, s.id);
@@ -407,7 +418,7 @@ export function zeigeKlassenarbeit(params) {
           h('td', { class: 'zahl' }, c.prozent),
           h('td', { class: 'mitte endergebnis' }, c.note),
           h('td', { class: 'mitte' }, c.attest),
-          h('td', {}, c.teilnahme, c.nachDatum),
+          h('td', { class: 'teilnahme-zelle' }, c.teilnahme, c.nachDatum),
           h('td', {}, c.sonstiges),
         );
       // ohne Attest / Entschuldigung offen und noch keine Punkte: deutlich markieren
