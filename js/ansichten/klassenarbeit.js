@@ -228,9 +228,9 @@ export function zeigeKlassenarbeit(params) {
   // ----- Zeilen-Steuerelemente (für Tabelle und Einzelansicht gleich) -----
   function steuerelemente(s) {
     const e = ergebnisHolen(ka, s);
-    const summe = h('span', {});
-    const prozent = h('span', {});
-    const note = h('span', { class: 'note' });
+    const summe = h('span', { class: 'kasten' });
+    const prozent = h('span', { class: 'kasten' });
+    const note = h('span', { class: 'note kasten' });
     const punkteFelder = ka.aufgaben.map((max, i) => {
       const feld = h('input', {
         type: 'text',
@@ -347,7 +347,10 @@ export function zeigeKlassenarbeit(params) {
         ...g.indizes.map((_, k) => h('th', { class: g.geteilt ? undefined : gesamtKlasse }, g.geteilt ? g.namen[k] : `Aufg. ${g.nr}`)),
         g.geteilt ? h('th', { class: 'gruppensumme', title: `Summe Aufgabe ${g.nr}` }, `∑ ${g.nr}`) : null,
       ]),
-      ['∑', '%', 'Note', 'Teilnahme', 'Sonstiges'].map((t) => h('th', {}, t)),
+      h('th', { class: 'blk blk-l blk-kopf' }, '∑'),
+      h('th', { class: 'blk blk-kopf' }, '%'),
+      h('th', { class: 'blk blk-r blk-kopf', rowspan: 2 }, 'Note'),
+      ['Teilnahme', 'Sonstiges'].map((t) => h('th', {}, t)),
     );
     const hoechst = ka.aufgaben.map((max, i) =>
       h('input', {
@@ -377,8 +380,9 @@ export function zeigeKlassenarbeit(params) {
         ...g.indizes.map((i) => h('td', { class: g.geteilt ? undefined : gesamtKlasse }, hoechst[i])),
         g.geteilt ? h('td', { class: 'gruppensumme zahl' }, hoechstSumme(g)) : null,
       ]),
-      h('td', {}, gesamtAnzeige2()),
-      h('td', { colspan: 4 }),
+      h('td', { class: 'blk blk-l blk-kopf' }, gesamtAnzeige2()),
+      h('td', { class: 'blk blk-kopf' }, h('strong', {}, '100')),
+      h('td', { colspan: 2 }),
     );
     // Zwischensumme der Höchstpunkte: muss mitlaufen, wenn Höchstpunkte geändert werden.
     function hoechstSumme(g) {
@@ -405,9 +409,9 @@ export function zeigeKlassenarbeit(params) {
             ...g.indizes.map((j) => h('td', { class: g.geteilt ? undefined : gesamtKlasse }, c.punkteFelder[j])),
             g.geteilt ? h('td', { class: 'gruppensumme zahl' }, c.gruppenFelder.get(g.schluessel).el) : null,
           ]),
-          h('td', { class: 'zahl endergebnis' }, c.summe),
-          h('td', { class: 'zahl endergebnis' }, c.prozent),
-          h('td', { class: 'mitte endergebnis' }, c.note),
+          h('td', { class: 'zahl endergebnis blk blk-l' }, c.summe),
+          h('td', { class: 'zahl endergebnis blk' }, c.prozent),
+          h('td', { class: 'mitte endergebnis blk blk-r' }, c.note),
           h('td', { class: 'teilnahme-zelle' }, c.teilnahme, c.nachDatum),
           h('td', {}, c.sonstiges),
         );

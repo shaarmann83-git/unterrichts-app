@@ -400,3 +400,19 @@ body.hilfe-modus button:not(#knopf-hilfe), body.hilfe-modus a.knopf { outline: 2
 
 /* Teilsummen der Klassenarbeit: mittig und so breit wie die Eingabefelder, auch bei Dezimalwerten wie 2,5 */
 .tabelle.eingabe td.gruppensumme, .tabelle.eingabe th.gruppensumme { text-align: center; min-width: 3.5rem; }
+
+/* Ergebnisblock der Klassenarbeit-Tabelle (∑, %, Note): dezenter Rahmen, Blau, Werte in Kästchen */
+:root { --block-hell: #dae5f5; --block-dunkel: #c8d8ee; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --block-hell: #2c3b53; --block-dunkel: #36486a; } }
+:root[data-theme="dark"] { --block-hell: #2c3b53; --block-dunkel: #36486a; }
+.tabelle.eingabe .blk { text-align: center; }
+.tabelle.eingabe .blk-l { border-left: 2px solid var(--rand-stark); }
+.tabelle.eingabe .blk-r { border-right: 2px solid var(--rand-stark); }
+.tabelle.eingabe thead tr:first-child .blk { border-top: 2px solid var(--rand-stark); }
+.tabelle.eingabe tbody tr:last-child td.blk { border-bottom: 2px solid var(--rand-stark); }
+.tabelle.eingabe .blk-kopf { background: var(--hoechst-stark) !important; }
+.tabelle.eingabe thead th.blk[rowspan] { border-bottom: 2px solid var(--rand-stark); }
+.tabelle.eingabe tbody tr:nth-child(odd) td.blk { background: var(--block-hell) !important; }
+.tabelle.eingabe tbody tr:nth-child(even) td.blk { background: var(--block-dunkel) !important; }
+.tabelle.eingabe .kasten { display: inline-block; box-sizing: border-box; min-width: 3.1rem; min-height: 1.9rem; line-height: 1.9rem; padding: 0 0.3rem; background: var(--feld); border: 1px solid var(--rand); border-radius: 0.4rem; font-weight: 700; text-align: center; }
+.tabelle.eingabe .kasten:empty { display: none; }
