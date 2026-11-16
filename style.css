@@ -278,7 +278,7 @@ input.bemerkung { min-width: 12rem; }
 .druckseite.protokoll { font: 11pt/16pt Calibri, Carlito, 'Segoe UI', Arial, sans-serif; page: protokoll; max-width: calc(16.4cm + 4rem); margin-inline: auto; }
 @page protokoll { size: A4 portrait; margin: 1.25cm 2.3cm; }
 /* Maße wie in der Word-Vorlage: Seitenränder 2,3 cm, Tabelle 16,4 cm breit, Zeilenabstand 16 pt */
-.protokoll-kopfbilder { position: relative; display: flex; justify-content: space-between; align-items: flex-start; height: 2.7cm; margin-bottom: 1.4cm; }
+.protokoll-kopfbilder { position: relative; display: flex; justify-content: space-between; align-items: flex-start; height: 2.7cm; margin-bottom: 0.85cm; }
 .protokoll-kopfbilder img { display: block; }
 .protokoll-kopfbilder > div:first-child img { height: 1.9cm; max-width: 2.85cm; object-fit: contain; object-position: left; margin-top: 0.58cm; }
 .protokoll-kopfbilder .rechts img { height: 1.7cm; max-width: 2.85cm; object-fit: contain; object-position: right; margin: 0.675cm 0 0 auto; }
