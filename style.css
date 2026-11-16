@@ -397,3 +397,6 @@ body.hilfe-modus button:not(#knopf-hilfe), body.hilfe-modus a.knopf { outline: 2
 }
 
 .protokoll-einstellungen { display: contents; }
+
+/* Teilsummen der Klassenarbeit: mittig und so breit wie die Eingabefelder, auch bei Dezimalwerten wie 2,5 */
+.tabelle.eingabe td.gruppensumme, .tabelle.eingabe th.gruppensumme { text-align: center; min-width: 3.5rem; }
