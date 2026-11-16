@@ -279,14 +279,14 @@ input.bemerkung { min-width: 12rem; }
 .foto-vorschau.ziehbar:active { cursor: grabbing; }
 
 /* Protokoll zur Klassenarbeit, Aufbau nach der Vorlage der Schule */
-.druckseite.protokoll { font: calc(11pt * var(--skala, 1))/1.22 var(--protokoll-schrift, Calibri, Carlito, sans-serif); page: protokoll; max-width: calc(16.4cm + 4rem); margin-inline: auto; }
+.druckseite.protokoll { font: calc(11pt * var(--skala, 1))/calc(16pt * var(--skala, 1)) var(--protokoll-schrift, Calibri, Carlito, sans-serif); page: protokoll; max-width: calc(16.4cm + 4rem); margin-inline: auto; }
 @page protokoll { size: A4 portrait; margin: 0 2.3cm; }
 /* Maße wie in der Word-Vorlage: Seitenränder 2,3 cm, Tabelle 16,4 cm breit, Zeilenabstand 16 pt */
 .protokoll-kopfbilder { position: relative; display: flex; justify-content: space-between; align-items: flex-start; height: 2.7cm; margin-bottom: 0.85cm; }
 .protokoll-kopfbilder img { display: block; }
 .protokoll-kopfbilder > div:first-child img { height: 1.9cm; max-width: 2.85cm; object-fit: contain; object-position: left; margin-top: 0.58cm; }
 .protokoll-kopfbilder .rechts img { height: 1.7cm; max-width: 2.85cm; object-fit: contain; object-position: right; margin: 0.675cm 0 0 auto; }
-.protokoll-kopfbilder .kopf-text { position: absolute; left: 50%; top: 0.73cm; transform: translateX(-50%); width: 8.12cm; text-align: center; font-weight: 700; font-size: calc(16pt * var(--skala, 1)); line-height: 1.22; color: #0e2841; }
+.protokoll-kopfbilder .kopf-text { position: absolute; left: 50%; top: 0.73cm; transform: translateX(-50%); width: 8.12cm; text-align: center; font-weight: 700; font-size: calc(16pt * var(--skala, 1)); line-height: calc(20pt * var(--skala, 1)); color: #0e2841; }
 .protokoll-tabelle { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; }
 .protokoll-tabelle td { border: 0.75pt solid #000; padding: 0 0.19cm; font-size: calc(11pt * var(--skala, 1)); vertical-align: middle; }
 .protokoll-tabelle.kopf td.etikett { border-bottom: 0; height: 0.6cm; font-size: calc(12pt * var(--skala, 1)); text-align: left; vertical-align: top; }
@@ -295,18 +295,18 @@ input.bemerkung { min-width: 12rem; }
 .protokoll-tabelle.ergebnis tr:first-child td { border-top: 0; }
 .protokoll-tabelle.ergebnis tr:first-child td { height: 0.6cm; vertical-align: top; }
 .protokoll-tabelle.ergebnis td.mitte { height: 1.1cm; text-align: center; font-weight: 700; }
-.protokoll-tabelle.unterschrift { margin-top: 0.47cm; }
+.protokoll-tabelle.unterschrift { margin-top: 0.564cm; line-height: 1.22; }
 .protokoll-tabelle.unterschrift td { vertical-align: top; }
 .protokoll-tabelle.unterschrift tr:first-child td:first-child { height: 0.6cm; }
 .protokoll-tabelle.unterschrift td.feld { height: 1.4cm; vertical-align: middle; }
 .protokoll-tabelle.unterschrift .stark { white-space: nowrap; font-weight: 700; font-size: calc(11pt * var(--skala, 1)); }
 .protokoll-tabelle.unterschrift .klein { font-style: italic; font-size: calc(9pt * var(--skala, 1)); line-height: 1.2; color: #000; }
 .protokoll-band { border: 0.75pt solid #000; border-top: 0; background: #d9d9d9; display: flex; align-items: center; justify-content: center; height: 1.1cm; font-weight: 700; font-size: calc(12pt * var(--skala, 1)); box-sizing: border-box; }
-.protokoll-band.stark { background: #a6a6a6; margin-top: 0.47cm; border-top: 0.75pt solid #000; height: 1.4cm; font-size: calc(13pt * var(--skala, 1)); }
+.protokoll-band.stark { background: #a6a6a6; margin-top: 0.564cm; border-top: 0.75pt solid #000; height: 1.4cm; font-size: calc(13pt * var(--skala, 1)); }
 .protokoll-kasten { border: 0.75pt solid #000; border-top: 0; padding: 0 0.19cm; font-size: calc(11pt * var(--skala, 1)); display: flex; flex-direction: column; box-sizing: border-box; }
 .protokoll-kasten.schwerpunkte { height: 6.8cm; justify-content: center; text-align: left; font-size: calc(12pt * var(--skala, 1)); }
 .protokoll-kasten.schwerpunkte ul { margin: 0; padding: 0; list-style: none; }
-.protokoll-kasten.schwerpunkte li { position: relative; padding-left: 1.27cm; }
+.protokoll-kasten.schwerpunkte li { position: relative; padding-left: 1.27cm; line-height: calc(18pt * var(--skala, 1)); }
 .protokoll-kasten.schwerpunkte li::before { content: '\2022'; position: absolute; left: 0.63cm; }
 .protokoll-kasten.sonstiges { min-height: 3.1cm; justify-content: center; align-items: center; text-align: center; }
 
@@ -385,3 +385,7 @@ body.hilfe-modus button:not(#knopf-hilfe), body.hilfe-modus a.knopf { outline: 2
   .druckseite.protokoll .protokoll-kopfbilder, .druckseite.protokoll .protokoll-kopfbild-voll { position: absolute; top: 12.5mm; left: 0; right: 0; margin: 0; }
   .druckseite.protokoll .protokoll-block { margin: auto 0; }
 }
+
+.protokoll-leiste { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: flex-start; margin: 0.6rem 0; }
+.protokoll-einstellungen { flex: 1 1 22rem; }
+.protokoll-einstellungen h3 { margin: 0.8rem 0 0.3rem; font-size: 1rem; }

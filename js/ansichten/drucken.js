@@ -2,26 +2,17 @@ import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, fuege } from '../ui.js';
 import { standText } from '../excel.js';
 import { zeigeSportDruck } from './sport-druck.js';
-import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, zweiteUnterschrift, ZWEITE_UNTERSCHRIFT, UNTERSCHRIFT_LEHRKRAFT, spaltenName } from '../modell.js';
+import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, zweiteUnterschrift, UNTERSCHRIFT_LEHRKRAFT, spaltenName } from '../modell.js';
 import { teilnahmeStatus, fehlzeitenAmTermin } from '../nachschreiben.js';
 import { anwesenheitsSeiten } from './anwesenheit-druck.js';
-import { kopfbilderReihe } from './kopfbilder.js';
+import { schriftStil } from './protokoll-einstellungen.js';
 
 /** Schriftarten für das Protokoll. „Calibri“ nutzt die Schrift des Geräts, sonst die mitgelieferte Ersatzschrift Carlito (gleiche Maße). */
-/** Schriftgrößen gelten für Calibri; andere Schriften werden so verkleinert, dass sie gleich groß wirken. */
-const schriftStil = (name) => {
-  const f = SCHRIFTEN.find((x) => x.name === name) || SCHRIFTEN[0];
-  return `--protokoll-schrift: ${f.stapel}; --skala: ${f.skala}`;
-};
-const SCHRIFTEN = [
-  { name: 'Calibri', stapel: "Calibri, Carlito, sans-serif", skala: 1 },
-  { name: 'Arial', stapel: "Arial, Helvetica, 'Liberation Sans', sans-serif", skala: 0.9 },
-  { name: 'Verdana', stapel: "Verdana, 'DejaVu Sans', sans-serif", skala: 0.77 },
-  { name: 'Times New Roman', stapel: "'Times New Roman', Times, 'Liberation Serif', serif", skala: 1 },
-];
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE, istPunktsystem } from '../rechnen.js';
 
 let art = 'protokoll';
+/** Vorauswahl, wenn man aus dem Reiter Klassenarbeiten direkt zum Drucken der Protokolle kommt. */
+export function druckVorwahl(nr) { art = 'protokoll'; kaNr = nr; personId = 'alle'; }
 let kaNr = 1;
 let personId = 'alle';
 
@@ -80,15 +71,7 @@ export function zeigeDruck() {
       steuerung.append(h('p', { class: 'warnung' }, 'Kein Korrekturdatum eingetragen. Es erscheint dann nicht im Protokoll. Sie können es oben bei der Klassenarbeit nachtragen.'));
     }
     if (art === 'protokoll' || art === 'protokoll-blanko') {
-      const druckEinst = (K.buch.einstellungen.druck ||= { kopfLinks: '', kopfRechts: '' });
-      steuerung.append(h('label', {}, 'Schriftart des Protokolls ', h('select', { 'aria-label': 'Schriftart des Protokolls', onchange: (ev) => { druckEinst.schrift = ev.target.value; K.aenderung(); vorschauZeichnen(); } },
-        SCHRIFTEN.map((x) => h('option', { value: x.name, selected: (druckEinst.schrift || 'Calibri') === x.name }, x.name)))));
-      steuerung.append(h('label', {}, 'Rechtes Unterschriftsfeld ', h('select', { 'aria-label': 'Rechtes Unterschriftsfeld', onchange: (ev) => { d.zweiteUnterschrift = ev.target.value; K.aenderung(); vorschauZeichnen(); } },
-        Object.entries(ZWEITE_UNTERSCHRIFT).map(([w, v]) => h('option', { value: w, selected: d.zweiteUnterschrift === w }, v.auswahl)))));
-      steuerung.append(h('details', { class: 'kopfbilder' },
-        h('summary', {}, 'Kopfbilder für das Protokoll'),
-        h('p', { class: 'klein' }, 'Diese Bilder stehen oben auf dem Protokoll und gelten für das ganze Notenbuch. Haben Sie den Kopf als ein einziges Bild, genügt das erste Feld; es wird dann über die ganze Breite gezeigt.'),
-        kopfbilderReihe(K.buch, () => { steuerungZeichnen(); vorschauZeichnen(); })));
+      steuerung.append(h('p', { class: 'klein' }, 'Schriftart, rechtes Unterschriftsfeld und Kopf stellen Sie bei den ', h('a', { href: `#/ka/${kaNr}` }, 'Klassenarbeiten'), ' ein.'));
     }
     steuerung.append(h('button', { type: 'button', class: 'knopf primaer', onclick: async () => {
       if (art === 'protokoll' && ka && !ka.korrekturdatum

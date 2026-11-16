@@ -2,7 +2,6 @@
 // Wird in den Einstellungen angezeigt.
 import { K } from '../kontext.js';
 import { h } from '../ui.js';
-import { ZWEITE_UNTERSCHRIFT } from '../modell.js';
 import { zahlLesen, NOTENGRENZEN_STANDARD, PUNKTEGRENZEN_STANDARD } from '../rechnen.js';
 
 /** Elemente für die Klasse `d` (keine Sport-Klasse). */
@@ -51,10 +50,5 @@ export function bewertungBereich(d) {
       h('div', { class: 'knopfreihe' },
         h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.punktegrenzen = [...PUNKTEGRENZEN_STANDARD]; K.aenderung(); K.neuZeichnen(); } }, 'Standard wiederherstellen')),
     ),
-    h('h2', {}, 'Unterschriften im Protokoll'),
-    h('p', { class: 'klein' }, 'Links steht immer „Korrekturdatum und Unterschrift Lehrkraft“. Rechts wählen Sie, wer zusätzlich unterschreibt.'),
-    h('div', { class: 'formular' },
-      h('label', {}, 'Rechtes Unterschriftsfeld', h('select', { id: 'klasse-zweite-unterschrift', 'aria-label': 'Rechtes Unterschriftsfeld', onchange: (e) => { d.zweiteUnterschrift = e.target.value; K.aenderung(); } },
-        Object.entries(ZWEITE_UNTERSCHRIFT).map(([w, v]) => h('option', { value: w, selected: d.zweiteUnterschrift === w }, v.auswahl))))),
   ];
 }
