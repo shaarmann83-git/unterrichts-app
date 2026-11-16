@@ -299,9 +299,8 @@ input.bemerkung { min-width: 12rem; }
 .protokoll-tabelle.unterschrift td { vertical-align: top; }
 .protokoll-tabelle.unterschrift tr:first-child td:first-child { height: 0.6cm; }
 .protokoll-tabelle.unterschrift td.feld { height: 1.4cm; vertical-align: middle; }
-.protokoll-tabelle.unterschrift .stark, .protokoll-eltern .stark { font-weight: 700; font-size: 11pt; }
-.protokoll-tabelle.unterschrift .klein, .protokoll-eltern .klein { font-style: italic; font-size: 9pt; }
-.protokoll-eltern { margin: 0.2cm 0 -1.8cm 8.6cm; }
+.protokoll-tabelle.unterschrift .stark { font-weight: 700; font-size: 11pt; }
+.protokoll-tabelle.unterschrift .klein { font-style: italic; font-size: 9pt; line-height: 11pt; margin-top: -2pt; }
 .protokoll-band { border: 0.75pt solid #000; border-top: 0; background: #d9d9d9; display: flex; align-items: center; justify-content: center; height: 1.1cm; font-weight: 700; font-size: 12pt; box-sizing: border-box; }
 .protokoll-band.stark { background: #a6a6a6; margin-top: 0.564cm; border-top: 0.75pt solid #000; height: 1.4cm; font-size: 13pt; }
 .protokoll-kasten { border: 0.75pt solid #000; border-top: 0; padding: 0 0.19cm; font-size: 11pt; display: flex; flex-direction: column; box-sizing: border-box; }

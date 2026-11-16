@@ -2,7 +2,7 @@ import { K } from '../kontext.js';
 import { h, leeren, bestaetigen, fuege } from '../ui.js';
 import { standText } from '../excel.js';
 import { zeigeSportDruck } from './sport-druck.js';
-import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, unterschriftenFuer, spaltenName } from '../modell.js';
+import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, zweiteUnterschrift, ZWEITE_UNTERSCHRIFT, UNTERSCHRIFT_LEHRKRAFT, spaltenName } from '../modell.js';
 import { teilnahmeStatus, fehlzeitenAmTermin } from '../nachschreiben.js';
 import { anwesenheitsSeiten } from './anwesenheit-druck.js';
 import { kopfbilderReihe } from './kopfbilder.js';
@@ -78,6 +78,8 @@ export function zeigeDruck() {
       const druckEinst = (K.buch.einstellungen.druck ||= { kopfLinks: '', kopfRechts: '' });
       steuerung.append(h('label', {}, 'Schriftart des Protokolls ', h('select', { 'aria-label': 'Schriftart des Protokolls', onchange: (ev) => { druckEinst.schrift = ev.target.value; K.aenderung(); vorschauZeichnen(); } },
         SCHRIFTEN.map((x) => h('option', { value: x.name, selected: (druckEinst.schrift || 'Calibri') === x.name }, x.name)))));
+      steuerung.append(h('label', {}, 'Rechtes Unterschriftsfeld ', h('select', { 'aria-label': 'Rechtes Unterschriftsfeld', onchange: (ev) => { d.zweiteUnterschrift = ev.target.value; K.aenderung(); vorschauZeichnen(); } },
+        Object.entries(ZWEITE_UNTERSCHRIFT).map(([w, v]) => h('option', { value: w, selected: d.zweiteUnterschrift === w }, v.auswahl)))));
       steuerung.append(h('details', { class: 'kopfbilder' },
         h('summary', {}, 'Kopfbilder für das Protokoll'),
         h('p', { class: 'klein' }, 'Diese Bilder stehen oben auf dem Protokoll und gelten für das ganze Notenbuch. Haben Sie den Kopf als ein einziges Bild, genügt das erste Feld; es wird dann über die ganze Breite gezeigt.'),
@@ -123,16 +125,8 @@ export function zeigeDruck() {
           ['Prozent:', e.prozent === null ? '' : `${formatZahl(e.prozent, 1)} %`],
           [istPunktsystem(d) ? 'Notenpunkte:' : 'Note:', e.note === null ? '' : (istPunktsystem(d) ? String(e.note).padStart(2, '0') : NOTEN_WORTE[e.note])],
         ];
-    // Zusatzzeilen nur bei schlechter als ausreichend: Note über 4,0, bei Punkten unter 4. Blanko: beide Zeilen.
-    const schlecht = !e.attest && e.note !== null && (istPunktsystem(d) ? e.note < 4 : e.note > 4);
-    let zeilen = blanko
-      ? [...unterschriftenFuer(d, null), String(d.unterschriftMitBetrieb || '').trim()].filter(Boolean)
-      : unterschriftenFuer(d, s, { schlechter: schlecht, stichtag: ka.datum });
-    if (blanko && String(d.unterschriftOhneBetrieb || '').trim()) zeilen = [...zeilen.filter((z) => z !== String(d.unterschriftOhneBetrieb).trim()), String(d.unterschriftOhneBetrieb).trim()];
-    // Die Zeile für die erziehungsberechtigte Person steht wie in der Vorlage unter der Tabelle, rechts
-    const eltern = String(d.unterschriftOhneBetrieb || '').trim();
-    const elternZeile = zeilen.length > 1 && eltern && zeilen[zeilen.length - 1] === eltern ? eltern : null;
-    const hauptZeilen = elternZeile ? zeilen.slice(0, -1) : zeilen;
+    // Unterschriften: links fest die Lehrkraft, rechts je nach Einstellung der Klasse ausbildende oder erziehungsberechtigte Person oder nichts
+    const hauptZeilen = [UNTERSCHRIFT_LEHRKRAFT, zweiteUnterschrift(d)].filter(Boolean);
     const textBlock = (t) => t.split('\n').map((teil, k) => h('div', { class: k === 0 ? 'stark' : 'klein' }, teil));
     const mitte = dr.kopfText && h('div', { class: 'kopf-text' }, dr.kopfText);
     return h(
@@ -164,7 +158,6 @@ export function zeigeDruck() {
           h('tbody', {},
             h('tr', {}, hauptZeilen.map((t, i) => h('td', { class: i === 0 ? '' : 'hoch', rowspan: i === 0 ? 1 : 2 }, textBlock(t)))),
             h('tr', {}, h('td', { class: 'feld' }, ka.korrekturdatum && !blanko ? datumDeutsch(ka.korrekturdatum) : ' ')))),
-        elternZeile && h('div', { class: 'protokoll-eltern' }, textBlock(elternZeile)),
       ),
     );
   }

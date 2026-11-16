@@ -211,83 +211,20 @@ export function neueListe(name, art) {
 /** Auswahl für die Bezeichnung einer Klasse. Eigener Text bleibt möglich. */
 export const BEZEICHNUNGEN = ['Lernfeld', 'Lerngebiet', 'Fach', 'Kurs'];
 
-/** Auswahlbare Vorlagen für die Unterschriftszeilen. Freier Text bleibt immer möglich. */
-export const UNTERSCHRIFT_VORLAGEN = [
-  'Korrekturdatum und Unterschrift Lehrkraft',
-  'Unterschrift ausbildende Person\n(nur bei nicht ausreichender Leistung)',
-  'Unterschrift erziehungsberechtigte Person\n(nur bei Minderjährigen und nicht ausreichender Leistung)',
-  'Unterschrift Ausbildungsbetrieb',
-  'Unterschrift der Schülerin/des Schülers',
-  'Datum und Unterschrift, zur Kenntnis genommen',
-];
-
-/** Standardtexte der Unterschriftszeilen im Protokoll (SPEC 4). Je Klasse änderbar. */
-export const UNTERSCHRIFTEN_STANDARD = [
-  'Korrekturdatum und Unterschrift Lehrkraft',
-  'Unterschrift ausbildende Person\n(nur bei nicht ausreichender Leistung)',
-];
-/** Frühere Standardtexte (vor der Vorlage 11/2026); werden beim Laden auf die neuen umgestellt, wenn unverändert. */
-const ALTE_TEXTE = new Map([
-  ['Korrekturdatum und Unterschrift der Lehrkraft', 'Korrekturdatum und Unterschrift Lehrkraft'],
-  ['Unterschrift Ausbilderin/Ausbilder\n(bei nicht mehr ausreichender Leistung!)', 'Unterschrift ausbildende Person\n(nur bei nicht ausreichender Leistung)'],
-  ['Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)', 'Unterschrift ausbildende Person\n(nur bei nicht ausreichender Leistung)'],
-  ['Unterschrift Erziehungsberechtigte(r) (bei nicht mehr ausreichender Leistung!)', 'Unterschrift erziehungsberechtigte Person\n(nur bei Minderjährigen und nicht ausreichender Leistung)'],
-  ['Unterschrift Erziehungsberechtigte(r)\n(bei nicht mehr ausreichender Leistung!)', 'Unterschrift erziehungsberechtigte Person\n(nur bei Minderjährigen und nicht ausreichender Leistung)'],
-]);
-/** Frühere Fassung ohne Zeilenumbruch; für die Umstellung älterer Dateien. */
-const UNTERSCHRIFT_ALT = 'Unterschrift Ausbilderin/Ausbilder (bei nicht mehr ausreichender Leistung!)';
-const UNTERSCHRIFT_ALT_MIT = 'Unterschrift Ausbilderin/Ausbilder\n(bei nicht mehr ausreichender Leistung!)';
-
-/** Zusatzzeile, die nur bei Personen mit Ausbildungsbetrieb gedruckt wird. */
-export const UNTERSCHRIFT_MIT_BETRIEB = 'Unterschrift ausbildende Person\n(nur bei nicht ausreichender Leistung)';
-/** Zusatzzeile, die nur bei Personen ohne Ausbildungsbetrieb gedruckt wird. */
-export const UNTERSCHRIFT_OHNE_BETRIEB = 'Unterschrift erziehungsberechtigte Person\n(nur bei Minderjährigen und nicht ausreichender Leistung)';
-
 /**
- * Gehört die Klasse zur Ausbildung (dual, Teilzeit)? Einstellung „ja“ oder „nein“ gilt immer.
- * Bei „automatisch“ zählen Klassen, deren Name mit W oder G beginnt, und Personen mit eingetragenem Ausbildungsbetrieb.
+ * Unterschriften im Protokoll: Das linke Feld ist fest (Korrekturdatum und Unterschrift der Lehrkraft).
+ * Das rechte Feld wählt man je Klasse: ausbildende Person, erziehungsberechtigte Person oder keins.
  */
-export function istAusbildungsklasse(klasse, person = null) {
-  const modus = klasse.ausbildung || 'auto';
-  if (modus === 'ja') return true;
-  if (modus === 'nein') return false;
-  if (/^\s*[WG]/i.test(String(klasse.kopf?.klasse || ''))) return true;
-  return !!String(person?.betrieb?.name || '').trim();
-}
+export const UNTERSCHRIFT_LEHRKRAFT = 'Korrekturdatum und Unterschrift Lehrkraft';
+export const ZWEITE_UNTERSCHRIFT = {
+  ausbildung: { auswahl: 'Ausbildende Person', text: 'Unterschrift ausbildende Person\n(nur bei nicht ausreichender Leistung)' },
+  eltern: { auswahl: 'Erziehungsberechtigte Person', text: 'Unterschrift erziehungsberechtigte Person\n(nur bei Minderjährigen und nicht ausreichender Leistung)' },
+  keine: { auswahl: 'Kein zweites Feld', text: '' },
+};
 
-/** Ist die Person am Stichtag (JJJJ-MM-TT, sonst heute) jünger als 18? Ohne Geburtstag zählt das Häkchen „volljährig“. */
-export function istMinderjaehrig(person, stichtag = '') {
-  const g = String(person?.geburtstag || '');
-  if (/^\d{4}-\d{2}-\d{2}$/.test(g)) {
-    const [j, m, t] = g.split('-').map(Number);
-    const bezug = /^\d{4}-\d{2}-\d{2}$/.test(stichtag) ? new Date(`${stichtag}T12:00:00`) : new Date();
-    return bezug < new Date(j + 18, m - 1, t);
-  }
-  return !person?.volljaehrig;
-}
-
-/**
- * Unterschriftszeilen für eine bestimmte Person: feste Zeilen plus passende Zusatzzeilen.
- * Ohne `optionen` steht genau eine Zusatzzeile (nach Ausbildungsbetrieb gewählt), wie früher.
- * Mit `optionen` stehen die Zusatzzeilen nur bei schlechter als ausreichender Leistung, und zwar
- * unabhängig voneinander: in der Ausbildung die Zeile für die ausbildende Person, bei
- * Minderjährigen die Zeile für die erziehungsberechtigte Person (Vorlage der Schule 11/2026).
- * Ausgabe: feste Zeilen, dann Ausbildung, dann Erziehungsberechtigte.
- */
-export function unterschriftenFuer(klasse, person, optionen = null) {
-  const fest = (klasse.unterschriften || []).map((t) => String(t).trim()).filter(Boolean);
-  if (!optionen) {
-    const hatBetrieb = !!String(person?.betrieb?.name || '').trim();
-    const z = String((hatBetrieb ? klasse.unterschriftMitBetrieb : klasse.unterschriftOhneBetrieb) || '').trim();
-    return z ? [...fest, z] : fest;
-  }
-  if (!optionen.schlechter) return fest;
-  const zeilen = [...fest];
-  const ausb = String(klasse.unterschriftMitBetrieb || '').trim();
-  const eltern = String(klasse.unterschriftOhneBetrieb || '').trim();
-  if (ausb && istAusbildungsklasse(klasse, person)) zeilen.push(ausb);
-  if (eltern && istMinderjaehrig(person, optionen.stichtag)) zeilen.push(eltern);
-  return zeilen;
+/** Text des rechten Unterschriftsfeldes der Klasse; leer, wenn keins gedruckt werden soll. */
+export function zweiteUnterschrift(klasse) {
+  return (ZWEITE_UNTERSCHRIFT[klasse?.zweiteUnterschrift] || ZWEITE_UNTERSCHRIFT.keine).text;
 }
 
 /**
@@ -306,10 +243,7 @@ export function neueKlasse({ klasse = '', lernfeldNr = '', lernfeldBez = '', sch
   return {
     id: neueId(),
     kopf: { klasse, lernfeldNr, lernfeldBez, schuljahr, fachLabel },
-    unterschriften: [UNTERSCHRIFTEN_STANDARD[0]],
-    ausbildung: 'auto', // 'auto' | 'ja' | 'nein'
-    unterschriftMitBetrieb: UNTERSCHRIFT_MIT_BETRIEB,
-    unterschriftOhneBetrieb: UNTERSCHRIFT_OHNE_BETRIEB,
+    zweiteUnterschrift: 'ausbildung', // 'ausbildung' | 'eltern' | 'keine'
     // Notenschlüssel je Klasse, damit Berufsschule (Noten) und berufliches Gymnasium (Punkte) nebeneinander möglich sind.
     notensystem: 'noten', // 'noten' = 1 bis 6, 'punkte' = 0 bis 15
     notengrenzen: [...NOTENGRENZEN_STANDARD],
@@ -357,23 +291,16 @@ export function pruefeKlasse(k) {
   k.kopf ||= {};
   for (const f of ['klasse', 'lernfeldNr', 'lernfeldBez', 'schuljahr']) k.kopf[f] ??= '';
   k.kopf.fachLabel ||= 'Lernfeld';
-  if (!Array.isArray(k.unterschriften)) k.unterschriften = [...UNTERSCHRIFTEN_STANDARD];
-  if (k.unterschriftMitBetrieb === undefined && k.unterschriftOhneBetrieb === undefined
-    && k.unterschriften.length === 2
-    && (k.unterschriften[1] === UNTERSCHRIFTEN_STANDARD[1] || k.unterschriften[1] === UNTERSCHRIFT_ALT || k.unterschriften[1] === UNTERSCHRIFT_ALT_MIT)) {
-    // Unveränderte Vorgabe: feste Ausbilder-Zeile wird zur Zusatzzeile, damit sie nur bei
-    // Personen mit Ausbildungsbetrieb erscheint. Von Hand geänderte Zeilen bleiben unberührt.
-    k.unterschriften = [k.unterschriften[0]];
-    k.unterschriftMitBetrieb = UNTERSCHRIFT_MIT_BETRIEB;
-    k.unterschriftOhneBetrieb = UNTERSCHRIFT_OHNE_BETRIEB;
+  if (!ZWEITE_UNTERSCHRIFT[k.zweiteUnterschrift]) {
+    // Ältere Dateien: Auswahl aus der früheren Einstellung „Ausbildung“ ableiten (Klassen mit W oder G am Anfang: Ausbildung)
+    const alt = k.ausbildung;
+    k.zweiteUnterschrift = alt === 'ja' || (alt !== 'nein' && /^\s*[WG]/i.test(String(k.kopf.klasse || ''))) ? 'ausbildung' : 'eltern';
+    if (alt === undefined && k.unterschriftMitBetrieb === '' && k.unterschriftOhneBetrieb === '') k.zweiteUnterschrift = 'keine';
   }
-  k.ausbildung ||= 'auto';
-  // unveränderte alte Standardtexte auf die Wortlaut der Vorlage 11/2026 umstellen
-  k.unterschriften = k.unterschriften.map((t) => ALTE_TEXTE.get(t) ?? t);
-  if (ALTE_TEXTE.has(k.unterschriftMitBetrieb)) k.unterschriftMitBetrieb = ALTE_TEXTE.get(k.unterschriftMitBetrieb);
-  if (ALTE_TEXTE.has(k.unterschriftOhneBetrieb)) k.unterschriftOhneBetrieb = ALTE_TEXTE.get(k.unterschriftOhneBetrieb);
-  k.unterschriftMitBetrieb ??= '';
-  k.unterschriftOhneBetrieb ??= '';
+  delete k.unterschriften;
+  delete k.ausbildung;
+  delete k.unterschriftMitBetrieb;
+  delete k.unterschriftOhneBetrieb;
   k.notensystem ||= 'noten';
   if (!Array.isArray(k.notengrenzen) || k.notengrenzen.length !== 5) k.notengrenzen = [...NOTENGRENZEN_STANDARD];
   if (!Array.isArray(k.punktegrenzen) || k.punktegrenzen.length !== 15) k.punktegrenzen = [...PUNKTEGRENZEN_STANDARD];

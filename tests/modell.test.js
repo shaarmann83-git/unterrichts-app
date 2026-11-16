@@ -2,10 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { zeichenVon, zeichenSetzen, termineVon } from '../js/ansichten/anwesenheit-lf.js';
 import {
-  neueKlasse, neuesBuch, pruefeBuch, pruefeKlasse, klasseKopieren, aktiveSchueler, archivierteSchueler, fachZeile, UNTERSCHRIFTEN_STANDARD,
+  neueKlasse, neuesBuch, pruefeBuch, pruefeKlasse, klasseKopieren, aktiveSchueler, archivierteSchueler, fachZeile, zweiteUnterschrift, ZWEITE_UNTERSCHRIFT,
   neuerTermin, neueDaltonAufgabe, buchHatFotos, dateiname, FORMAT_VERSION,
   neueKlassenarbeit, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht,
-  unterschriftenFuer, istAusbildungsklasse, istMinderjaehrig, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB, neuerSchueler,
+  neuerSchueler,
 } from '../js/modell.js';
 import { ausDateitext, inDateitext } from '../js/krypto.js';
 import { gesamtPerson, ergebnisKA, notenspiegel } from '../js/rechnen.js';
@@ -129,15 +129,15 @@ test('Leeres Notenbuch: Dateiname nach Schuljahr, Klassen später im Notenbuch',
   assert.equal(neuesBuch(null).schuljahr, '');
 });
 
-test('Bezeichnung und Unterschriftszeilen je Klasse frei wählbar', () => {
+test('Bezeichnung und rechtes Unterschriftsfeld je Klasse wählbar', () => {
   const lf = neueKlasse({ klasse: 'WKM1-2', lernfeldNr: '2', lernfeldBez: 'Arbeitsraum', schuljahr: '2026/27' });
   assert.equal(fachZeile(lf.kopf), 'Lernfeld 2: Arbeitsraum');
-  assert.deepEqual(lf.unterschriften, [UNTERSCHRIFTEN_STANDARD[0]]);
+  assert.equal(lf.zweiteUnterschrift, 'ausbildung');
 
   const pol = neueKlasse({ klasse: 'BRC13GA01', fachLabel: 'Fach', lernfeldBez: 'Politik', schuljahr: '2026/27' });
   assert.equal(fachZeile(pol.kopf), 'Fach: Politik');
-  pol.unterschriften = ['Unterschrift der Lehrkraft', 'Unterschrift Erziehungsberechtigte(r) (unter 18)'];
-  assert.equal(pol.unterschriften.length, 2);
+  pol.zweiteUnterschrift = 'eltern';
+  assert.equal(zweiteUnterschrift(pol).startsWith('Unterschrift erziehungsberechtigte Person'), true);
 
   // Ohne Nummer und ohne Bezeichnung bleibt die Zeile leer bzw. zeigt den Ersatztext.
   const ohne = neueKlasse({ klasse: 'X' });
@@ -148,19 +148,15 @@ test('Bezeichnung und Unterschriftszeilen je Klasse frei wählbar', () => {
   const alt = { id: 'a', kopf: { klasse: 'Alt', lernfeldNr: '3', lernfeldBez: 'Test', schuljahr: '2025/26' } };
   const ergaenzt = pruefeKlasse(alt);
   assert.equal(ergaenzt.kopf.fachLabel, 'Lernfeld');
-  assert.deepEqual(ergaenzt.unterschriften, [UNTERSCHRIFTEN_STANDARD[0]]);
+  // Ohne Angabe: Klasse beginnt nicht mit W oder G, also erziehungsberechtigte Person
+  assert.equal(ergaenzt.zweiteUnterschrift, 'eltern');
 
-  // Ältere Klasse mit unveränderter Vorgabe: die Ausbilder-Zeile wird zur Zusatzzeile.
-  const alt2 = { id: 'b', kopf: {}, unterschriften: [...UNTERSCHRIFTEN_STANDARD] };
-  const um = pruefeKlasse(alt2);
-  assert.deepEqual(um.unterschriften, [UNTERSCHRIFTEN_STANDARD[0]]);
-  assert.equal(um.unterschriftMitBetrieb, UNTERSCHRIFT_MIT_BETRIEB);
-  assert.equal(um.unterschriftOhneBetrieb, UNTERSCHRIFT_OHNE_BETRIEB);
-
-  // Von Hand geänderte Zeilen bleiben unberührt.
-  const eigen = pruefeKlasse({ id: 'c', kopf: {}, unterschriften: ['Eigene Zeile'] });
-  assert.deepEqual(eigen.unterschriften, ['Eigene Zeile']);
-  assert.equal(eigen.unterschriftMitBetrieb, '');
+  // Ältere Dateien: Auswahl wird aus der früheren Einstellung abgeleitet, alte Felder verschwinden
+  const ausb = pruefeKlasse({ id: 'b', kopf: { klasse: 'WKM1-2' }, unterschriften: ['x'], unterschriftMitBetrieb: 'y' });
+  assert.equal(ausb.zweiteUnterschrift, 'ausbildung');
+  assert.equal(ausb.unterschriften, undefined);
+  assert.equal(pruefeKlasse({ id: 'c', kopf: { klasse: 'BG 11' }, ausbildung: 'ja' }).zweiteUnterschrift, 'ausbildung');
+  assert.equal(pruefeKlasse({ id: 'd', kopf: { klasse: 'WKM1-2' }, ausbildung: 'nein' }).zweiteUnterschrift, 'eltern');
 });
 
 test('Teilaufgaben: Teile je Aufgabe, Beschriftungen und Zwischensummen', () => {
@@ -203,24 +199,15 @@ test('Teilaufgaben: Teile je Aufgabe, Beschriftungen und Zwischensummen', () => 
   assert.equal(k.bezeichnungen, undefined);
 });
 
-test('Unterschriftszeilen je nach Ausbildungsbetrieb', () => {
+test('Rechtes Unterschriftsfeld: ausbildende Person, erziehungsberechtigte Person oder keins', () => {
   const k = neueKlasse({ klasse: 'WKM1-2' });
-  k.unterschriften = ['Korrekturdatum und Unterschrift der Lehrkraft'];
-  k.unterschriftMitBetrieb = UNTERSCHRIFT_MIT_BETRIEB;
-  k.unterschriftOhneBetrieb = UNTERSCHRIFT_OHNE_BETRIEB;
-
-  const mit = { id: 'a', betrieb: { name: 'Muster GmbH' } };
-  const ohne = { id: 'b', betrieb: { name: '' } };
-  assert.deepEqual(unterschriftenFuer(k, mit), ['Korrekturdatum und Unterschrift der Lehrkraft', UNTERSCHRIFT_MIT_BETRIEB]);
-  assert.deepEqual(unterschriftenFuer(k, ohne), ['Korrekturdatum und Unterschrift der Lehrkraft', UNTERSCHRIFT_OHNE_BETRIEB]);
-
-  // Leere Zusatzzeile bedeutet: keine Zusatzzeile.
-  k.unterschriftOhneBetrieb = '';
-  assert.deepEqual(unterschriftenFuer(k, ohne), ['Korrekturdatum und Unterschrift der Lehrkraft']);
-
-  // Leere feste Zeilen werden weggelassen.
-  k.unterschriften = ['', '  ', 'Lehrkraft'];
-  assert.deepEqual(unterschriftenFuer(k, ohne), ['Lehrkraft']);
+  assert.equal(k.zweiteUnterschrift, 'ausbildung');
+  assert.equal(zweiteUnterschrift(k), ZWEITE_UNTERSCHRIFT.ausbildung.text);
+  assert.match(zweiteUnterschrift(k), /^Unterschrift ausbildende Person\n/);
+  k.zweiteUnterschrift = 'eltern';
+  assert.match(zweiteUnterschrift(k), /^Unterschrift erziehungsberechtigte Person\n/);
+  k.zweiteUnterschrift = 'keine';
+  assert.equal(zweiteUnterschrift(k), '');
 });
 
 test('Anwesenheitsliste der Lernfeldklassen: Zeichen setzen und lesen', () => {
@@ -261,36 +248,6 @@ test('Anwesenheitsliste der Lernfeldklassen: Zeichen setzen und lesen', () => {
     { datum: '2026-11-24', status: 'ausgefallen' }, // ausgefallene Stunden zählen nicht
   ];
   assert.deepEqual(termineVon(k).map((t) => t.datum), ['2026-10-27', '2026-11-03', '2026-11-10', '2026-11-17']);
-});
-
-test('Unterschriftszeile automatisch: Ausbildung, Minderjährige, nur bei schlechter als 4', () => {
-  const fest = UNTERSCHRIFTEN_STANDARD[0];
-  const ausb = neueKlasse({ klasse: 'WKM1-2' });
-  const schule = neueKlasse({ klasse: 'BG 11' });
-  const jung = { id: 'a', geburtstag: '2009-06-01', betrieb: { name: '' } };
-  const alt = { id: 'b', geburtstag: '2000-01-01', betrieb: { name: '' } };
-  const stich = '2026-11-05';
-  assert.equal(istAusbildungsklasse(ausb), true);
-  assert.equal(istAusbildungsklasse(schule), false);
-  assert.equal(istAusbildungsklasse(schule, { betrieb: { name: 'Muster GmbH' } }), true);
-  schule.ausbildung = 'nein';
-  assert.equal(istAusbildungsklasse(schule, { betrieb: { name: 'Muster GmbH' } }), false);
-  schule.ausbildung = 'auto';
-  // Note nicht schlechter als 4: keine Zusatzzeile
-  assert.deepEqual(unterschriftenFuer(ausb, jung, { schlechter: false, stichtag: stich }), [fest]);
-  // Ausbildung und schlechter: Zeile für den Ausbildungsbetrieb, unabhängig vom Alter
-  assert.deepEqual(unterschriftenFuer(ausb, alt, { schlechter: true, stichtag: stich }), [fest, UNTERSCHRIFT_MIT_BETRIEB]);
-  // Ausbildung und minderjährig: beide Zeilen (Vorlage 11/2026: unabhängig voneinander)
-  assert.deepEqual(unterschriftenFuer(ausb, jung, { schlechter: true, stichtag: stich }), [fest, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB]);
-  // ohne Ausbildung: Erziehungsberechtigte nur bei unter 18
-  assert.deepEqual(unterschriftenFuer(schule, jung, { schlechter: true, stichtag: stich }), [fest, UNTERSCHRIFT_OHNE_BETRIEB]);
-  assert.deepEqual(unterschriftenFuer(schule, alt, { schlechter: true, stichtag: stich }), [fest]);
-  // Geburtstag am Stichtag: 18 geworden, also nicht mehr minderjährig
-  assert.equal(istMinderjaehrig({ geburtstag: '2008-11-05' }, stich), false);
-  assert.equal(istMinderjaehrig({ geburtstag: '2008-11-06' }, stich), true);
-  // ohne Geburtstag entscheidet das Häkchen „volljährig“
-  assert.equal(istMinderjaehrig({ volljaehrig: true }, stich), false);
-  assert.equal(istMinderjaehrig({ volljaehrig: false }, stich), true);
 });
 
 test('Fehlzeiten: nur Tage mit eigenem Unterricht', async () => {

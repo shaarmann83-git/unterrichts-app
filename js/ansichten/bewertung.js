@@ -2,7 +2,7 @@
 // Wird in den Einstellungen angezeigt.
 import { K } from '../kontext.js';
 import { h } from '../ui.js';
-import { UNTERSCHRIFTEN_STANDARD, UNTERSCHRIFT_VORLAGEN, UNTERSCHRIFT_MIT_BETRIEB, UNTERSCHRIFT_OHNE_BETRIEB } from '../modell.js';
+import { ZWEITE_UNTERSCHRIFT } from '../modell.js';
 import { zahlLesen, NOTENGRENZEN_STANDARD, PUNKTEGRENZEN_STANDARD } from '../rechnen.js';
 
 /** Elemente für die Klasse `d` (keine Sport-Klasse). */
@@ -51,40 +51,10 @@ export function bewertungBereich(d) {
       h('div', { class: 'knopfreihe' },
         h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.punktegrenzen = [...PUNKTEGRENZEN_STANDARD]; K.aenderung(); K.neuZeichnen(); } }, 'Standard wiederherstellen')),
     ),
-    h('h2', {}, 'Ausbildung und Unterschriftszeile'),
-    h('p', { class: 'klein' }, 'Die Zusatzzeile steht nur, wenn die Note schlechter als 4 ist (bei Punkten: unter 4 Punkte). In der Ausbildung ist es die Zeile für den Ausbildungsbetrieb, sonst die für die Erziehungsberechtigten, und zwar nur bei Schüler:innen unter 18. „Automatisch“ erkennt Ausbildung an Klassennamen, die mit W oder G beginnen, oder an einem eingetragenen Ausbildungsbetrieb.'),
+    h('h2', {}, 'Unterschriften im Protokoll'),
+    h('p', { class: 'klein' }, 'Links steht immer „Korrekturdatum und Unterschrift Lehrkraft“. Rechts wählen Sie, wer zusätzlich unterschreibt.'),
     h('div', { class: 'formular' },
-      h('label', {}, 'Klasse gehört zur Ausbildung', h('select', { id: 'klasse-ausbildung', 'aria-label': 'Klasse gehört zur Ausbildung', onchange: (e) => { d.ausbildung = e.target.value; K.aenderung(); } },
-        [['auto', 'automatisch'], ['ja', 'ja'], ['nein', 'nein']].map(([w, t]) => h('option', { value: w, selected: (d.ausbildung || 'auto') === w }, t))))),
-    h('h2', {}, 'Unterschriftszeilen im Ausdruck'),
-    h('p', { class: 'klein' }, 'Diese Zeilen stehen unter dem Protokoll zur Klassenarbeit. Leere Zeilen werden nicht gedruckt. Die beiden Zusatzzeilen weiter unten erscheinen je nachdem, ob bei der Person ein Ausbildungsbetrieb eingetragen ist.'),
-    h('div', { class: 'formular' },
-      (d.unterschriften || []).map((t, i) => {
-        const feld = h('input', { type: 'text', value: t, 'aria-label': `Unterschriftszeile ${i + 1}`, oninput: (e) => { d.unterschriften[i] = e.target.value; K.aenderung(); } });
-        // Vorlage wählen füllt das Textfeld; danach lässt es sich weiter ändern.
-        const vorlage = h('select', { 'aria-label': `Vorlage für Zeile ${i + 1}`, onchange: (e) => {
-          if (!e.target.value) return;
-          feld.value = e.target.value;
-          d.unterschriften[i] = e.target.value;
-          K.aenderung();
-          e.target.value = '';
-        } }, [h('option', { value: '' }, 'Vorlage wählen …'), ...UNTERSCHRIFT_VORLAGEN.map((v) => h('option', { value: v }, v))]);
-        return h('label', { class: 'breit' }, `Zeile ${i + 1}`, h('div', { class: 'zeile-mit-vorlage' }, feld, vorlage));
-      }),
-      h('label', { class: 'breit' }, 'Zusatzzeile nur mit Ausbildungsbetrieb',
-        h('div', { class: 'zeile-mit-vorlage' },
-          h('input', { type: 'text', value: d.unterschriftMitBetrieb || '', placeholder: 'leer lassen = keine Zusatzzeile', 'aria-label': 'Zusatzzeile mit Ausbildungsbetrieb',
-            oninput: (e) => { d.unterschriftMitBetrieb = e.target.value; K.aenderung(); } }),
-          h('button', { type: 'button', class: 'knopf klein', onclick: (e) => { const i = e.target.closest('div').querySelector('input'); i.value = UNTERSCHRIFT_MIT_BETRIEB; d.unterschriftMitBetrieb = i.value; K.aenderung(); } }, 'Vorschlag'))),
-      h('label', { class: 'breit' }, 'Zusatzzeile nur ohne Ausbildungsbetrieb',
-        h('div', { class: 'zeile-mit-vorlage' },
-          h('input', { type: 'text', value: d.unterschriftOhneBetrieb || '', placeholder: 'leer lassen = keine Zusatzzeile', 'aria-label': 'Zusatzzeile ohne Ausbildungsbetrieb',
-            oninput: (e) => { d.unterschriftOhneBetrieb = e.target.value; K.aenderung(); } }),
-          h('button', { type: 'button', class: 'knopf klein', onclick: (e) => { const i = e.target.closest('div').querySelector('input'); i.value = UNTERSCHRIFT_OHNE_BETRIEB; d.unterschriftOhneBetrieb = i.value; K.aenderung(); } }, 'Vorschlag'))),
-      h('div', { class: 'knopfreihe' },
-        h('button', { type: 'button', class: 'knopf klein', onclick: () => { (d.unterschriften ||= []).push(''); K.aenderung(); K.neuZeichnen(); } }, '+ Zeile'),
-        (d.unterschriften || []).length > 0 && h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.unterschriften.pop(); K.aenderung(); K.neuZeichnen(); } }, 'Letzte Zeile entfernen'),
-        h('button', { type: 'button', class: 'knopf klein', onclick: () => { d.unterschriften = [...UNTERSCHRIFTEN_STANDARD]; K.aenderung(); K.neuZeichnen(); } }, 'Standard wiederherstellen')),
-    ),
+      h('label', {}, 'Rechtes Unterschriftsfeld', h('select', { id: 'klasse-zweite-unterschrift', 'aria-label': 'Rechtes Unterschriftsfeld', onchange: (e) => { d.zweiteUnterschrift = e.target.value; K.aenderung(); } },
+        Object.entries(ZWEITE_UNTERSCHRIFT).map(([w, v]) => h('option', { value: w, selected: d.zweiteUnterschrift === w }, v.auswahl))))),
   ];
 }
