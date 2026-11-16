@@ -8,11 +8,16 @@ import { anwesenheitsSeiten } from './anwesenheit-druck.js';
 import { kopfbilderReihe } from './kopfbilder.js';
 
 /** Schriftarten für das Protokoll. „Calibri“ nutzt die Schrift des Geräts, sonst die mitgelieferte Ersatzschrift Carlito (gleiche Maße). */
+/** Schriftgrößen gelten für Calibri; andere Schriften werden so verkleinert, dass sie gleich groß wirken. */
+const schriftStil = (name) => {
+  const f = SCHRIFTEN.find((x) => x.name === name) || SCHRIFTEN[0];
+  return `--protokoll-schrift: ${f.stapel}; --skala: ${f.skala}`;
+};
 const SCHRIFTEN = [
-  { name: 'Calibri', stapel: "Calibri, Carlito, sans-serif" },
-  { name: 'Arial', stapel: "Arial, Helvetica, 'Liberation Sans', sans-serif" },
-  { name: 'Verdana', stapel: "Verdana, 'DejaVu Sans', sans-serif" },
-  { name: 'Times New Roman', stapel: "'Times New Roman', Times, 'Liberation Serif', serif" },
+  { name: 'Calibri', stapel: "Calibri, Carlito, sans-serif", skala: 1 },
+  { name: 'Arial', stapel: "Arial, Helvetica, 'Liberation Sans', sans-serif", skala: 0.9 },
+  { name: 'Verdana', stapel: "Verdana, 'DejaVu Sans', sans-serif", skala: 0.77 },
+  { name: 'Times New Roman', stapel: "'Times New Roman', Times, 'Liberation Serif', serif", skala: 1 },
 ];
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE, istPunktsystem } from '../rechnen.js';
 
@@ -131,7 +136,7 @@ export function zeigeDruck() {
     const mitte = dr.kopfText && h('div', { class: 'kopf-text' }, dr.kopfText);
     return h(
       'article',
-      { class: 'druckseite protokoll', style: `--protokoll-schrift: ${(SCHRIFTEN.find((x) => x.name === dr.schrift) || SCHRIFTEN[0]).stapel}` },
+      { class: 'druckseite protokoll', style: schriftStil(dr.schrift) },
       // Ein einzelnes Bild wird über die ganze Breite gezeigt, zwei Bilder links und rechts, optional mit Text dazwischen.
       (dr.kopfLinks || dr.kopfRechts) && (dr.kopfLinks && dr.kopfRechts
         ? h('div', { class: 'protokoll-kopfbilder' },
@@ -154,7 +159,7 @@ export function zeigeDruck() {
           h('tr', {}, werte.map(([, v]) => h('td', { class: 'mitte' }, v))))),
         // Unterschriften: links das Feld der Lehrkraft mit dem Korrekturdatum, rechts die Zeile für die ausbildende Person
         h('table', { class: 'protokoll-tabelle unterschrift' },
-          h('colgroup', {}, hauptZeilen.map((_, i) => h('col', { style: `width:${i === 0 ? 56.4 : (43.6 / Math.max(1, hauptZeilen.length - 1)).toFixed(1)}%` }))),
+          h('colgroup', {}, hauptZeilen.map((_, i) => h('col', { style: `width:${i === 0 ? 50 : (50 / Math.max(1, hauptZeilen.length - 1)).toFixed(1)}%` }))),
           h('tbody', {},
             h('tr', {}, hauptZeilen.map((t, i) => h('td', { class: i === 0 ? '' : 'hoch', rowspan: i === 0 ? 1 : 2 }, textBlock(t)))),
             h('tr', {}, h('td', { class: 'feld' }, ka.korrekturdatum && !blanko ? datumDeutsch(ka.korrekturdatum) : ' ')))),
