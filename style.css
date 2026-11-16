@@ -294,7 +294,7 @@ input.bemerkung { min-width: 12rem; }
 .protokoll-tabelle.unterschrift { margin-top: 0.564cm; }
 .protokoll-tabelle.unterschrift td { vertical-align: top; }
 .protokoll-tabelle.unterschrift tr:first-child td:first-child { height: 0.6cm; }
-.protokoll-tabelle.unterschrift td.feld { height: 1.4cm; vertical-align: bottom; }
+.protokoll-tabelle.unterschrift td.feld { height: 1.4cm; vertical-align: middle; }
 .protokoll-tabelle.unterschrift .stark, .protokoll-eltern .stark { font-weight: 700; font-size: 11pt; }
 .protokoll-tabelle.unterschrift .klein, .protokoll-eltern .klein { font-style: italic; font-size: 9pt; }
 .protokoll-eltern { margin: 0.2cm 0 0 9.25cm; }
