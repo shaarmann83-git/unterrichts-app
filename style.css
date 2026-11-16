@@ -386,6 +386,4 @@ body.hilfe-modus button:not(#knopf-hilfe), body.hilfe-modus a.knopf { outline: 2
   .druckseite.protokoll .protokoll-block { margin: auto 0; }
 }
 
-.protokoll-leiste { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: flex-start; margin: 0.6rem 0; }
-.protokoll-einstellungen { flex: 1 1 22rem; }
-.protokoll-einstellungen h3 { margin: 0.8rem 0 0.3rem; font-size: 1rem; }
+.protokoll-einstellungen { display: contents; }

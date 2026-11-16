@@ -5,7 +5,7 @@ import { zeigeSportDruck } from './sport-druck.js';
 import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, zweiteUnterschrift, UNTERSCHRIFT_LEHRKRAFT, spaltenName } from '../modell.js';
 import { teilnahmeStatus, fehlzeitenAmTermin } from '../nachschreiben.js';
 import { anwesenheitsSeiten } from './anwesenheit-druck.js';
-import { schriftStil } from './protokoll-einstellungen.js';
+import { schriftStil, protokollEinstellungen } from './protokoll-einstellungen.js';
 
 /** Schriftarten für das Protokoll. „Calibri“ nutzt die Schrift des Geräts, sonst die mitgelieferte Ersatzschrift Carlito (gleiche Maße). */
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE, istPunktsystem } from '../rechnen.js';
@@ -71,7 +71,7 @@ export function zeigeDruck() {
       steuerung.append(h('p', { class: 'warnung' }, 'Kein Korrekturdatum eingetragen. Es erscheint dann nicht im Protokoll. Sie können es oben bei der Klassenarbeit nachtragen.'));
     }
     if (art === 'protokoll' || art === 'protokoll-blanko') {
-      steuerung.append(h('p', { class: 'klein' }, 'Schriftart, rechtes Unterschriftsfeld und Kopf stellen Sie bei den ', h('a', { href: `#/ka/${kaNr}` }, 'Klassenarbeiten'), ' ein.'));
+      steuerung.append(protokollEinstellungen(d, () => { steuerungZeichnen(); vorschauZeichnen(); }));
     }
     steuerung.append(h('button', { type: 'button', class: 'knopf primaer', onclick: async () => {
       if (art === 'protokoll' && ka && !ka.korrekturdatum

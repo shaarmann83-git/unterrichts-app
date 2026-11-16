@@ -32,7 +32,7 @@ Zweck: Gedächtnis für neue Sitzungen. Die Anforderung steht in `docs/SPEC.md` 
 - Fehlzeiten: zeigt standardmäßig alles (Klassenleitung), Spalten Offen, Entschuldigt, davon mit Attest, Nicht entschuldigt, Gesamt, Fehltage, Verspätungen; offene Einträge oben; optionaler Filter „nur meine Tage“; Knopf „Importierte Fehlzeiten löschen“.
 - Sport: Schuljahr auffüllen nur für das Halbjahr (außer Zeitraum „ganzes Schuljahr“).
 - Drucken: Protokoll (Schwerpunkte mittig, Sonstiges automatisch, Unterschriftszeile automatisch), Korrekturliste blanko und ausgefüllt, Anwesenheitsliste; erreichbar ohne gewählte Klasse; Kopfbilder dort statt im Notenbuch.
-- Protokoll-Einstellungen (Schriftart mit Größenfaktor, rechtes Unterschriftsfeld, Kopfbilder/Kopftext) liegen nur im Reiter Klassenarbeiten (`js/ansichten/protokoll-einstellungen.js`), dort auch der Knopf „Protokolle zu KA n drucken“. Zeilenabstand: Schwerpunkte 18 pt (bei Calibri 12), Unterschriftstabelle einfach, sonst 16 pt exakt.
+- Protokoll-Einstellungen (Schriftart mit Größenfaktor, rechtes Unterschriftsfeld, Kopfbilder/Kopftext) liegen nur im Reiter Drucken (`js/ansichten/protokoll-einstellungen.js`). Im Reiter Klassenarbeiten gibt es nur den Knopf „Protokolle zu KA n drucken“ (springt zum Drucken). Zeilenabstand: Schwerpunkte 18 pt (bei Calibri 12), Unterschriftstabelle einfach, sonst 16 pt exakt.
 - Einstellungen: Notensystem, Notenschlüssel, Punkteschlüssel, Unterschriftszeilen je Klasse. Hilfetexte an Knöpfen (`js/hilfe.js`), auf Touch-Geräten Knopf „Hilfe“.
 - Start: lokale Arbeitskopie per Klick auf die Karte öffnen; Import-Knöpfe im Notenbuch.
 - Klassenarbeiten: Tabelle als Startansicht, Teilaufgaben, Endergebnis fett, Namen führen zur Personenübersicht (überall, wo Namen stehen).

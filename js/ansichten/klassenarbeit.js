@@ -5,7 +5,6 @@ import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege, teilnahmeStatus } 
 import { untisListeLaden, UNTIS_WEG_ABWESENHEIT } from './fehlzeiten.js';
 import { eintraegeUm } from '../stundenplan.js';
 import { vorschlaegeDialog } from './untis-dialog.js';
-import { protokollEinstellungen } from './protokoll-einstellungen.js';
 import { druckVorwahl } from './drucken.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, formatZahl, formatKurz, zahlLesen, NOTEN_WORTE } from '../rechnen.js';
 
@@ -45,9 +44,7 @@ export function zeigeKlassenarbeit(params) {
     ),
   );
   wurzel.append(h('h1', {}, 'Klassenarbeiten'), tabs);
-  wurzel.append(h('div', { class: 'protokoll-leiste' },
-    ka && h('button', { type: 'button', class: 'knopf primaer', id: 'protokolle-drucken', onclick: () => { druckVorwahl(nr); K.navigiere('druck'); } }, `Protokolle zu KA ${nr} drucken`),
-    protokollEinstellungen(d)));
+  if (ka) wurzel.append(h('p', {}, h('button', { type: 'button', class: 'knopf primaer', id: 'protokolle-drucken', onclick: () => { druckVorwahl(nr); K.navigiere('druck'); } }, `Protokolle zu KA ${nr} drucken`)));
 
   if (!ka) {
     wurzel.append(h('p', {}, 'Noch keine Klassenarbeit angelegt.'));
