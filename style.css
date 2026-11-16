@@ -1,3 +1,7 @@
+@font-face { font-family: 'Carlito'; src: url('lib/schriften/Carlito-Regular.woff') format('woff'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Carlito'; src: url('lib/schriften/Carlito-Bold.woff') format('woff'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Carlito'; src: url('lib/schriften/Carlito-Italic.woff') format('woff'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Carlito'; src: url('lib/schriften/Carlito-BoldItalic.woff') format('woff'); font-weight: 700; font-style: italic; font-display: swap; }
 :root {
   --bg: #f4f6f9; --flaeche: #ffffff; --text: #1b2430; --text-leise: #5a6677;
   --rand: #cfd6e0; --akzent: #1f4e79; --akzent-text: #ffffff; --kopf: #1f4e79;
@@ -275,7 +279,7 @@ input.bemerkung { min-width: 12rem; }
 .foto-vorschau.ziehbar:active { cursor: grabbing; }
 
 /* Protokoll zur Klassenarbeit, Aufbau nach der Vorlage der Schule */
-.druckseite.protokoll { font: 11pt/16pt Calibri, Carlito, 'Segoe UI', Arial, sans-serif; page: protokoll; max-width: calc(16.4cm + 4rem); margin-inline: auto; }
+.druckseite.protokoll { font: 11pt/16pt var(--protokoll-schrift, Calibri, Carlito, sans-serif); page: protokoll; max-width: calc(16.4cm + 4rem); margin-inline: auto; }
 @page protokoll { size: A4 portrait; margin: 1.25cm 2.3cm; }
 /* Maße wie in der Word-Vorlage: Seitenränder 2,3 cm, Tabelle 16,4 cm breit, Zeilenabstand 16 pt */
 .protokoll-kopfbilder { position: relative; display: flex; justify-content: space-between; align-items: flex-start; height: 2.7cm; margin-bottom: 0.85cm; }
@@ -297,7 +301,7 @@ input.bemerkung { min-width: 12rem; }
 .protokoll-tabelle.unterschrift td.feld { height: 1.4cm; vertical-align: middle; }
 .protokoll-tabelle.unterschrift .stark, .protokoll-eltern .stark { font-weight: 700; font-size: 11pt; }
 .protokoll-tabelle.unterschrift .klein, .protokoll-eltern .klein { font-style: italic; font-size: 9pt; }
-.protokoll-eltern { margin: 0.2cm 0 0 9.25cm; }
+.protokoll-eltern { margin: 0.2cm -1cm 0 9.25cm; }
 .protokoll-eltern .stark { white-space: nowrap; letter-spacing: -0.1pt; }
 .protokoll-band { border: 0.75pt solid #000; border-top: 0; background: #d9d9d9; display: flex; align-items: center; justify-content: center; height: 1.1cm; font-weight: 700; font-size: 12pt; box-sizing: border-box; }
 .protokoll-band.stark { background: #a6a6a6; margin-top: 0.564cm; border-top: 0.75pt solid #000; height: 1.4cm; font-size: 13pt; }

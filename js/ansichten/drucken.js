@@ -6,6 +6,14 @@ import { aktiveSchueler, anzeigename, kurzname, datumDeutsch, fachZeile, untersc
 import { teilnahmeStatus, fehlzeitenAmTermin } from '../nachschreiben.js';
 import { anwesenheitsSeiten } from './anwesenheit-druck.js';
 import { kopfbilderReihe } from './kopfbilder.js';
+
+/** Schriftarten für das Protokoll. „Calibri“ nutzt die Schrift des Geräts, sonst die mitgelieferte Ersatzschrift Carlito (gleiche Maße). */
+const SCHRIFTEN = [
+  { name: 'Calibri', stapel: "Calibri, Carlito, sans-serif" },
+  { name: 'Arial', stapel: "Arial, Helvetica, 'Liberation Sans', sans-serif" },
+  { name: 'Verdana', stapel: "Verdana, 'DejaVu Sans', sans-serif" },
+  { name: 'Times New Roman', stapel: "'Times New Roman', Times, 'Liberation Serif', serif" },
+];
 import { ergebnisKA, gesamtpunkte, notenspiegel, gesamtPerson, formatKurz, formatZahl, NOTEN_WORTE, istPunktsystem } from '../rechnen.js';
 
 let art = 'protokoll';
@@ -67,6 +75,9 @@ export function zeigeDruck() {
       steuerung.append(h('p', { class: 'warnung' }, 'Kein Korrekturdatum eingetragen. Es erscheint dann nicht im Protokoll. Sie können es oben bei der Klassenarbeit nachtragen.'));
     }
     if (art === 'protokoll' || art === 'protokoll-blanko') {
+      const druckEinst = (K.buch.einstellungen.druck ||= { kopfLinks: '', kopfRechts: '' });
+      steuerung.append(h('label', {}, 'Schriftart des Protokolls ', h('select', { 'aria-label': 'Schriftart des Protokolls', onchange: (ev) => { druckEinst.schrift = ev.target.value; K.aenderung(); vorschauZeichnen(); } },
+        SCHRIFTEN.map((x) => h('option', { value: x.name, selected: (druckEinst.schrift || 'Calibri') === x.name }, x.name)))));
       steuerung.append(h('details', { class: 'kopfbilder' },
         h('summary', {}, 'Kopfbilder für das Protokoll'),
         h('p', { class: 'klein' }, 'Diese Bilder stehen oben auf dem Protokoll und gelten für das ganze Notenbuch. Haben Sie den Kopf als ein einziges Bild, genügt das erste Feld; es wird dann über die ganze Breite gezeigt.'),
@@ -126,7 +137,7 @@ export function zeigeDruck() {
     const mitte = dr.kopfText && h('div', { class: 'kopf-text' }, dr.kopfText);
     return h(
       'article',
-      { class: 'druckseite protokoll' },
+      { class: 'druckseite protokoll', style: `--protokoll-schrift: ${(SCHRIFTEN.find((x) => x.name === dr.schrift) || SCHRIFTEN[0]).stapel}` },
       // Ein einzelnes Bild wird über die ganze Breite gezeigt, zwei Bilder links und rechts, optional mit Text dazwischen.
       (dr.kopfLinks || dr.kopfRechts) && (dr.kopfLinks && dr.kopfRechts
         ? h('div', { class: 'protokoll-kopfbilder' },
