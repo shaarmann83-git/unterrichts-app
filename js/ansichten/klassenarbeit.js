@@ -406,7 +406,7 @@ export function zeigeKlassenarbeit(params) {
             g.geteilt ? h('td', { class: 'gruppensumme zahl' }, c.gruppenFelder.get(g.schluessel).el) : null,
           ]),
           h('td', { class: 'zahl endergebnis' }, c.summe),
-          h('td', { class: 'zahl' }, c.prozent),
+          h('td', { class: 'zahl endergebnis' }, c.prozent),
           h('td', { class: 'mitte endergebnis' }, c.note),
           h('td', { class: 'teilnahme-zelle' }, c.teilnahme, c.nachDatum),
           h('td', {}, c.sonstiges),
