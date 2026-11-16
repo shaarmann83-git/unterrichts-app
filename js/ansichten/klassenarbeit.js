@@ -205,7 +205,7 @@ export function zeigeKlassenarbeit(params) {
     const t = ka.teilnahme[s.id];
     if (t?.status !== 'attest-offen') return;
     if (!e.punkte.some((p) => p !== null && p !== undefined && p !== '')) return;
-    const datum = h('input', { type: 'date', value: heuteIso() });
+    const datum = h('input', { type: 'date', value: t.nachschreibtermin || heuteIso() });
     const ok = await inhaltDialog(`Nachgeschrieben am …? (${anzeigename(s)})`, [h('p', {}, 'Für diese Person war das Nachschreiben offen. Es sind jetzt Punkte eingetragen. Wann wurde nachgeschrieben?'), h('label', {}, 'Nachgeschrieben am', datum)], [
       { text: 'Nicht ändern', wert: false, abbruch: true },
       { text: 'Als nachgeschrieben markieren', wert: true, klasse: 'knopf primaer' },
