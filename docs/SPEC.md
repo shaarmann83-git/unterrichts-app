@@ -490,3 +490,23 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - Wird während des Hochladens weitergearbeitet, bleibt die Anzeige auf „Ungespeicherte Änderungen“ und die automatische Sicherung lädt erneut hoch.
 - Die Arbeitskopie wird sofort gesichert, sobald die App in den Hintergrund geht (Handy, Tablet), nicht erst nach der Wartezeit von 0,6 Sekunden.
 - Beim Öffnen einer lokalen Kopie: Liegt in OneDrive unter demselben Namen ein anderes Notenbuch, wird nicht verbunden (Hinweis). Bei „Neuere Fassung in OneDrive“ warnt die Abfrage, wenn lokale Änderungen dabei verloren gingen.
+
+### 12.13 Sicherungskopien, Rückkehr in die App, Bedienung auf Handy und Tablet (11/2026, noten-v44)
+
+- **Tägliche Sicherungskopie:** Beim ersten Speichern eines Tages legt die App die gespeicherte (verschlüsselte) Fassung zusätzlich im Ordner „Sicherungen“ des Speicherorts ab, Name `<Dateiname>_<JJJJ-MM-TT>.noten`. Die letzten 10 Tage bleiben, ältere werden gelöscht. Abschaltbar in den Einstellungen. Schlägt die Kopie fehl, stört das das Speichern nicht.
+- **Sicherungskopie öffnen** (Einstellungen und Dialog „Aus OneDrive öffnen“): Auswahl nach Tag, Rückfrage, danach ist die Kopie geöffnet und als ungespeichert markiert. Erst das Speichern ersetzt die aktuelle Fassung.
+- **Änderung auf einem anderen Gerät:** Sobald die App wieder nach vorn kommt, wieder online ist und alle zwei Minuten prüft sie nur den Stand der Datei (ohne sie zu laden). Hat ein anderes Gerät gespeichert und gibt es hier keine offenen Änderungen, wird die neue Fassung geladen; Klasse und Ansicht bleiben. Gibt es offene Änderungen, läuft das normale Speichern mit Konfliktabfrage. Bei offenem Dialog wird nichts ausgetauscht.
+- **Arbeitskopie nicht gesichert:** Schlägt die lokale Sicherung fehl, erscheint einmal eine Meldung mit der Bitte zu speichern.
+- **Ferientermine fehlen:** Beim Stundenplan-Import nennt die Meldung das Schuljahr, für das keine Ferientermine hinterlegt sind (vorher nur beim Knopf „Schuljahr auffüllen“).
+- **Menü auf Handy und Tablet hochkant (bis 900 px Breite):** oben nur eine Zeile mit Menüknopf (zeigt Ansicht und Klasse), Status und „Speichern“. Der Menüknopf klappt die Klassenwahl und das Menü in Gruppen auf (Notenbuch, Klasse, Übergreifend, Anzeige mit Hilfe und Hell/Dunkel). Am Rechner bleibt die Menüzeile wie bisher.
+- **Kein seitliches Wegrutschen der Seite:** Die Kopfzeile passt auf das Handy, Notenspiegel, Auswertung und Druckvorschau wischen in sich.
+- **Klassenarbeit:** Die Angaben (Datum, Gewicht, Schwerpunkte, Aufgaben, Löschen, Untis) stehen in einem aufklappbaren Bereich. Am Rechner ist er offen, auf Handy und Tablet zugeklappt, sobald Datum und Höchstpunkte eingetragen sind, damit die Punktetabelle oben steht.
+- **Sonstige Leistung, Schnelleingabe:** auf Handy und Tablet je Person Name und Note in einer Zeile, Tasten und Notiz daneben oder darunter. „Fehlzeit dieser Stunde“ ist zugeklappt, solange nichts eingetragen ist; Listen-Felder bleiben sichtbar.
+- Der Passworthinweis ist auf schmalen Bildschirmen eine kurze Zeile mit Sprung zum Notenbuch.
+
+### 12.14 Variante mit eigenem Server (11/2026, noten-v44)
+
+- `server/server.mjs` (Node.js ohne Fremdpakete) liefert die App aus und bewahrt Notendateien auf. Zugriff nur mit Zugangsschlüssel (`NOTEN_SCHLUESSEL`, mindestens 16 Zeichen). Angenommen werden nur `.noten`-Dateien, höchstens ein Unterordner, keine Pfade außerhalb des Datenordners. Geschrieben wird nur, wenn die bekannte Fassung noch da ist (wie der eTag bei OneDrive).
+- Die Datei kommt verschlüsselt an. Der Server sieht keine Namen und Noten. Bewusst keine Datenbank mit Klartext.
+- In der App: Einstellung „Eigener Server“ (Schalter und Zugangsschlüssel, nur auf diesem Gerät gespeichert). Dann nutzt die Synchronisation `js/server-ort.js` statt OneDrive; alles Übrige (Konflikte, Sicherungskopien, Öffnen) ist derselbe Code. Die Texte nennen dann „Server“ statt „OneDrive“.
+- Die App muss von diesem Server geladen werden (gleiche Adresse), HTTPS ist nötig. Auf GitHub Pages bleibt der Schalter ohne Wirkung.

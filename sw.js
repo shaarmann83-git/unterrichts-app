@@ -1,5 +1,5 @@
 // Offline-Dienst: legt die App-Dateien beim ersten Besuch ab und liefert sie danach ohne Netz.
-const VERSION = 'noten-v43';
+const VERSION = 'noten-v44';
 const DATEIEN = [
   './', 'index.html', 'style.css', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/kopf-bbs-links.png', 'icons/kopf-bbs-rechts.jpg',
@@ -11,7 +11,7 @@ const DATEIEN = [
   'js/ansichten/anwesenheit-druck.js',
   'js/ansichten/bewertung.js',
   'js/ansichten/kopfbilder.js', 'js/ansichten/protokoll-einstellungen.js',
-  'js/hilfe.js',
+  'js/hilfe.js', 'js/server-ort.js',
   'js/rhythmus.js', 'js/ansichten/sonstige.js', 'js/ansichten/gesamt.js', 'js/ansichten/drucken.js',
 ];
 

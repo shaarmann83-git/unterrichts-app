@@ -3,14 +3,14 @@ import { K } from '../kontext.js';
 import { h, leeren, toast, meldung, fuege } from '../ui.js';
 import { einstellungen, einstellungSetzen, kannOrdnerWaehlen } from '../speicher.js';
 import { ordnerWaehlen, ordnerEntfernen, gemerkterOrdner, ordnerErlaubnis, untisPruefen, sperreZuruecksetzen, untisUeberwachungStarten } from '../dienste.js';
-import { onedriveAnmelden, onedriveAbmelden, onedriveAngemeldet, syncEinschalten, syncAusschalten, ausOneDriveOeffnen } from '../sync-ui.js';
+import { onedriveAnmelden, onedriveAbmelden, onedriveAngemeldet, syncEinschalten, syncAusschalten, ausOneDriveOeffnen, sicherungOeffnen, ortName, serverModus } from '../sync-ui.js';
 import { syncStatusText } from '../sync.js';
 import { ansichtRegistrieren } from '../registry.js';
 import { bewertungBereich } from './bewertung.js';
 import { fachZeile } from '../modell.js';
 
 /** Stand der App (bei jeder Auslieferung mit sw.js VERSION erhöhen). */
-export const APP_STAND = 'noten-v43';
+export const APP_STAND = 'noten-v44';
 
 export function zeigeEinstellungen() {
   const wurzel = h('section', { class: 'seite' });
@@ -47,6 +47,14 @@ export function zeigeEinstellungen() {
   }
   ordnerZeichnen();
 
+  // ----- Eigener Server (statt OneDrive) -----
+  const serverSchluessel = h('input', { type: 'password', id: 'server-schluessel', value: e.serverSchluessel, autocomplete: 'off', placeholder: 'Zugangsschlüssel des Servers', oninput: (ev) => einstellungSetzen('serverSchluessel', ev.target.value.trim()) });
+  const serverBlock = h('div', { class: 'einstellung-block', id: 'server-block' },
+    h('h2', {}, 'Eigener Server (statt OneDrive, optional)'),
+    h('p', { class: 'klein' }, 'Nur für die Server-Variante: Die App wird dann von Ihrem eigenen Server geladen (siehe README, Abschnitt „Eigener Server“) und legt die Notendateien dort ab. Auch dorthin gehen nur verschlüsselte Dateien, deshalb braucht das Notenbuch ein Passwort. Synchronisation, Konfliktprüfung und Sicherungskopien arbeiten wie bei OneDrive. Auf GitHub Pages hat dieser Schalter keine Wirkung, weil dort kein Server antwortet.'),
+    schalter('server-an', 'Notendateien auf dem eigenen Server speichern (statt OneDrive)', e.serverAn, (v) => { einstellungSetzen('serverAn', v); onedriveAbmelden(); K.neuZeichnen(); }),
+    h('div', { class: 'formular' }, h('label', {}, 'Zugangsschlüssel', serverSchluessel)));
+
   // ----- OneDrive -----
   const clientId = h('input', { type: 'text', id: 'od-client', value: e.onedriveClientId, autocomplete: 'off', placeholder: 'Anwendungs-(Client-)ID', oninput: (ev) => einstellungSetzen('onedriveClientId', ev.target.value.trim()) });
   const tenantId = h('input', { type: 'text', id: 'od-tenant', value: e.onedriveTenantId, autocomplete: 'off', placeholder: 'Verzeichnis-(Mandanten-)ID', oninput: (ev) => einstellungSetzen('onedriveTenantId', ev.target.value.trim()) });
@@ -54,12 +62,13 @@ export function zeigeEinstellungen() {
   const odKnoepfe = h('div', { class: 'knopfreihe' });
   function odZeichnen() {
     leeren(odKnoepfe);
-    odStatus.textContent = onedriveAngemeldet() ? 'Angemeldet.' : 'Nicht angemeldet.';
+    odStatus.textContent = `Speicherort: ${ortName()}. ${onedriveAngemeldet() ? (serverModus() ? 'Verbunden.' : 'Angemeldet.') : (serverModus() ? 'Nicht verbunden.' : 'Nicht angemeldet.')}`;
     if (K.buch) odStatus.textContent += K.sync ? ` Dieses Notenbuch wird synchronisiert. ${syncStatusText(K.sync)}` : ' Dieses Notenbuch wird nicht synchronisiert.';
     fuege(odKnoepfe,
-      !onedriveAngemeldet() && h('button', { type: 'button', class: 'knopf primaer', id: 'od-anmelden', onclick: async () => { try { await onedriveAnmelden(); } catch (err) { await meldung('Anmeldung nicht möglich', err.message); } odZeichnen(); } }, 'Bei OneDrive anmelden'),
+      !onedriveAngemeldet() && h('button', { type: 'button', class: 'knopf primaer', id: 'od-anmelden', onclick: async () => { try { await onedriveAnmelden(); } catch (err) { await meldung('Anmeldung nicht möglich', err.message); } odZeichnen(); } }, serverModus() ? 'Mit dem Server verbinden' : 'Bei OneDrive anmelden'),
       onedriveAngemeldet() && h('button', { type: 'button', class: 'knopf', onclick: () => { onedriveAbmelden(); odZeichnen(); } }, 'Abmelden'),
-      h('button', { type: 'button', class: 'knopf', id: 'od-oeffnen', onclick: () => ausOneDriveOeffnen() }, 'Aus OneDrive öffnen …'),
+      h('button', { type: 'button', class: 'knopf', id: 'od-oeffnen', onclick: () => ausOneDriveOeffnen() }, `Aus ${ortName()} öffnen …`),
+      h('button', { type: 'button', class: 'knopf', id: 'od-sicherung-oeffnen', onclick: () => sicherungOeffnen() }, 'Sicherungskopie öffnen …'),
       K.buch && !K.sync && h('button', { type: 'button', class: 'knopf primaer', id: 'sync-an', onclick: async () => { await syncEinschalten(); odZeichnen(); } }, 'Synchronisation für dieses Notenbuch einschalten'),
       K.buch && K.sync && h('button', { type: 'button', class: 'knopf', onclick: () => { syncAusschalten(); odZeichnen(); } }, 'Synchronisation ausschalten'));
   }
@@ -108,12 +117,14 @@ export function zeigeEinstellungen() {
       h('p', { class: 'klein' }, 'Android: Als installierte App erscheint „Notenverwaltung“ im Teilen-Menü. Untis-Datei teilen, dann startet der Abgleich. iPad: Knopf „Untis-Liste laden“ in der Klassenarbeits- und Nachschreib-Ansicht.')),
     bewertungKlassen.length > 0 && bewertungKasten,
     K.buch && rasterKasten,
+    serverBlock,
     h('div', { class: 'einstellung-block' },
       h('h2', {}, 'OneDrive-Synchronisation (optional)'),
       h('p', { class: 'klein' }, 'Ohne Einrichtung arbeitet die App ausschließlich mit Dateien und sendet nichts ins Netz. Die Synchronisation lädt nur verschlüsselte Dateien in den eigenen App-Ordner Ihres dienstlichen OneDrive hoch (Ordner „Apps/<Name der App-Registrierung>“, kein Zugriff auf andere Dateien). Dafür muss die Schul-IT die App in Microsoft Entra ID registrieren (siehe README).'),
       h('div', { class: 'formular' }, h('label', {}, 'Client-ID', clientId), h('label', {}, 'Tenant-ID', tenantId)),
       h('p', { class: 'klein' }, 'Redirect-URI (so in der App-Registrierung eintragen): ', h('code', {}, location.origin + location.pathname)),
       schalter('od-autosave', 'Nach Änderungen automatisch hochladen', e.onedriveAutosave, (v) => einstellungSetzen('onedriveAutosave', v)),
+      schalter('od-sicherung', 'Täglich eine Sicherungskopie am Speicherort ablegen (Ordner „Sicherungen“, die letzten 10 Tage)', e.onedriveSicherung, (v) => einstellungSetzen('onedriveSicherung', v)),
       schalter('od-eingang', 'OneDrive-Ordner „Untis-Eingang“ nach neuen Untis-Dateien prüfen', e.onedriveEingang, (v) => { einstellungSetzen('onedriveEingang', v); untisUeberwachungStarten(); }),
       odStatus, odKnoepfe),
     h('p', { class: 'klein', id: 'app-stand' }, `App-Stand: ${APP_STAND}`),

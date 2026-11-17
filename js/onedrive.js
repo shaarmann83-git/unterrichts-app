@@ -117,6 +117,10 @@ export function graphClient({ tokenHolen, fetchFn = (...a) => globalThis.fetch(.
 export function onedriveOrt(client, name) {
   return {
     name,
+    /** Nur der eTag der Datei (null, wenn es sie nicht gibt). */
+    async stand() {
+      return (await client.meta(name))?.eTag ?? null;
+    },
     async laden() {
       const m = await client.meta(name);
       if (!m) return null;

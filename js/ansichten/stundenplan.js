@@ -105,11 +105,16 @@ export async function icsAbgleichStarten(dateien, { automatisch = false, jetzt =
     if (!veraendert) return true;
   } else if (!(await vorschau(plan))) return false;
   importAnwenden(K.buch, plan, zuordnung);
-  for (const r of plan.klassen) if ((r.klasse.stundenplan || []).length) rhythmusAuffuellen(r.klasse); // Schuljahr fortschreiben
+  const ohneFerien = new Set();
+  for (const r of plan.klassen) {
+    if (!(r.klasse.stundenplan || []).length) continue;
+    const erg = rhythmusAuffuellen(r.klasse); // Schuljahr fortschreiben
+    if (erg.grund && /Ferientermine/.test(erg.grund)) ohneFerien.add(r.klasse.kopf?.schuljahr || '?');
+  }
   K.aenderung();
   K.neuZeichnen();
   const zahl = plan.klassen.reduce((n, r) => ({ neu: n.neu + r.neu.length, geaendert: n.geaendert + r.geaendert.length, entfallen: n.entfallen + r.entfallen.length }), { neu: 0, geaendert: 0, entfallen: 0 });
-  toast(`Stundenplan übernommen: ${zahl.neu} neu, ${zahl.geaendert} geändert, ${zahl.entfallen} entfallen.${plan.nichtZugeordnet.length ? ` Nicht zugeordnet: ${plan.nichtZugeordnet.length}.` : ''}`);
+  toast(`Stundenplan übernommen: ${zahl.neu} neu, ${zahl.geaendert} geändert, ${zahl.entfallen} entfallen.${plan.nichtZugeordnet.length ? ` Nicht zugeordnet: ${plan.nichtZugeordnet.length}.` : ''}${ohneFerien.size ? ` Für das Schuljahr ${[...ohneFerien].join(', ')} sind keine Ferientermine hinterlegt, es wurde deshalb nicht automatisch aufgefüllt.` : ''}`);
   return true;
 }
 

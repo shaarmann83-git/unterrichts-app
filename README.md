@@ -89,6 +89,28 @@ Was die Schul-IT in Microsoft Entra ID einrichtet (Bezeichnungen im Portal könn
 
 Ablauf: Anmelden, Notenbuch öffnen, „Synchronisation einschalten“. Speichern lädt hoch (Autosave abschaltbar). Hat sich die Datei inzwischen auf einem anderen Gerät geändert, überschreibt die App nichts, sondern fragt: „Andere Fassung laden“ oder „Meine Fassung als Kopie speichern“. Offline arbeiten ist möglich, beim nächsten Online-Sein wird mit Konfliktprüfung hochgeladen. Die Anmeldebibliothek MSAL.js liegt in `lib/` und wird nur geladen, wenn Sie sich anmelden.
 
+## Eigener Server (optional, statt OneDrive)
+
+Wer einen eigenen Server hat (zum Beispiel ein NAS, einen kleinen Rechner zu Hause oder einen gemieteten Server), kann die App von dort laden und die Notendateien dort ablegen. An der App ändert sich sonst nichts: Die Notendatei wird weiterhin auf dem Gerät verschlüsselt, der Server bekommt nur die verschlüsselte Datei und kennt das Passwort nicht. Synchronisation zwischen den Geräten, Konfliktprüfung und tägliche Sicherungskopien arbeiten wie bei OneDrive.
+
+Das ist bewusst keine Datenbank mit lesbaren Noten auf dem Server. Eine solche Lösung würde Namen und Noten im Klartext auf dem Server ablegen und bräuchte eine eigene Benutzerverwaltung und eine datenschutzrechtliche Klärung.
+
+Voraussetzungen: Node.js ab Version 20, keine weiteren Pakete. Die App braucht eine Adresse mit `https://`, sonst verweigert der Browser die Verschlüsselung und die Installation als App. Den Server deshalb hinter die HTTPS-Funktion des NAS oder einen Reverse-Proxy (zum Beispiel Caddy) stellen. Ohne HTTPS funktioniert nur der Aufruf am Server selbst über `http://localhost`.
+
+Start:
+
+```
+NOTEN_SCHLUESSEL="ein-langer-zufaelliger-schluessel" NOTEN_DATEN=/pfad/zu/notendaten PORT=8080 node server/server.mjs
+```
+
+- `NOTEN_SCHLUESSEL`: Zugangsschlüssel, mindestens 16 Zeichen. Ohne ihn startet der Server nicht.
+- `NOTEN_DATEN`: Ordner für die Notendateien (Standard: `daten/` neben der App). Diesen Ordner in die eigene Datensicherung aufnehmen.
+- `NOTEN_ADRESSE`: Netzwerkadresse, an der der Server lauscht (Standard `127.0.0.1`, also nur für den Reverse-Proxy auf demselben Gerät erreichbar).
+
+In der App auf jedem Gerät: die Adresse des Servers öffnen, unter „Einstellungen“ → „Eigener Server“ den Schalter einschalten und den Zugangsschlüssel eintragen, dann „Mit dem Server verbinden“ und beim geöffneten Notenbuch „Synchronisation für dieses Notenbuch einschalten“. Auf weiteren Geräten „Aus Server öffnen“.
+
+Ein Zugangsschlüssel gehört zu einer Person. Mehrere Lehrkräfte brauchen je einen eigenen Server-Prozess mit eigenem Schlüssel und eigenem Datenordner.
+
 ## Entwicklung und Tests
 
 Keine Installation nötig, nur Node.js ab Version 20:
@@ -102,3 +124,6 @@ Die Tests prüfen auch den iCal-Leser (Zeitzone Europe/Berlin über die Sommerze
 Bibliotheken liegen im Repository und werden nicht von einem CDN geladen: SheetJS 0.18.5 (`lib/xlsx.full.min.js`, Apache-2.0, Lizenz in `lib/xlsx.LICENSE`) und MSAL Browser 2.38.3 (`lib/msal-browser.min.js`, MIT, Lizenz in `lib/msal.LICENSE`).
 
 `js/ihk-schema.js` enthält dieselben Werte wie `docs/ihk-schema.json`; ein Test stellt sicher, dass beide übereinstimmen.
+
+Zusätzlich gibt es eine Browserprüfung (`python3 tests/browser/pruefung.py`, braucht Python mit Playwright, Google Chrome und Node.js). Sie öffnet alle Ansichten in Rechner-, Tablet- und Handybreite, kontrolliert den Prüffall und spielt die Synchronisation mit zwei Geräten gegen den eigenen Server durch.
+

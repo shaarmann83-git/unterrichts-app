@@ -1,4 +1,4 @@
-# Arbeitsstand (Stand 17.11.2026, App-Stand noten-v43)
+# Arbeitsstand (Stand 17.11.2026, App-Stand noten-v44)
 
 Zweck: Gedächtnis für neue Sitzungen. Die Anforderung steht in `docs/SPEC.md` (Abschnitte 12.4 bis 12.10 sind die jüngsten Nachträge). Keine echten Schülerdaten in das Repository.
 
@@ -10,7 +10,7 @@ Zweck: Gedächtnis für neue Sitzungen. Die Anforderung steht in `docs/SPEC.md` 
 
 ## Technik
 - Statische PWA ohne Build, ES-Module, Bibliotheken (SheetJS, MSAL) in `lib/`, keine CDNs. GitHub Pages aus `main`: https://shaarmann83-git.github.io/unterrichts-app/
-- Tests: `npm test` (249 grün). Browserprüfung mit Playwright gegen `python3 -m http.server`.
+- Tests: `npm test` (258 grün). Browserprüfung: `python3 tests/browser/pruefung.py` (Playwright, Chrome, Node; startet `server/server.mjs` selbst).
 - Neue JS-Datei: in `sw.js` (`DATEIEN`) eintragen (ein Test erzwingt das) und mit `git add` aufnehmen, `commit -a` nimmt neue Dateien nicht mit.
 - Bei jeder Auslieferung `VERSION` in `sw.js` und `APP_STAND` in `js/ansichten/einstellungen.js` gleich erhöhen. Die Nutzerin sieht den Stand unten in den Einstellungen.
 - Veröffentlichung dauert ein bis zwei Minuten; danach in der App „Aktualisieren“ (rechte Maustaste) bzw. Strg+F5. Der Offline-Dienst holt Dateien zuerst vom Netz (ohne HTTP-Zwischenspeicher).
@@ -23,6 +23,8 @@ Zweck: Gedächtnis für neue Sitzungen. Die Anforderung steht in `docs/SPEC.md` 
 - Eigene Dateien außerhalb des App-Ordners werden nicht synchronisiert.
 
 ## Umgesetzt (Auswahl, jüngste zuerst)
+- v44 (SPEC 12.13 und 12.14), auf Zweig `claude/sync-zuverlaessiger`, bis zur Freigabe der Nutzerin nicht in `main`: tägliche Sicherungskopien mit Wiederherstellen, Prüfung auf fremde Änderungen beim Zurückkehren in die App, Meldung bei fehlgeschlagener Arbeitskopie, aufklappbares Menü und kompaktere Eingabe auf Handy und Tablet, Variante mit eigenem Server (`server/server.mjs`, `js/server-ort.js`). Geprüft mit `npm test` und der Browserprüfung (nachgebautes OneDrive, eigener Server mit zwei Browserfenstern). Nicht geprüft: echtes OneDrive, echte Geräte, Server hinter HTTPS.
+- Bedienung auf dem Handy: Die Nutzerin findet die vielen Reiter und die Eingabe dort schlecht. v44 ist ein erster Schritt (Menü, Klassenarbeit, sonstige Leistung). Nicht überarbeitet: Anwesenheit, Sport, Dalton, Fehlzeiten, Grunddaten.
 - v43 (SPEC 12.12), auf Zweig `claude/sync-zuverlaessiger`, bis zur Freigabe der Nutzerin nicht in `main`: Uploads nacheinander (kein falscher Konflikt mehr durch den eigenen Upload), eigene Fassung nach verlorener Antwort erkennen, Änderungen während des Hochladens bleiben „ungespeichert“, Arbeitskopie sofort sichern, wenn die App in den Hintergrund geht. Mit nachgebautem OneDrive im Browser geprüft, nicht mit echtem Konto. Möglicherweise die Ursache der iPad-Synchronisationsprobleme, das ist nicht belegt.
 - Protokoll nach der Word-Vorlage der Nutzerin (12.10): Kopf mit Beschriftungszeile und Wertezeile, Schwerpunkte als Aufzählung vertikal mittig (links), „Sonstiges“ mit Nachschreibtermin, unentschuldigtem Fehlen, „Kein Attest“, danach der eigene Text; Ergebnis direkt darunter; Unterschriften; Druckart „Protokoll blanko“; optionaler Text zwischen den Kopfbildern. Die Zeile für die erziehungsberechtigte Person hängt jetzt nur an Minderjährigkeit (bei Ausbildung beide Zeilen möglich), früher entweder/oder.
 - Der Haken „Attest“ ist ab v39 entfallen (alte Haken werden beim Laden zur Teilnahme „gefehlt mit Attest“); „kein Attest“ steht im Protokoll und färbt die Zeile rot, ergibt aber keine automatische 6 (nur der Knopf „mit 0 % werten“ von Hand).

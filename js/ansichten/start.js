@@ -1,5 +1,5 @@
 import { K } from '../kontext.js';
-import { ausOneDriveOeffnen } from '../sync-ui.js';
+import { ausOneDriveOeffnen, ortName } from '../sync-ui.js';
 import { h, leeren, bestaetigen, toast } from '../ui.js';
 import { jetztLeiste, stundenplanLaden } from './stundenplan.js';
 import { untisListeLaden, UNTIS_WEG_ABWESENHEIT } from './fehlzeiten.js';
@@ -87,7 +87,7 @@ export function zeigeStart() {
       { class: 'knopfreihe' },
       h('button', { type: 'button', class: 'knopf primaer gross', onclick: neueDateiAnlegen }, 'Neue Notendatei'),
       h('button', { type: 'button', class: 'knopf gross', onclick: dateiOeffnenAktion }, 'Notendatei öffnen'),
-      einstellungen().onedriveClientId?.trim() && h('button', { type: 'button', class: 'knopf gross', id: 'start-onedrive', onclick: ausOneDriveOeffnen }, 'Aus OneDrive öffnen'),
+      (einstellungen().serverAn || einstellungen().onedriveClientId?.trim()) && h('button', { type: 'button', class: 'knopf gross', id: 'start-onedrive', onclick: ausOneDriveOeffnen }, `Aus ${ortName()} öffnen`),
       K.buch && h('button', { type: 'button', class: 'knopf gross', id: 'start-fehlzeiten', onclick: () => untisListeLaden(null) }, 'Fehlzeiten importieren (Untis)'),
       K.buch && h('button', { type: 'button', class: 'knopf gross', id: 'start-stundenplan', onclick: stundenplanLaden }, 'Stundenplan laden (.ics)'),
       K.buch && h('button', { type: 'button', class: 'knopf gross', onclick: dateiSchliessen }, 'Aktuelle Datei schließen'),

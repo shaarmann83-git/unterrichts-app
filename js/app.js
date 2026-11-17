@@ -1,6 +1,6 @@
 // Start der App: Navigation, Ansichtswechsel, Statusanzeige, Autosave, Sperre, Offline-Dienst.
 import { K } from './kontext.js';
-import { h, leeren, toast } from './ui.js';
+import { h, leeren, toast, meldung } from './ui.js';
 import { speichern } from './aktionen.js';
 import { arbeitskopieSpeichern, einstellungen, einstellungSetzen } from './speicher.js';
 import { anmeldungAbschliessen } from './onedrive.js';
@@ -30,6 +30,7 @@ export const istAnmeldeAntwort = (hash = location.hash) => /^#(code|error|id_tok
 
 let aktuell = null; // {el, update}
 let autosaveTimer = null;
+let kopieFehlerGemeldet = false;
 
 function pfad() {
   const teile = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
@@ -41,13 +42,32 @@ function sichtbar(def) {
   return true;
 }
 
+// Gruppen für das aufklappbare Menü (Handy, Tablet hochkant). Am Rechner sind die Überschriften unsichtbar.
+function menueGruppe(def) {
+  const reihe = def.reihe ?? 50;
+  if (reihe < 2) return 'Notenbuch';
+  if (reihe < 9) return K.daten ? `Klasse ${K.daten.kopf.klasse || 'ohne Namen'}` : 'Klasse';
+  return 'Übergreifend';
+}
+
+function menueSchliessen() {
+  document.body.classList.remove('menue-offen');
+  document.getElementById('knopf-menue')?.setAttribute('aria-expanded', 'false');
+}
+
 function menueZeichnen(aktiv) {
   const nav = document.getElementById('navigation');
   leeren(nav);
   const sortiert = Object.entries(ANSICHTEN).sort((a, b) => (a[1].reihe ?? 50) - (b[1].reihe ?? 50));
+  let gruppe = '';
   for (const [id, def] of sortiert) {
     if (def.keinMenue || !sichtbar(def)) continue;
     const gesperrt = id !== 'start' && !def.ohneBuch && (!K.buch || (def.klasse && !def.klassenWahlSelbst && !K.daten));
+    const g = menueGruppe(def);
+    if (g !== gruppe) {
+      gruppe = g;
+      nav.append(h('span', { class: 'menue-gruppe' }, g));
+    }
     nav.append(
       h(
         'a',
@@ -55,12 +75,30 @@ function menueZeichnen(aktiv) {
           href: `#/${id}`,
           class: `menue-punkt${aktiv === id ? ' aktiv' : ''}${gesperrt ? ' gesperrt' : ''}`,
           'aria-current': aktiv === id ? 'page' : null,
+          onclick: menueSchliessen,
         },
         def.text,
       ),
     );
   }
+  // Im aufgeklappten Menü stehen auch Hilfe und Hell/Dunkel (die Knöpfe oben sind auf schmalen Bildschirmen ausgeblendet).
+  nav.append(
+    h('span', { class: 'menue-gruppe' }, 'Anzeige'),
+    h('button', { type: 'button', class: 'menue-punkt menue-zusatz', onclick: () => { menueSchliessen(); document.getElementById('knopf-hilfe')?.click(); } }, 'Hilfe zu den Knöpfen an/aus'),
+    h('button', { type: 'button', class: 'menue-punkt menue-zusatz', onclick: () => document.getElementById('knopf-farbe')?.click() }, 'Hell/Dunkel wechseln'),
+  );
+  const aktuell = document.getElementById('menue-aktuell');
+  if (aktuell) aktuell.textContent = [ANSICHTEN[aktiv]?.text || 'Menü', ANSICHTEN[aktiv]?.klasse && K.daten?.kopf.klasse].filter(Boolean).join(' · ');
 }
+
+document.getElementById('knopf-menue')?.addEventListener('click', (e) => {
+  const offen = document.body.classList.toggle('menue-offen');
+  e.currentTarget.setAttribute('aria-expanded', String(offen));
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') menueSchliessen(); });
+document.addEventListener('click', (e) => {
+  if (document.body.classList.contains('menue-offen') && !e.target.closest('#kopf')) menueSchliessen();
+});
 
 function klassenWahlZeichnen() {
   const ziel = document.getElementById('dokument-titel');
@@ -99,22 +137,30 @@ function statusZeichnen() {
   klassenWahlZeichnen();
   if (K.buch) {
     const sync = K.syncStatus?.();
-    const od = K.sync ? ` · OneDrive ${K.sync.ausstehend ? 'ausstehend' : K.sync.zuletzt ? K.sync.zuletzt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : ''}` : '';
-    status.textContent = (K.geaendert ? 'Ungespeicherte Änderungen' : 'Gespeichert') + od;
+    const od = K.sync ? ` · ${K.syncOrtName?.() || 'OneDrive'} ${K.sync.ausstehend ? 'ausstehend' : K.sync.zuletzt ? K.sync.zuletzt.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : ''}` : '';
+    leeren(status);
+    status.append(
+      h('span', { class: 'nur-breit' }, (K.geaendert ? 'Ungespeicherte Änderungen' : 'Gespeichert') + od),
+      h('span', { class: 'nur-schmal' }, (K.geaendert ? 'Ungespeichert' : 'Gespeichert') + (K.sync?.ausstehend ? ' · offline' : '')),
+    );
     status.className = `status ${K.geaendert ? 'ungespeichert' : 'gespeichert'}`;
     status.title = sync || '';
     knopf.hidden = false;
   } else {
-    status.textContent = '';
+    leeren(status);
     knopf.hidden = true;
   }
   const warn = document.getElementById('schutz-hinweis');
   if (warn) {
     const zeigen = K.buch && !K.passwort;
     warn.hidden = !zeigen;
-    warn.textContent = zeigen
-      ? 'Ohne Passwort ist die lokale Arbeitskopie in diesem Browser ungeschützt. Empfehlung: unter „Notenbuch“ ein Passwort setzen.'
-      : '';
+    leeren(warn);
+    if (zeigen) {
+      warn.append(
+        h('span', { class: 'nur-breit' }, 'Ohne Passwort ist die lokale Arbeitskopie in diesem Browser ungeschützt. Empfehlung: unter „Notenbuch“ ein Passwort setzen.'),
+        h('a', { class: 'nur-schmal', href: '#/buch' }, 'Ohne Passwort ungeschützt. Unter „Notenbuch“ ein Passwort setzen.'),
+      );
+    }
   }
 }
 
@@ -144,6 +190,7 @@ function zeigeAnsicht() {
       return;
     }
   }
+  menueSchliessen();
   const ziel = document.getElementById('ansicht');
   leeren(ziel);
   document.body.dataset.ansicht = bereich;
@@ -162,7 +209,15 @@ function autosaveAusfuehren() {
   clearTimeout(autosaveTimer);
   autosaveTimer = null;
   if (!K.buch) return;
-  arbeitskopieSpeichern(K.buch, K.dateiname, K.geaendert, K.passwort).catch(() => {});
+  arbeitskopieSpeichern(K.buch, K.dateiname, K.geaendert, K.passwort).then(
+    () => { kopieFehlerGemeldet = false; },
+    (e) => {
+      // Einmal melden, nicht bei jeder Eingabe. Nach einer erfolgreichen Sicherung wird wieder gemeldet.
+      if (kopieFehlerGemeldet) return;
+      kopieFehlerGemeldet = true;
+      meldung('Arbeitskopie nicht gesichert', `Die lokale Arbeitskopie auf diesem Gerät konnte nicht gesichert werden (${e?.message || 'Speicher nicht verfügbar'}). Bitte jetzt speichern, sonst gehen Änderungen beim Schließen der App verloren.`);
+    },
+  );
   K.nachAenderung?.();
 }
 

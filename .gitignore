@@ -10,3 +10,5 @@ AbsenceList*
 AbsencePerStudent*
 # Stundenpläne (iCal) sind persönliche Daten
 *.ics
+# Notendateien des eigenen Servers
+daten/

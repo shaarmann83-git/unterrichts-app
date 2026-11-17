@@ -19,7 +19,10 @@ const STANDARD = {
   onedriveClientId: '',
   onedriveTenantId: '',
   onedriveAutosave: true,
+  onedriveSicherung: true, // einmal am Tag eine Sicherungskopie im OneDrive-Ordner „Sicherungen“
   onedriveEingang: false,
+  serverAn: false, // Notendateien auf dem eigenen Server statt in OneDrive (App läuft dann von diesem Server)
+  serverSchluessel: '',
 };
 
 export function einstellungen() {

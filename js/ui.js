@@ -34,6 +34,15 @@ export function leeren(el) {
   while (el.firstChild) el.removeChild(el.firstChild);
 }
 
+/** Handy oder Tablet hochkant (dieselbe Grenze wie im Stylesheet). */
+export const schmal = () => globalThis.matchMedia?.('(max-width: 900px)').matches || false;
+
+/** Aufklappbarer Bereich. `offen` legt den Anfangszustand fest, `beimWechsel(offen)` meldet das Auf- und Zuklappen. */
+export function klappBereich(titel, offen, beimWechsel, ...kinder) {
+  const el = h('details', { class: 'klapp', open: !!offen }, h('summary', { onclick: () => setTimeout(() => beimWechsel?.(el.open), 0) }, titel), kinder);
+  return el;
+}
+
 // ---------- Dialoge ----------
 
 function dialogZeigen(titel, inhalt, knoepfe) {

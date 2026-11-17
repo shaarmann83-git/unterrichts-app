@@ -316,3 +316,38 @@ test('Antwort verloren und danach ändert ein anderes Gerät: weiterhin Konflikt
   await assert.rejects(syncHochladen(s, 'v3'), SyncKonflikt);
   assert.equal(ort.inhalt, 'fremd');
 });
+
+// ---------- Fremde Änderung erkennen, ohne die Datei zu laden ----------
+
+test('syncFremdGeaendert: nur bei Änderung durch ein anderes Gerät', async () => {
+  const { syncFremdGeaendert } = await import('../js/sync.js');
+  const ort = speicherOrt();
+  const s = syncStarten(ort);
+  assert.equal(await syncFremdGeaendert(s), false, 'noch nichts hochgeladen');
+  await syncHochladen(s, 'v1');
+  assert.equal(await syncFremdGeaendert(s), false);
+  ort.dauerMs = 20;
+  const lauf = syncHochladen(s, 'v2'); // eigener Upload läuft noch
+  assert.equal(await syncFremdGeaendert(s), false, 'eigener Upload ist keine fremde Änderung');
+  await lauf;
+  ort.fremdSchreiben('fremd');
+  assert.equal(await syncFremdGeaendert(s), true);
+  assert.equal(ort.laeufe.laden, 0, 'die Datei selbst wird dafür nicht geladen');
+  ort.offline = true;
+  assert.equal(await syncFremdGeaendert(s), false, 'offline: kein Fehlalarm');
+});
+
+// ---------- Tägliche Sicherungskopien ----------
+
+test('Sicherungskopien: Name, Zuordnung zum Notenbuch und Aufräumen', async () => {
+  const { sicherungsName, sicherungenVon, ueberzaehligeSicherungen } = await import('../js/sync.js');
+  assert.equal(sicherungsName('Notenbuch_2026-27.noten', '2026-11-17'), 'Notenbuch_2026-27_2026-11-17.noten');
+  const namen = [];
+  for (let t = 1; t <= 12; t++) namen.push(sicherungsName('Notenbuch_2026-27.noten', `2026-11-${String(t).padStart(2, '0')}`));
+  namen.push('Anderes_2026-11-01.noten', 'Notenbuch_2026-27_Notiz.noten', 'Notenbuch_2026-27 (Kopie 2026-11-01 0800).noten');
+  const eigene = sicherungenVon(namen, 'Notenbuch_2026-27.noten');
+  assert.equal(eigene.length, 12);
+  assert.equal(eigene[0].tag, '2026-11-12', 'neueste zuerst');
+  assert.deepEqual(ueberzaehligeSicherungen(namen, 'Notenbuch_2026-27.noten'), ['Notenbuch_2026-27_2026-11-02.noten', 'Notenbuch_2026-27_2026-11-01.noten']);
+  assert.deepEqual(ueberzaehligeSicherungen(namen.slice(0, 5), 'Notenbuch_2026-27.noten'), []);
+});

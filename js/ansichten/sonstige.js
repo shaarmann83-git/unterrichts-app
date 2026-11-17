@@ -1,5 +1,5 @@
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen, meldung, fuege, avatar } from '../ui.js';
+import { h, leeren, bestaetigen, meldung, fuege, avatar, schmal } from '../ui.js';
 import { neuerTermin, heuteIso, datumDeutsch, aktiveSchueler, anzeigename } from '../modell.js';
 import { prozentSLKlasse, gesamtPerson, formatZahl, zahlLesen, istPunktsystem } from '../rechnen.js';
 
@@ -63,7 +63,9 @@ function extras(d, termin, s) {
       teile.push(h('label', { class: 'inline klein' }, h('input', { type: 'checkbox', 'aria-label': `${l.name}: ${anzeigename(s)}`, checked: abhakErledigt(l, s.id), onchange: (e) => { abhakSetzen(l, s.id, e.target.checked, datum); K.aenderung(); } }), ` ${l.name}`));
     }
   }
-  return h('div', { class: 'schnell-extra' }, teile);
+  // Schmale Bildschirme: Die Fehlzeit der Stunde ist zugeklappt, solange nichts eingetragen ist. Listen-Felder bleiben sichtbar.
+  const offen = !schmal() || !!fz || !!marke || teile.length > (marke ? 2 : 1);
+  return h('details', { class: 'schnell-extra-klapp', open: offen }, h('summary', { class: 'klein' }, 'Fehlzeit dieser Stunde'), h('div', { class: 'schnell-extra' }, teile));
 }
 
 export function zeigeSonstige(params) {

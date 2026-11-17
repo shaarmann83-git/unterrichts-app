@@ -1,5 +1,5 @@
 import { K } from '../kontext.js';
-import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog, personLink } from '../ui.js';
+import { h, leeren, bestaetigen, enterNachUnten, avatar, inhaltDialog, personLink, schmal, klappBereich } from '../ui.js';
 import { neueKlassenarbeit, aktiveSchueler, anzeigename, heuteIso, datumDeutsch, aufgabenGruppen, aufgabenTeile, spaltenName, gruppeHoechst, gruppeErreicht, aufgabenAuswertung } from '../modell.js';
 import { TEILNAHME, fehlzeitenAmTermin, teilnahmeVorschlaege, teilnahmeStatus } from '../nachschreiben.js';
 import { untisListeLaden, UNTIS_WEG_ABWESENHEIT } from './fehlzeiten.js';
@@ -9,6 +9,7 @@ import { druckVorwahl } from './drucken.js';
 import { ergebnisKA, gesamtpunkte, notenspiegel, formatZahl, formatKurz, zahlLesen, NOTEN_WORTE } from '../rechnen.js';
 
 let modus = null; // 'tabelle' | 'einzel'
+let angabenOffen = null; // von Hand auf- oder zugeklappt (gilt, solange die App offen ist); null = automatisch
 let einzelPosition = 0;
 
 function ergebnisHolen(ka, s) {
@@ -202,7 +203,12 @@ export function zeigeKlassenarbeit(params) {
   const arbeitsflaeche = h('div', { class: 'arbeitsflaeche' });
   const spiegel = h('div', { class: 'notenspiegel' });
   const auswertung = h('div', { class: 'aufgaben-auswertung' });
-  wurzel.append(kopfFormular, aufgabenKnoepfe, teileBereich, arbeitsflaeche, h('h2', {}, 'Notenspiegel'), spiegel, h('h2', {}, 'Auswertung je Aufgabe'), auswertung);
+  // Auf Handy und Tablet hochkant steht die Punktetabelle oben: Die Angaben einer fertig eingerichteten Arbeit sind dort zugeklappt.
+  const wechselKnopf = aufgabenKnoepfe.lastElementChild;
+  wechselKnopf.remove();
+  const eingerichtet = !!ka.datum && ka.aufgaben.some((a) => a !== null && a !== undefined && a !== '');
+  const angaben = klappBereich('Angaben zur Klassenarbeit (Datum, Gewicht, Schwerpunkte, Aufgaben)', angabenOffen ?? !(schmal() && eingerichtet), (o) => { angabenOffen = o; }, kopfFormular, aufgabenKnoepfe, teileBereich);
+  wurzel.append(angaben, h('div', { class: 'knopfreihe' }, wechselKnopf), arbeitsflaeche, h('h2', {}, 'Notenspiegel'), spiegel, h('h2', {}, 'Auswertung je Aufgabe'), auswertung);
 
   async function nachgeschriebenFragen(s, e) {
     const t = ka.teilnahme[s.id];

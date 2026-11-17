@@ -77,6 +77,48 @@ async function eigenerUploadErkannt(sync) {
   }
 }
 
+/**
+ * Hat ein anderes Gerät die Datei geändert? Vergleicht nur den eTag (keine Datei wird geladen).
+ * Wartet einen laufenden eigenen Upload ab. Bei Netzfehler oder unbekanntem Stand: false.
+ */
+export async function syncFremdGeaendert(sync) {
+  if (!sync?.ort.stand) return false;
+  try {
+    await (sync.schlange || Promise.resolve()).catch(() => {});
+    if (sync.etag === null) return false;
+    const etag = await sync.ort.stand();
+    return etag !== null && etag !== sync.etag;
+  } catch {
+    return false;
+  }
+}
+
+// ---------- Tägliche Sicherungskopien ----------
+
+export const SICHERUNG_ORDNER = 'Sicherungen';
+export const SICHERUNGEN_BEHALTEN = 10;
+
+const basisVon = (dateiname) => String(dateiname || 'Notenbuch').replace(/\.noten$/i, '');
+
+/** Name der Sicherungskopie eines Tages, z. B. „Notenbuch_2026-27_2026-11-17.noten“. */
+export function sicherungsName(dateiname, tag) {
+  return `${basisVon(dateiname)}_${tag}.noten`;
+}
+
+/** Sicherungen dieses Notenbuchs aus einer Namensliste, neueste zuerst: [{name, tag}]. */
+export function sicherungenVon(namen, dateiname) {
+  const basis = `${basisVon(dateiname)}_`;
+  return namen
+    .filter((n) => n.startsWith(basis) && /^\d{4}-\d{2}-\d{2}\.noten$/i.test(n.slice(basis.length)))
+    .map((n) => ({ name: n, tag: n.slice(basis.length, basis.length + 10) }))
+    .sort((a, b) => (a.tag < b.tag ? 1 : -1));
+}
+
+/** Welche Sicherungen können weg? Die neuesten `behalten` bleiben. */
+export function ueberzaehligeSicherungen(namen, dateiname, behalten = SICHERUNGEN_BEHALTEN) {
+  return sicherungenVon(namen, dateiname).slice(behalten).map((s) => s.name);
+}
+
 /** Text „zuletzt synchronisiert um …“ für die Anzeige. */
 export function syncStatusText(sync) {
   if (!sync) return '';
@@ -103,6 +145,10 @@ export function speicherOrt(name = 'Test.noten') {
     },
     get etag() {
       return inhalt === null ? null : `"e${zaehler}"`;
+    },
+    async stand() {
+      if (ort.offline) throw new Error('offline');
+      return ort.etag;
     },
     async laden() {
       ort.laeufe.laden += 1;
