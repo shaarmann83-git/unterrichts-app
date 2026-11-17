@@ -6,6 +6,7 @@ export const K = {
   handle: null, // Dateizugriff (File System Access API), falls vorhanden
   dateiname: '',
   geaendert: false, // ungespeicherte Änderungen gegenüber der Notendatei
+  stand: 0, // Zähler der Änderungen in dieser Sitzung
   sync: null, // Synchronisationszustand (sync.js), wenn OneDrive für dieses Notenbuch an ist
   /** Die aktuell gewählte Klasse (der bisherige „Datenblock“); null, wenn keine gewählt ist. */
   get daten() {

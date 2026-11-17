@@ -262,3 +262,57 @@ test('OneDrive: Fehlerantworten werden verständlich gemeldet', async () => {
   const c = graphClient({ tokenHolen: async () => 'T', fetchFn: async () => ({ status: 403, ok: false, json: async () => ({ error: { message: 'Zugriff verweigert' } }) }) });
   await assert.rejects(c.meta('x'), /403.*Zugriff verweigert/);
 });
+
+// ---------- Eigene Uploads dürfen nicht als fremde Änderung gelten ----------
+
+test('Zwei Uploads kurz nacheinander (Speichern während der automatischen Sicherung): kein Konflikt', async () => {
+  const ort = speicherOrt();
+  const s = syncStarten(ort);
+  await syncHochladen(s, 'v1');
+  ort.dauerMs = 20;
+  const erster = syncHochladen(s, 'v2');
+  const zweiter = syncHochladen(s, 'v3'); // startet, bevor der erste fertig ist
+  await Promise.all([erster, zweiter]);
+  assert.equal(ort.inhalt, 'v3');
+  assert.equal(s.etag, ort.etag);
+});
+
+test('Nach einem Fehler läuft die Warteschlange weiter', async () => {
+  const ort = speicherOrt();
+  const s = syncStarten(ort);
+  await syncHochladen(s, 'v1');
+  ort.offline = true;
+  const fehl = syncHochladen(s, 'v2');
+  const wiederOnline = fehl.catch(() => { ort.offline = false; });
+  const gut = syncHochladen(s, 'v3');
+  await assert.rejects(fehl, /offline/);
+  await wiederOnline;
+  await gut;
+  assert.equal(ort.inhalt, 'v3');
+});
+
+test('Upload kam an, Antwort ging verloren: der nächste Upload erkennt die eigene Fassung', async () => {
+  const ort = speicherOrt();
+  const s = syncStarten(ort);
+  await syncHochladen(s, 'v1');
+  ort.antwortVerlieren = true;
+  await assert.rejects(syncHochladen(s, 'v2'), /unterbrochen/);
+  assert.equal(ort.inhalt, 'v2');
+  assert.equal(s.ausstehend, true);
+  ort.antwortVerlieren = false;
+  await syncHochladen(s, 'v3');
+  assert.equal(ort.inhalt, 'v3');
+  assert.equal(s.ausstehend, false);
+});
+
+test('Antwort verloren und danach ändert ein anderes Gerät: weiterhin Konflikt, nichts wird überschrieben', async () => {
+  const ort = speicherOrt();
+  const s = syncStarten(ort);
+  await syncHochladen(s, 'v1');
+  ort.antwortVerlieren = true;
+  await assert.rejects(syncHochladen(s, 'v2'), /unterbrochen/);
+  ort.antwortVerlieren = false;
+  ort.fremdSchreiben('fremd');
+  await assert.rejects(syncHochladen(s, 'v3'), SyncKonflikt);
+  assert.equal(ort.inhalt, 'fremd');
+});

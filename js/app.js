@@ -157,18 +157,31 @@ function zeigeAnsicht() {
 K.statusAktualisieren = statusZeichnen;
 K.neuZeichnen = zeigeAnsicht;
 K.aktualisieren = () => aktuell?.update?.();
+// Arbeitskopie sichern und danach (falls eingeschaltet) die Synchronisation anstoßen.
+function autosaveAusfuehren() {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = null;
+  if (!K.buch) return;
+  arbeitskopieSpeichern(K.buch, K.dateiname, K.geaendert, K.passwort).catch(() => {});
+  K.nachAenderung?.();
+}
+
 K.aenderung = () => {
   K.geaendert = true;
+  K.stand = (K.stand || 0) + 1; // zählt Änderungen, damit ein laufender Upload spätere Änderungen nicht als gespeichert meldet
   statusZeichnen();
   K.aktualisieren();
   clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(() => {
-    if (K.buch) {
-      arbeitskopieSpeichern(K.buch, K.dateiname, K.geaendert, K.passwort).catch(() => {});
-      K.nachAenderung?.();
-    }
-  }, 600);
+  autosaveTimer = setTimeout(autosaveAusfuehren, 600);
 };
+
+// Handy und Tablet beenden eine App im Hintergrund ohne Rückfrage. Deshalb die Arbeitskopie sofort sichern,
+// sobald die App in den Hintergrund geht, statt die kurze Wartezeit abzuwarten.
+function beimVerlassenSichern() {
+  if (autosaveTimer) autosaveAusfuehren();
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') beimVerlassenSichern(); });
+window.addEventListener('pagehide', beimVerlassenSichern);
 
 // ---------- Farbschema ----------
 function farbschemaAnwenden() {

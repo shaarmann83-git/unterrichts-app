@@ -165,6 +165,7 @@ export async function syncSpeichern({ still = false } = {}) {
     return false;
   }
   const vorher = K.buch.gespeichertAm;
+  const stand = K.stand;
   K.buch.gespeichertAm = new Date().toISOString();
   let text;
   try {
@@ -182,9 +183,12 @@ export async function syncSpeichern({ still = false } = {}) {
     if (!still) toast('OneDrive nicht erreichbar. Die Änderungen sind lokal gesichert und werden beim nächsten Online-Sein hochgeladen.');
     return false;
   }
-  K.geaendert = false;
+  // Wurde während des Hochladens weitergearbeitet, ist nur der Stand von vorher in OneDrive: nicht als gespeichert melden.
+  const unveraendert = K.stand === stand;
+  if (unveraendert) K.geaendert = false;
   K.statusAktualisieren?.();
-  arbeitskopieSpeichern(K.buch, K.dateiname, false, K.passwort).catch(() => {});
+  arbeitskopieSpeichern(K.buch, K.dateiname, K.geaendert, K.passwort).catch(() => {});
+  if (!unveraendert) autosaveAnstossen();
   if (!still) toast(`In OneDrive gespeichert. ${syncStatusText(K.sync)}`);
   return true;
 }
@@ -270,8 +274,14 @@ export async function neuereFassungPruefen() {
     } catch {
       return;
     }
-    if (remote.dokumentId === K.buch.dokumentId && (remote.gespeichertAm || '') > (K.buch.gespeichertAm || '')) {
-      const wahl = await auswahl('Neuere Fassung in OneDrive', `In OneDrive liegt eine neuere Fassung (Stand ${datumDeutsch(remote.gespeichertAm.slice(0, 10))}). Laden?`, [
+    if (remote.dokumentId !== K.buch.dokumentId) {
+      // Gleicher Dateiname, aber ein anderes Notenbuch: nicht verbinden, sonst würde es beim Speichern überschrieben.
+      await meldung('Anderes Notenbuch in OneDrive', `In OneDrive liegt unter dem Namen „${K.buch.einstellungen.sync.name}“ ein anderes Notenbuch. Damit nichts überschrieben wird, bleibt die Synchronisation für dieses Notenbuch aus.`);
+      return;
+    }
+    if ((remote.gespeichertAm || '') > (K.buch.gespeichertAm || '')) {
+      const lokal = K.geaendert ? ' Achtung: Auf diesem Gerät gibt es Änderungen, die noch nicht in OneDrive sind. Sie gehen beim Laden verloren.' : '';
+      const wahl = await auswahl('Neuere Fassung in OneDrive', `In OneDrive liegt eine neuere Fassung (Stand ${datumDeutsch(remote.gespeichertAm.slice(0, 10))}). Laden?${lokal}`, [
         { text: 'Jetzt nicht', wert: 'nein', abbruch: true },
         { text: 'Neuere Fassung laden', wert: 'ja', klasse: 'knopf primaer' },
       ]);

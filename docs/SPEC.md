@@ -482,3 +482,11 @@ Optional und nachrangig: Erst umsetzen, wenn Stufe 3 fertig und getestet ist. Zi
 - Unter dem Notenspiegel: Auswertung je Aufgabe und Teilaufgabe (Höchstpunkte, Anzahl Werte, Durchschnitt in Punkten und Prozent, kleinster, größter Wert; Summenzeile je Aufgabe mit Teilaufgaben). Es zählen nur eingetragene Werte.
 - Import-Knöpfe nennen den Weg in Untis: Abwesenheiten (Klassenbuch → Abwesenheiten → Klasse → gesamtes Schuljahr → Berichte → Excel) und Schülerliste (Stammdaten → Schüler → Klasse → Berichte → Excel).
 - Leere Schülerzeilen in den Grunddaten verschwinden automatisch.
+
+### 12.12 Synchronisation zuverlässiger (11/2026, noten-v43)
+
+- Uploads desselben Notenbuchs laufen nacheinander. Vorher konnte „Speichern“ während der automatischen Sicherung (oder eine zweite automatische Sicherung bei langsamem Netz) den eigenen ersten Upload als Änderung „auf einem anderen Gerät“ melden.
+- Geht die Antwort eines Uploads verloren (Verbindung weg, App im Hintergrund), merkt sich die App den gesendeten Text. Liegt beim nächsten Speichern genau dieser Text in OneDrive, gilt er als eigene Fassung und es gibt keinen Konflikt. Echte fremde Änderungen führen weiter zur Konfliktabfrage, überschrieben wird nie.
+- Wird während des Hochladens weitergearbeitet, bleibt die Anzeige auf „Ungespeicherte Änderungen“ und die automatische Sicherung lädt erneut hoch.
+- Die Arbeitskopie wird sofort gesichert, sobald die App in den Hintergrund geht (Handy, Tablet), nicht erst nach der Wartezeit von 0,6 Sekunden.
+- Beim Öffnen einer lokalen Kopie: Liegt in OneDrive unter demselben Namen ein anderes Notenbuch, wird nicht verbunden (Hinweis). Bei „Neuere Fassung in OneDrive“ warnt die Abfrage, wenn lokale Änderungen dabei verloren gingen.

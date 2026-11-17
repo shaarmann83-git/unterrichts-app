@@ -13,7 +13,7 @@ export class SyncKonflikt extends Error {
 
 /** Neuer Sync-Zustand für ein geöffnetes Dokument. */
 export function syncStarten(ort, etag = null) {
-  return { ort, etag, zuletzt: null, ausstehend: false };
+  return { ort, etag, zuletzt: null, ausstehend: false, schlange: null, unbestaetigt: null };
 }
 
 export async function syncLaden(sync) {
@@ -28,18 +28,52 @@ export async function syncLaden(sync) {
 /**
  * Lädt hoch. Bei Konflikt wird NICHT überschrieben: es wird SyncKonflikt geworfen.
  * Bei Netzfehler bleibt `ausstehend` gesetzt, damit beim nächsten Online-Sein erneut hochgeladen wird.
+ *
+ * Uploads desselben Dokuments laufen nacheinander. Sonst schickt ein zweiter Upload (z. B. „Speichern“ während
+ * der automatischen Sicherung) noch den alten eTag mit und sieht den eigenen ersten Upload als fremde Änderung.
  */
-export async function syncHochladen(sync, text) {
+export function syncHochladen(sync, text) {
+  const lauf = (sync.schlange || Promise.resolve()).catch(() => {}).then(() => hochladenEinmal(sync, text));
+  sync.schlange = lauf;
+  return lauf;
+}
+
+async function hochladenEinmal(sync, text) {
   try {
-    const r = await sync.ort.speichern(text, sync.etag);
+    let r;
+    try {
+      r = await sync.ort.speichern(text, sync.etag);
+    } catch (e) {
+      if (!e.konflikt || !(await eigenerUploadErkannt(sync))) throw e;
+      r = await sync.ort.speichern(text, sync.etag);
+    }
     sync.etag = r.etag;
     sync.zuletzt = new Date();
     sync.ausstehend = false;
+    sync.unbestaetigt = null;
     return r;
   } catch (e) {
     if (e.konflikt) throw e;
+    // Ob der Upload noch angekommen ist, ist unklar (Verbindung weg, App im Hintergrund): Text merken.
+    sync.unbestaetigt = text;
     sync.ausstehend = true;
     throw e;
+  }
+}
+
+/**
+ * Konflikt nach einem Upload ohne Antwort: Liegt am Speicherort genau der Text, den dieses Gerät zuletzt
+ * geschickt hat, war es der eigene Upload und keine fremde Änderung. Dann gilt dessen eTag.
+ */
+async function eigenerUploadErkannt(sync) {
+  if (!sync.unbestaetigt) return false;
+  try {
+    const r = await sync.ort.laden();
+    if (!r || r.text !== sync.unbestaetigt) return false;
+    sync.etag = r.etag;
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -61,6 +95,8 @@ export function speicherOrt(name = 'Test.noten') {
   const ort = {
     name,
     offline: false,
+    dauerMs: 0, // so lange braucht ein Upload (langsames Netz)
+    antwortVerlieren: false, // Upload kommt an, die Antwort aber nicht
     laeufe: { laden: 0, speichern: 0 },
     get inhalt() {
       return inhalt;
@@ -76,9 +112,11 @@ export function speicherOrt(name = 'Test.noten') {
     async speichern(text, erwartet) {
       ort.laeufe.speichern += 1;
       if (ort.offline) throw new Error('offline');
+      if (ort.dauerMs) await new Promise((fertig) => setTimeout(fertig, ort.dauerMs));
       if (inhalt === null ? erwartet !== null : erwartet !== ort.etag) throw new SyncKonflikt();
       inhalt = text;
       zaehler += 1;
+      if (ort.antwortVerlieren) throw new Error('Verbindung unterbrochen');
       return { etag: ort.etag };
     },
     fremdSchreiben(text) {
